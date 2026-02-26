@@ -38,7 +38,7 @@ app.secret_key = os.environ.get('SECRET_KEY', 'luna-gifts-secret-key-change-me')
 
 ADMIN_IDS = [5257227756, 7589153715]
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '8338591585:AAH8ezZ8xO7Y9KlU9GQe4Sj5nhdCIyOaXnE')
-WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://lunagifts-rasswetiks-projects.vercel.app')
+WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://lunagifts.onrender.com')
 MIN_WITHDRAW = 15
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
