@@ -1,0 +1,120 @@
+[
+    {
+        "id": 1,
+        "name": "Стартовый кейс",
+        "price": 25,
+        "image": "/static/img/DailyCase.png",
+        "drops": [
+            {"type": "stars", "amount": 5, "chance": 40},
+            {"type": "stars", "amount": 8, "chance": 25},
+            {"type": "stars", "amount": 12, "chance": 14},
+            {"type": "stars", "amount": 18, "chance": 8},
+            {"type": "stars", "amount": 28, "chance": 5},
+            {"type": "stars", "amount": 45, "chance": 3.5},
+            {"type": "stars", "amount": 70, "chance": 2},
+            {"type": "stars", "amount": 120, "chance": 1.5},
+            {"type": "gift", "gift_id": 68, "chance": 0.6},
+            {"type": "gift", "gift_id": 15, "chance": 0.3},
+            {"type": "gift", "gift_id": 4, "chance": 0.1}
+        ]
+    },
+    {
+        "id": 2,
+        "name": "Базовый кейс",
+        "price": 75,
+        "image": "/static/img/PepeCase.png",
+        "drops": [
+            {"type": "stars", "amount": 12, "chance": 38},
+            {"type": "stars", "amount": 20, "chance": 24},
+            {"type": "stars", "amount": 35, "chance": 15},
+            {"type": "stars", "amount": 55, "chance": 8},
+            {"type": "stars", "amount": 80, "chance": 5},
+            {"type": "stars", "amount": 130, "chance": 3},
+            {"type": "stars", "amount": 220, "chance": 2},
+            {"type": "stars", "amount": 400, "chance": 1},
+            {"type": "gift", "gift_id": 68, "chance": 1.5},
+            {"type": "gift", "gift_id": 67, "chance": 1},
+            {"type": "gift", "gift_id": 22, "chance": 0.6},
+            {"type": "gift", "gift_id": 48, "chance": 0.5},
+            {"type": "gift", "gift_id": 37, "chance": 0.4}
+        ]
+    },
+    {
+        "id": 3,
+        "name": "Премиум кейс",
+        "price": 200,
+        "image": "/static/img/PromoCase.png",
+        "drops": [
+            {"type": "stars", "amount": 25, "chance": 30.5},
+            {"type": "stars", "amount": 50, "chance": 21},
+            {"type": "stars", "amount": 80, "chance": 14},
+            {"type": "stars", "amount": 120, "chance": 8},
+            {"type": "stars", "amount": 180, "chance": 5},
+            {"type": "stars", "amount": 280, "chance": 3},
+            {"type": "stars", "amount": 450, "chance": 1.5},
+            {"type": "stars", "amount": 800, "chance": 0.5},
+            {"type": "gift", "gift_id": 22, "chance": 4.5},
+            {"type": "gift", "gift_id": 35, "chance": 3.5},
+            {"type": "gift", "gift_id": 48, "chance": 3},
+            {"type": "gift", "gift_id": 57, "chance": 2.5},
+            {"type": "gift", "gift_id": 27, "chance": 1.5},
+            {"type": "gift", "gift_id": 76, "chance": 1},
+            {"type": "gift", "gift_id": 5, "chance": 0.5}
+        ]
+    },
+    {
+        "id": 4,
+        "name": "Элитный кейс",
+        "price": 500,
+        "image": "/static/img/PaketCase.png",
+        "drops": [
+            {"type": "stars", "amount": 100, "chance": 22},
+            {"type": "stars", "amount": 170, "chance": 14},
+            {"type": "stars", "amount": 280, "chance": 8},
+            {"type": "stars", "amount": 450, "chance": 4},
+            {"type": "stars", "amount": 700, "chance": 2},
+            {"type": "stars", "amount": 1100, "chance": 1},
+            {"type": "gift", "gift_id": 27, "chance": 12},
+            {"type": "gift", "gift_id": 76, "chance": 10},
+            {"type": "gift", "gift_id": 5, "chance": 8},
+            {"type": "gift", "gift_id": 56, "chance": 6},
+            {"type": "gift", "gift_id": 101, "chance": 5},
+            {"type": "gift", "gift_id": 73, "chance": 3},
+            {"type": "gift", "gift_id": 16, "chance": 2},
+            {"type": "gift", "gift_id": 40, "chance": 1.5},
+            {"type": "gift", "gift_id": 42, "chance": 0.8},
+            {"type": "gift", "gift_id": 46, "chance": 0.7}
+        ]
+    },
+    {
+        "id": 5,
+        "name": "Легендарный кейс",
+        "price": 1000,
+        "image": "/static/img/TelegramCase.png",
+        "drops": [
+            {"type": "stars", "amount": 280, "chance": 16},
+            {"type": "stars", "amount": 550, "chance": 10},
+            {"type": "stars", "amount": 850, "chance": 6},
+            {"type": "stars", "amount": 1300, "chance": 3},
+            {"type": "stars", "amount": 2000, "chance": 2},
+            {"type": "stars", "amount": 4000, "chance": 1},
+            {"type": "gift", "gift_id": 5, "chance": 14},
+            {"type": "gift", "gift_id": 56, "chance": 10},
+            {"type": "gift", "gift_id": 73, "chance": 8},
+            {"type": "gift", "gift_id": 16, "chance": 6},
+            {"type": "gift", "gift_id": 13, "chance": 4},
+            {"type": "gift", "gift_id": 103, "chance": 3},
+            {"type": "gift", "gift_id": 11, "chance": 3},
+            {"type": "gift", "gift_id": 21, "chance": 2},
+            {"type": "gift", "gift_id": 2, "chance": 1},
+            {"type": "gift", "gift_id": 40, "chance": 3},
+            {"type": "gift", "gift_id": 42, "chance": 2},
+            {"type": "gift", "gift_id": 55, "chance": 2},
+            {"type": "gift", "gift_id": 70, "chance": 1.5},
+            {"type": "gift", "gift_id": 43, "chance": 1},
+            {"type": "gift", "gift_id": 39, "chance": 0.8},
+            {"type": "gift", "gift_id": 77, "chance": 0.5},
+            {"type": "gift", "gift_id": 8, "chance": 0.2}
+        ]
+    }
+]

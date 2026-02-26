@@ -1,0 +1,2237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts -- Admin</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+    /* Styled selects */
+    .styled-select{background:rgba(255,255,255,.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7B8D' stroke-width='2.5' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 12px center;padding-right:32px;}
+    .styled-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+    /* Gift picker */
+    .gift-picker-wrap{position:relative;}
+    .gift-picker-list{max-height:200px;overflow-y:auto;background:rgba(20,25,40,.95);border:1px solid var(--border);border-radius:10px;margin-top:6px;}
+    .gift-picker-list:empty{display:none;}
+    .gift-picker-item{display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;transition:background .15s;border-bottom:1px solid rgba(255,255,255,.04);}
+    .gift-picker-item:hover{background:rgba(107,138,255,.1);}
+    .gift-picker-item img{width:36px;height:36px;border-radius:8px;object-fit:cover;background:rgba(255,255,255,.05);}
+    .gift-picker-item-info{flex:1;min-width:0;}
+    .gift-picker-item-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .gift-picker-item-price{font-size:11px;color:var(--gold);}
+    .gift-picker-selected{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(107,138,255,.08);border:1px solid rgba(107,138,255,.2);border-radius:10px;margin-top:6px;}
+    /* Promo list dot */
+    .admin-list-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+    .admin-list-dot.active{background:var(--green);}
+    .admin-list-dot.inactive{background:var(--red);}
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Header with back button -->
+        <div class="admin-header-bar">
+            <a href="/inventory" class="admin-back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+            <div class="admin-header-title">
+                <img src="/static/img/settings.png" alt="" style="width:22px;height:22px;">
+                <span>Админ панель</span>
+            </div>
+            <div style="width:36px;"></div>
+        </div>
+
+        <div id="accessDenied" style="display: none;">
+            <div class="empty-state">
+                <div class="empty-icon"><img src="/static/img/lock.png" alt=""></div>
+                <p>Доступ запрещен</p>
+            </div>
+        </div>
+
+        <div id="adminContent" style="display: none;">
+
+            <!-- Stats Dashboard -->
+            <div class="admin-stats-grid" id="statsGrid">
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="statUsers">--</div>
+                    <div class="admin-stat-label">Пользователей</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="statBalance">--</div>
+                    <div class="admin-stat-label">Общий баланс</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="statItems">--</div>
+                    <div class="admin-stat-label">Предметов</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="admin-stat-value" id="statRefs">--</div>
+                    <div class="admin-stat-label">Рефералов</div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="admin-menu" id="adminMenu">
+                <div class="admin-menu-item" onclick="switchSection('tasks')">
+                    <div class="admin-menu-icon tasks-icon"><img src="/static/img/task.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Задания</div>
+                        <div class="admin-menu-desc">Создание и управление</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('cases')">
+                    <div class="admin-menu-icon cases-icon"><img src="/static/img/cases.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Кейсы</div>
+                        <div class="admin-menu-desc">Редактирование кейсов</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('gifts')">
+                    <div class="admin-menu-icon gifts-icon"><img src="/static/img/gift.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Подарки</div>
+                        <div class="admin-menu-desc">Управление маркетом</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('users')">
+                    <div class="admin-menu-icon users-icon"><img src="/static/img/profil.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Пользователи</div>
+                        <div class="admin-menu-desc">Баланс и управление</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('promos')">
+                    <div class="admin-menu-icon" style="background:linear-gradient(135deg,#FFD74A,#E6B800);"><img src="/static/img/star.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Промокоды</div>
+                        <div class="admin-menu-desc">Создание и управление</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('scratches')">
+                    <div class="admin-menu-icon" style="background:linear-gradient(135deg,#8A5CF6,#6D28D9);"><img src="/static/img/gifs/moon.gif" alt="" style="width:20px;height:20px;"></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Скретчи</div>
+                        <div class="admin-menu-desc">Moon Scratch управление</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('statistics')">
+                    <div class="admin-menu-icon" style="background:linear-gradient(135deg,#27AE60,#1E8449);"><img src="/static/img/profil.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Статистика</div>
+                        <div class="admin-menu-desc">Подробная аналитика</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+                <div class="admin-menu-item" onclick="switchSection('withdrawals')">
+                    <div class="admin-menu-icon" style="background:linear-gradient(135deg,#E64C4C,#D43A3A);"><img src="/static/img/star.png" alt=""></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Выводы</div>
+                        <div class="admin-menu-desc">Управление выводами</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+
+            <!-- ====== SECTIONS (hidden by default) ====== -->
+
+            <!-- Tasks Section -->
+            <div class="admin-section-page" id="section-tasks" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Задания</span>
+                </div>
+
+                <div class="admin-card">
+                    <h3><img src="/static/img/plus.png" alt="" style="width:16px;height:16px;"> Новое задание</h3>
+                    <div class="admin-form-group">
+                        <label>Тип задания</label>
+                        <div class="admin-type-selector" style="flex-wrap:wrap;gap:6px;">
+                            <button class="admin-type-btn active" data-type="subscribe" onclick="selectTaskType(this)">Подписка</button>
+                            <button class="admin-type-btn" data-type="chat" onclick="selectTaskType(this)">Чат</button>
+                            <button class="admin-type-btn" data-type="story" onclick="selectTaskType(this)">История</button>
+                            <button class="admin-type-btn" data-type="bot" onclick="selectTaskType(this)">Бот</button>
+                            <button class="admin-type-btn" data-type="topup" onclick="selectTaskType(this)">Пополнение</button>
+                            <button class="admin-type-btn" data-type="referral" onclick="selectTaskType(this)">Рефералы</button>
+                            <button class="admin-type-btn" data-type="earn_stars" onclick="selectTaskType(this)">Заработок</button>
+                        </div>
+                        <input type="hidden" id="taskType" value="subscribe">
+                    </div>
+                    <!-- Goal amount (for topup/referral/earn_stars) -->
+                    <div class="admin-form-group" id="goalGroup" style="display:none;">
+                        <label id="goalLabel">Цель</label>
+                        <input class="admin-input" id="taskGoalAmount" type="number" placeholder="0">
+                    </div>
+                    <div class="admin-form-group">
+                        <label>Название</label>
+                        <input class="admin-input" id="taskTitle" placeholder="Подписаться на канал...">
+                    </div>
+                    <div class="admin-form-group">
+                        <label>Описание</label>
+                        <input class="admin-input" id="taskDesc" placeholder="Необязательно">
+                    </div>
+                    <!-- Reward type selector -->
+                    <div class="admin-form-group">
+                        <label>Тип награды</label>
+                        <div class="admin-type-selector">
+                            <button class="admin-type-btn active" data-rtype="stars" onclick="selectRewardType(this)">Звёзды</button>
+                            <button class="admin-type-btn" data-rtype="gift" onclick="selectRewardType(this)">Подарок</button>
+                        </div>
+                        <input type="hidden" id="rewardType" value="stars">
+                    </div>
+                    <!-- Stars reward amount -->
+                    <div class="admin-form-group" id="starsRewardGroup">
+                        <label>Награда (звёзды)</label>
+                        <input class="admin-input" id="taskReward" type="number" placeholder="10">
+                    </div>
+                    <!-- Gift picker (for gift rewards) -->
+                    <div class="admin-form-group" id="giftPickerGroup" style="display:none;">
+                        <label>Выберите подарок-награду</label>
+                        <div id="giftPickerGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;max-height:300px;overflow-y:auto;"></div>
+                        <input type="hidden" id="rewardGiftId" value="">
+                    </div>
+                    <!-- Channel/Link (for subscribe/chat/story/bot) -->
+                    <div id="linkFields">
+                        <div class="admin-form-row">
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>ID канала</label>
+                                <input class="admin-input" id="taskChannelId" placeholder="@channel">
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Ссылка</label>
+                            <input class="admin-input" id="taskLink" placeholder="https://t.me/...">
+                        </div>
+                    </div>
+                    <button class="admin-btn primary full-w" onclick="createTask()">Создать задание</button>
+                </div>
+
+                <div class="admin-card">
+                    <h3><img src="/static/img/task.png" alt="" style="width:16px;height:16px;"> Список заданий</h3>
+                    <div id="tasksList"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+                </div>
+            </div>
+
+            <!-- Cases Section -->
+            <div class="admin-section-page" id="section-cases" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Кейсы</span>
+                    <button class="admin-btn primary small" onclick="showAddCaseForm()" style="margin-left:auto;">+ Новый</button>
+                </div>
+                <div id="casesListAdmin"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+
+                <!-- Add/Edit Case Form (hidden) -->
+                <div id="caseFormContainer" style="display:none;">
+                    <div class="admin-card">
+                        <h3 id="caseFormTitle">Новый кейс</h3>
+                        <input type="hidden" id="caseEditId" value="">
+                        <div class="admin-form-group">
+                            <label>Название</label>
+                            <input class="admin-input" id="caseName" placeholder="Telegram Case">
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>Цена</label>
+                                <input class="admin-input" id="casePrice" type="number" placeholder="100">
+                            </div>
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>ID</label>
+                                <input class="admin-input" id="caseId" type="number" placeholder="Авто">
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Картинка (путь)</label>
+                            <input class="admin-input" id="caseImage" placeholder="/static/img/TelegramCase.png">
+                        </div>
+                        <div class="admin-form-group" style="display:flex;align-items:center;gap:10px;">
+                            <label style="margin:0;">Скрытый кейс</label>
+                            <input type="checkbox" id="caseHidden" style="width:20px;height:20px;accent-color:var(--accent);">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Дропы</label>
+                            <div id="caseDropsList"></div>
+                            <button class="admin-btn small" onclick="addDropField()" style="margin-top:8px;">+ Добавить дроп</button>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <button class="admin-btn primary full-w" onclick="saveCase()">Сохранить</button>
+                            <button class="admin-btn danger" onclick="cancelCaseForm()">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gifts Section -->
+            <div class="admin-section-page" id="section-gifts" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Подарки (<span id="giftsCount">0</span>)</span>
+                    <button class="admin-btn primary small" id="btnAddGiftLocal" onclick="showAddGiftForm()" style="margin-left:auto;">+ Новый</button>
+                </div>
+
+                <!-- Tabs: Local gifts | TG Catalog -->
+                <div class="admin-tabs">
+                    <button class="admin-tab active" id="tabLocalGifts" onclick="switchGiftTab('local')">Наши подарки</button>
+                    <button class="admin-tab" id="tabTgCatalog" onclick="switchGiftTab('tg')">Каталог TG</button>
+                </div>
+
+                <!-- LOCAL GIFTS TAB -->
+                <div id="localGiftsTab">
+                <div class="admin-form-group" style="margin-bottom:12px;">
+                    <input class="admin-input" id="giftSearch" placeholder="Поиск подарков..." oninput="filterGifts()">
+                </div>
+                <div id="giftsListAdmin"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+
+                <!-- Add/Edit Gift Form (hidden) -->
+                <div id="giftFormContainer" style="display:none;">
+                    <div class="admin-card">
+                        <h3 id="giftFormTitle">Новый подарок</h3>
+                        <input type="hidden" id="giftEditId" value="">
+                        <div class="admin-form-row">
+                            <div class="admin-form-group" style="flex:2;">
+                                <label>Название</label>
+                                <input class="admin-input" id="giftName" placeholder="Diamond Ring">
+                            </div>
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>ID</label>
+                                <input class="admin-input" id="giftIdField" type="number" placeholder="Авто">
+                            </div>
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>Цена</label>
+                                <input class="admin-input" id="giftPrice" type="number" placeholder="100">
+                            </div>
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>Slug</label>
+                                <input class="admin-input" id="giftSlug" placeholder="diamondring">
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Картинка</label>
+                            <input class="admin-input" id="giftImage" placeholder="/static/img/gifts/diamondring.webp">
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="admin-form-group" style="flex:2;">
+                                <label>Telegram Gift ID <button class="admin-btn small" onclick="loadTgStarGifts()" style="font-size:10px;padding:2px 6px;margin-left:4px;">Загрузить каталог</button></label>
+                                <input class="admin-input" id="giftTelegramId" placeholder="ID из каталога Telegram">
+                            </div>
+                            <div class="admin-form-group" style="flex:1;display:flex;align-items:flex-end;">
+                                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+                                    <input type="checkbox" id="giftWithdrawable"> Доступен для вывода
+                                </label>
+                            </div>
+                        </div>
+                        <div id="tgStarGiftsList" style="display:none;max-height:200px;overflow-y:auto;border:1px solid #2a3040;border-radius:8px;padding:6px;margin-bottom:8px;"></div>
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <button class="admin-btn primary full-w" onclick="saveGift()">Сохранить</button>
+                            <button class="admin-btn danger" onclick="cancelGiftForm()">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+                </div><!-- /localGiftsTab -->
+
+                <!-- TELEGRAM CATALOG TAB -->
+                <div id="tgCatalogTab" style="display:none;">
+                    <div class="tg-balance-card" id="tgCatalogBalanceCard" style="display:none;">
+                        <div class="tg-balance-icon"><img src="/static/img/star.png" alt="" style="width:24px;height:24px;"></div>
+                        <div class="tg-balance-info">
+                            <div class="tg-balance-label">Баланс звёзд аккаунта</div>
+                            <div class="tg-balance-value" id="tgStarBalance">—</div>
+                        </div>
+                    </div>
+                    <div class="admin-form-group" style="margin-bottom:12px;">
+                        <input class="admin-input" id="tgCatalogSearch" placeholder="Поиск по каталогу..." oninput="filterTgCatalog()">
+                    </div>
+                    <div id="tgCatalogGrid" class="tg-catalog-grid">
+                        <div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div class="admin-section-page" id="section-users" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Пользователи</span>
+                </div>
+                <div class="admin-card">
+                    <h3>Изменить баланс</h3>
+                    <div class="admin-form-row">
+                        <div class="admin-form-group" style="flex:1;">
+                            <label>Telegram ID</label>
+                            <input class="admin-input" id="targetUserId" type="number" placeholder="123456789">
+                        </div>
+                        <div class="admin-form-group" style="flex:1;">
+                            <label>Новый баланс</label>
+                            <input class="admin-input" id="newBalance" type="number" placeholder="1000">
+                        </div>
+                    </div>
+                    <button class="admin-btn primary full-w" onclick="setBalance()">Установить</button>
+                </div>
+                <div class="admin-card">
+                    <h3>Список пользователей</h3>
+                    <div class="admin-form-group" style="margin-bottom:10px;">
+                        <input class="admin-input" id="userSearch" placeholder="Поиск по ID или имени..." oninput="filterUsers()">
+                    </div>
+                    <div id="usersListAdmin"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+                </div>
+            </div>
+
+            <!-- Promos Section -->
+            <div class="admin-section-page" id="section-promos" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Промокоды</span>
+                </div>
+
+                <div class="admin-card">
+                    <h3><img src="/static/img/star.png" alt="" style="width:16px;height:16px;"> Новый промокод</h3>
+                    <div class="admin-form-group">
+                        <label>Код</label>
+                        <input class="admin-input" id="promoCode" placeholder="LUNA2025" style="text-transform:uppercase;">
+                    </div>
+                    <div class="admin-form-group">
+                        <label>Тип</label>
+                        <select class="admin-select styled-select" id="promoType" onchange="onPromoTypeChange()">
+                            <option value="stars">Звёзды (начисление)</option>
+                            <option value="topup_percent">% бонус к пополнению</option>
+                            <option value="case_discount">Скидка на кейс %</option>
+                            <option value="scratch_discount">Скидка на скретч %</option>
+                            <option value="gift_discount">Скидка на подарок %</option>
+                            <option value="case_to_inventory">Кейс в инвентарь</option>
+                            <option value="gift_to_inventory">Подарок в инвентарь</option>
+                        </select>
+                    </div>
+                    <div class="admin-form-row">
+                        <div class="admin-form-group" style="flex:1;" id="promoValueGroup">
+                            <label id="promoValueLabel">Кол-во звёзд</label>
+                            <input class="admin-input" id="promoValue" type="number" placeholder="100">
+                        </div>
+                        <div class="admin-form-group" style="flex:1;">
+                            <label>Макс. использований</label>
+                            <input class="admin-input" id="promoMaxUses" type="number" placeholder="100" value="100">
+                        </div>
+                    </div>
+                    <div class="admin-form-group" id="promoCaseGroup" style="display:none;">
+                        <label>Кейс</label>
+                        <select class="admin-select styled-select" id="promoCaseId"></select>
+                    </div>
+                    <div class="admin-form-group" id="promoScratchGroup" style="display:none;">
+                        <label>Скретч</label>
+                        <select class="admin-select styled-select" id="promoScratchId"></select>
+                    </div>
+                    <div class="admin-form-group" id="promoGiftGroup" style="display:none;">
+                        <label>Подарок</label>
+                        <div class="gift-picker-wrap">
+                            <input class="admin-input" id="promoGiftSearch" placeholder="Поиск подарка..." oninput="filterGiftPicker()">
+                            <div class="gift-picker-list" id="promoGiftList"></div>
+                            <input type="hidden" id="promoGiftId" value="0">
+                            <div class="gift-picker-selected" id="promoGiftSelected" style="display:none;"></div>
+                        </div>
+                    </div>
+                    <button class="admin-btn primary full-w" onclick="createPromo()">Создать промокод</button>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Список промокодов</h3>
+                    <div id="promosListAdmin"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+                </div>
+
+                <div class="admin-card" style="margin-top:14px;">
+                    <h3>Бот</h3>
+                    <button class="admin-btn primary full-w" onclick="setupWebhook()">Настроить Webhook бота</button>
+                    <p id="webhookStatus" style="color:var(--text-secondary);font-size:12px;margin-top:8px;"></p>
+                </div>
+            </div>
+
+            <!-- Scratches Section -->
+            <div class="admin-section-page" id="section-scratches" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Скретчи</span>
+                    <button class="admin-btn primary small" onclick="showAddScratchForm()" style="margin-left:auto;">+ Новый</button>
+                </div>
+                <div id="scratchesListAdmin"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+
+                <!-- Add/Edit Scratch Form -->
+                <div id="scratchFormContainer" style="display:none;">
+                    <div class="admin-card">
+                        <h3 id="scratchFormTitle">Новый скретч</h3>
+                        <input type="hidden" id="scratchEditId" value="">
+                        <div class="admin-form-group">
+                            <label>Название</label>
+                            <input class="admin-input" id="scratchName" placeholder="Lunar Lite">
+                        </div>
+                        <div class="admin-form-row">
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>Цена</label>
+                                <input class="admin-input" id="scratchPrice" type="number" placeholder="25">
+                            </div>
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>Ячеек</label>
+                                <input class="admin-input" id="scratchCells" type="number" placeholder="4" value="4">
+                            </div>
+                            <div class="admin-form-group" style="flex:1;">
+                                <label>Стирать (picks)</label>
+                                <input class="admin-input" id="scratchPicks" type="number" placeholder="1" value="1" min="1" max="5">
+                                <div style="font-size:10px;color:#6B7B8D;margin-top:2px;">1-5 ячеек</div>
+                            </div>
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Картинка / GIF (путь)</label>
+                            <input class="admin-input" id="scratchImage" placeholder="/static/img/gifs/moon.gif">
+                            <div style="font-size:11px;color:#6B7B8D;margin-top:4px;">Поддерживается GIF — будет отображаться как аватарка скретча</div>
+                        </div>
+                        <div id="scratchImgPreview" style="text-align:center;margin:8px 0;display:none;">
+                            <img id="scratchImgPrev" style="width:64px;height:64px;object-fit:contain;border-radius:14px;border:1px solid rgba(138,92,246,0.2);" src="" alt="">
+                        </div>
+                        <div class="admin-form-group">
+                            <label>Дропы</label>
+                            <div id="scratchDropsList"></div>
+                            <button class="admin-btn small" onclick="addScratchDropField()" style="margin-top:8px;">+ Добавить дроп</button>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <button class="admin-btn primary full-w" onclick="saveScratch()">Сохранить</button>
+                            <button class="admin-btn danger" onclick="cancelScratchForm()">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Section -->
+            <div class="admin-section-page" id="section-statistics" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Статистика</span>
+                    <button class="admin-btn primary small" onclick="loadDetailedStats()" style="margin-left:auto;">Обновить</button>
+                </div>
+
+                <!-- Overview cards -->
+                <div class="admin-stats-grid" id="detailedStatsGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsUsers">--</div>
+                        <div class="admin-stat-label">Всего пользователей</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsUsersToday">--</div>
+                        <div class="admin-stat-label">Новых за сегодня</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsUsersWeek">--</div>
+                        <div class="admin-stat-label">Новых за неделю</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsBalance">--</div>
+                        <div class="admin-stat-label">Общий баланс</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsDeposited">--</div>
+                        <div class="admin-stat-label">Всего пополнено</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsInventory">--</div>
+                        <div class="admin-stat-label">Предметов</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsReferrals">--</div>
+                        <div class="admin-stat-label">Рефералов</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsWithdrawals">--</div>
+                        <div class="admin-stat-label">Выводов всего</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsCompleted">--</div>
+                        <div class="admin-stat-label">Выводов выполнено</div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-value" id="dsPending">--</div>
+                        <div class="admin-stat-label">Выводов в очереди</div>
+                    </div>
+                </div>
+
+                <!-- Task stats -->
+                <div class="admin-card">
+                    <h3>Статистика заданий</h3>
+                    <div id="taskStatsContainer" style="font-size:13px;color:#8E9AA9;">Загрузка...</div>
+                </div>
+
+                <!-- Top users -->
+                <div class="admin-card" style="margin-top:12px;">
+                    <h3>Топ-10 по балансу</h3>
+                    <div id="topUsersContainer" style="font-size:13px;color:#8E9AA9;">Загрузка...</div>
+                </div>
+            </div>
+
+            <!-- Withdrawals Section -->
+            <div class="admin-section-page" id="section-withdrawals" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Выводы</span>
+                </div>
+
+                <!-- Telethon Session Setup -->
+                <div class="admin-card" id="telethonCard">
+                    <h3>Автовывод (Telethon Relay)</h3>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">
+                        1. Задеплойте relay-сервис на <b>Render.com</b> и укажите URL ниже<br>
+                        2. Получите <b>API ID</b> и <b>API Hash</b> на <a href="https://my.telegram.org" target="_blank" style="color:var(--blue);">my.telegram.org</a><br>
+                        3. <b>Рекомендуется:</b> Вход по QR-коду (самый простой)<br>
+                        4. Или: отправьте код / вставьте сессию
+                    </p>
+
+                    <!-- Relay Config -->
+                    <div style="background:rgba(94,124,230,.08);border:1px solid rgba(94,124,230,.2);border-radius:12px;padding:12px;margin-bottom:12px;">
+                        <div style="font-size:12px;font-weight:700;color:var(--blue);margin-bottom:8px;">Relay сервер</div>
+                        <div style="margin-bottom:8px;">
+                            <label style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;display:block;">Relay URL</label>
+                            <input type="text" id="relayUrl" placeholder="https://your-relay.onrender.com"
+                                style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:12px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <label style="font-size:11px;color:var(--text-secondary);margin-bottom:3px;display:block;">Relay Secret</label>
+                            <input type="password" id="relaySecret" placeholder="секретный ключ"
+                                style="width:100%;padding:9px 12px;border-radius:10px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:12px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                        </div>
+                        <button class="admin-btn primary small" onclick="saveRelayConfig()" id="saveRelayBtn" style="width:100%;font-size:12px;">Сохранить relay</button>
+                        <div id="relayStatusLine" style="margin-top:6px;font-size:11px;color:var(--text-secondary);display:none;"></div>
+                    </div>
+
+                    <!-- Status Banner -->
+                    <div id="telethonStatus" style="display:none;padding:12px 14px;border-radius:12px;margin-bottom:12px;font-size:13px;font-weight:600;"></div>
+
+                    <!-- Connected State -->
+                    <div id="telethonConnected" style="display:none;">
+                        <div style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);margin-bottom:12px;">
+                            <div style="font-size:28px;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27AE60" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                            <div style="flex:1;">
+                                <div style="font-weight:700;color:white;font-size:14px;" id="telethonAccountName">—</div>
+                                <div style="font-size:12px;color:var(--green);" id="telethonAccountInfo">Автовывод активен</div>
+                            </div>
+                            <button class="admin-btn danger small" onclick="disconnectTelethon()">Отключить</button>
+                        </div>
+                    </div>
+
+                    <!-- Auth Form (hidden when connected) -->
+                    <div id="telethonAuthForm">
+                        <!-- Tab switcher -->
+                        <div style="display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,.05);border-radius:10px;padding:3px;">
+                            <button id="tabQrAuth" class="admin-btn small" onclick="switchAuthTab('qr')" style="flex:1;font-size:11px;background:var(--blue);color:white;border:none;">QR-код</button>
+                            <button id="tabCodeAuth" class="admin-btn small" onclick="switchAuthTab('code')" style="flex:1;font-size:11px;background:transparent;color:var(--text-secondary);border:none;">Код</button>
+                            <button id="tabSessionAuth" class="admin-btn small" onclick="switchAuthTab('session')" style="flex:1;font-size:11px;background:transparent;color:var(--text-secondary);border:none;">Сессия</button>
+                        </div>
+
+                        <!-- Tab 0: QR Auth -->
+                        <div id="authTabQr">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                                <div>
+                                    <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">API ID</label>
+                                    <input type="text" id="qrApiId" placeholder="12345678"
+                                        style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">API Hash</label>
+                                    <input type="text" id="qrApiHash" placeholder="abc123..."
+                                        style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                                </div>
+                            </div>
+
+                            <button class="admin-btn primary" onclick="startQrLogin()" id="qrStartBtn" style="width:100%;margin-bottom:12px;">Показать QR-код</button>
+
+                            <!-- QR display area -->
+                            <div id="qrDisplayArea" style="display:none;">
+                                <div style="text-align:center;padding:16px;background:white;border-radius:16px;margin-bottom:12px;">
+                                    <canvas id="qrCanvas" style="max-width:100%;image-rendering:pixelated;"></canvas>
+                                </div>
+                                <div style="text-align:center;margin-bottom:8px;">
+                                    <div style="font-size:13px;color:var(--text-secondary);" id="qrStatusText">Откройте Telegram → Настройки → Устройства → Подключить устройство</div>
+                                </div>
+                                <div id="qrPollSpinner" style="text-align:center;font-size:12px;color:var(--blue);">Ожидание сканирования...</div>
+                            </div>
+
+                            <!-- 2FA section for QR -->
+                            <div id="qr2faSection" style="display:none;">
+                                <div style="background:rgba(230,176,76,.1);border:1px solid rgba(230,176,76,.3);border-radius:12px;padding:12px;margin-bottom:10px;">
+                                    <div style="font-size:13px;color:#E6B04C;font-weight:700;">QR отсканирован! Требуется 2FA пароль</div>
+                                </div>
+                                <div style="margin-bottom:10px;">
+                                    <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">Пароль 2FA</label>
+                                    <input type="password" id="qr2faPassword" placeholder="Пароль двухфакторной аутентификации"
+                                        style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;box-sizing:border-box;">
+                                </div>
+                                <button class="admin-btn primary" onclick="submitQr2fa()" id="qr2faBtn" style="width:100%;">Войти</button>
+                            </div>
+                        </div>
+
+                        <!-- Tab 1: Code Auth -->
+                        <div id="authTabCode" style="display:none;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                            <div>
+                                <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">API ID</label>
+                                <input type="text" id="telethonApiId" placeholder="12345678"
+                                    style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                            </div>
+                            <div>
+                                <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">API Hash</label>
+                                <input type="text" id="telethonApiHash" placeholder="abc123..."
+                                    style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">Номер телефона</label>
+                            <input type="text" id="telethonPhone" placeholder="+7 999 123 45 67"
+                                style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                        </div>
+
+                        <button class="admin-btn primary" onclick="sendTelethonCode()" id="sendCodeBtn" style="width:100%;margin-bottom:10px;">Отправить код</button>
+
+                        <!-- Code & Password (shown after code sent) -->
+                        <div id="telethonCodeSection" style="display:none;">
+                            <button class="admin-btn" onclick="sendTelethonCode(true)" id="resendSmsBtn" style="width:100%;margin-bottom:10px;background:rgba(94,124,230,.15);color:#5E7CE6;border:1px solid rgba(94,124,230,.3);font-size:12px;">Не пришёл код? Повторить через SMS</button>
+                            <div style="margin-bottom:10px;">
+                                <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">Код из Telegram</label>
+                                <input type="text" id="telethonCode" placeholder="12345" maxlength="6"
+                                    style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:15px;outline:none;font-weight:800;font-family:monospace;text-align:center;letter-spacing:8px;box-sizing:border-box;">
+                            </div>
+
+                            <div id="telethonPasswordSection" style="display:none;margin-bottom:10px;">
+                                <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">Пароль 2FA</label>
+                                <input type="password" id="telethonPassword" placeholder="Пароль двухфакторной аутентификации"
+                                    style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;box-sizing:border-box;">
+                            </div>
+
+                            <button class="admin-btn primary" onclick="telethonSignIn()" id="signInBtn" style="width:100%;">Войти</button>
+                        </div>
+                        </div>
+
+                        <!-- Tab 2: Session String Import -->
+                        <div id="authTabSession" style="display:none;">
+                            <div style="background:rgba(94,124,230,.08);border:1px solid rgba(94,124,230,.2);border-radius:12px;padding:12px;margin-bottom:12px;">
+                                <div style="font-size:12px;color:var(--text-secondary);line-height:1.5;">
+                                    <b style="color:var(--blue);">Как получить строку сессии:</b><br>
+                                    1. Установите Python и <code>telethon</code> на своём компьютере<br>
+                                    2. Запустите скрипт ниже<br>
+                                    3. Введите код из Telegram — строка сессии появится в консоли<br>
+                                    4. Скопируйте её и вставьте сюда
+                                </div>
+                                <div style="margin-top:8px;background:rgba(0,0,0,.4);border-radius:8px;padding:10px;font-family:monospace;font-size:11px;color:#8E9AA9;white-space:pre-wrap;word-break:break-all;position:relative;line-height:1.5;" id="sessionScript">pip install telethon
+python -c "
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
+api_id = int(input('API ID: '))
+api_hash = input('API Hash: ')
+with TelegramClient(StringSession(), api_id, api_hash) as c:
+    print('SESSION:', c.session.save())
+"</div>
+                                <button class="admin-btn small" onclick="navigator.clipboard.writeText(document.getElementById('sessionScript').textContent);showNotification('Скопировано!','success');" style="margin-top:6px;font-size:11px;width:100%;background:rgba(94,124,230,.15);color:#5E7CE6;border:1px solid rgba(94,124,230,.3);">Скопировать скрипт</button>
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                                <div>
+                                    <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">API ID</label>
+                                    <input type="text" id="sessionApiId" placeholder="12345678"
+                                        style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                                </div>
+                                <div>
+                                    <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">API Hash</label>
+                                    <input type="text" id="sessionApiHash" placeholder="abc123..."
+                                        style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:13px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;">
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom:10px;">
+                                <label style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;display:block;">Строка сессии (StringSession)</label>
+                                <textarea id="sessionStringInput" placeholder="1BVtsOH0Bu3..." rows="3"
+                                    style="width:100%;padding:10px 14px;border-radius:12px;border:1px solid var(--border-glass);background:rgba(5,8,16,.6);color:white;font-size:12px;outline:none;font-weight:600;font-family:monospace;box-sizing:border-box;resize:vertical;"></textarea>
+                            </div>
+
+                            <button class="admin-btn primary" onclick="importSession()" id="importSessionBtn" style="width:100%;">Импорт сессии</button>
+                        </div>
+                    </div>
+
+                    <!-- Error/Info -->
+                    <div id="telethonMessage" style="display:none;padding:12px;border-radius:12px;margin-top:10px;font-size:13px;"></div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Статистика выводов</h3>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;" id="withdrawStats">
+                        <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+                            <div style="font-size:20px;font-weight:800;color:var(--gold);" id="wStatPending">0</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">Ожидают</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+                            <div style="font-size:20px;font-weight:800;color:var(--green);" id="wStatCompleted">0</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">Завершены</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,.05);border-radius:12px;padding:12px;text-align:center;">
+                            <div style="font-size:20px;font-weight:800;color:var(--red);" id="wStatTotal">0</div>
+                            <div style="font-size:11px;color:var(--text-secondary);">Всего Stars</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="admin-card">
+                    <h3>Список заявок</h3>
+                    <div id="withdrawalsList"><div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        let adminId = null;
+        let allGifts = [];
+        let allCases = [];
+        let allUsers = [];
+        let allScratches = [];
+        let currentSection = null;
+
+        function switchSection(name) {
+            document.getElementById('adminMenu').style.display = 'none';
+            document.getElementById('statsGrid').style.display = 'none';
+            document.querySelectorAll('.admin-section-page').forEach(s => s.style.display = 'none');
+            document.getElementById('section-' + name).style.display = 'block';
+            currentSection = name;
+            if (name === 'tasks') { loadGiftsAdmin().then(() => { loadTasks(); renderGiftPicker(); }); }
+            if (name === 'cases') { loadGiftsAdmin().then(() => loadCasesAdmin()); }
+            if (name === 'gifts') loadGiftsAdmin();
+            if (name === 'users') loadUsersAdmin();
+            if (name === 'promos') loadPromosAdmin();
+            if (name === 'scratches') { loadGiftsAdmin().then(() => loadScratchesAdmin()); }
+            if (name === 'statistics') loadDetailedStats();
+            if (name === 'withdrawals') loadWithdrawalsAdmin();
+        }
+
+        function showMenu() {
+            document.querySelectorAll('.admin-section-page').forEach(s => s.style.display = 'none');
+            document.getElementById('adminMenu').style.display = 'block';
+            document.getElementById('statsGrid').style.display = 'grid';
+            currentSection = null;
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats?admin_id=' + adminId);
+                const d = await res.json();
+                document.getElementById('statUsers').textContent = d.total_users;
+                document.getElementById('statBalance').textContent = fmtBal(d.total_balance);
+                document.getElementById('statItems').textContent = d.total_inventory;
+                document.getElementById('statRefs').textContent = d.total_referrals;
+            } catch(e) {}
+        }
+
+        function fmtBal(b) {
+            if (b >= 1000000) return (b/1000000).toFixed(1)+'M';
+            if (b >= 1000) return (b/1000).toFixed(1)+'K';
+            return Math.floor(b).toString();
+        }
+
+        // ============ TASKS ============
+        const GOAL_TYPES = ['topup', 'referral', 'earn_stars'];
+        const GOAL_LABELS = { topup: 'Сумма пополнения', referral: 'Кол-во рефералов', earn_stars: 'Сумма заработка' };
+
+        function selectTaskType(el) {
+            el.parentElement.querySelectorAll('.admin-type-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const type = el.dataset.type;
+            document.getElementById('taskType').value = type;
+            // Show/hide goal vs link fields
+            const isGoal = GOAL_TYPES.includes(type);
+            document.getElementById('goalGroup').style.display = isGoal ? 'block' : 'none';
+            document.getElementById('linkFields').style.display = isGoal ? 'none' : 'block';
+            if (isGoal) document.getElementById('goalLabel').textContent = GOAL_LABELS[type] || 'Цель';
+        }
+
+        function selectRewardType(el) {
+            el.parentElement.querySelectorAll('.admin-type-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            const rtype = el.dataset.rtype;
+            document.getElementById('rewardType').value = rtype;
+            document.getElementById('starsRewardGroup').style.display = rtype === 'stars' ? 'block' : 'none';
+            document.getElementById('giftPickerGroup').style.display = rtype === 'gift' ? 'block' : 'none';
+            if (rtype === 'gift' && !document.getElementById('giftPickerGrid').children.length) renderGiftPicker();
+        }
+
+        function renderGiftPicker() {
+            const grid = document.getElementById('giftPickerGrid');
+            grid.innerHTML = '';
+            if (!allGifts.length) { grid.innerHTML = '<p style="color:#8E9AA9;font-size:12px;grid-column:1/-1;text-align:center;">Нет подарков</p>'; return; }
+            allGifts.forEach(g => {
+                const img = g.image ? (g.image.startsWith('/') ? g.image : '/' + g.image) : '/static/img/star.png';
+                const card = document.createElement('div');
+                card.className = 'gift-picker-card';
+                card.dataset.giftId = g.id;
+                card.onclick = () => selectGiftReward(g.id);
+                card.style.cssText = 'border-radius:12px;border:2px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);padding:8px;text-align:center;cursor:pointer;transition:all 0.2s;';
+                card.innerHTML = `
+                    <img src="${img}" style="width:48px;height:48px;object-fit:contain;margin-bottom:4px;" onerror="this.src='/static/img/star.png'" alt="">
+                    <div style="font-size:11px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${g.name}</div>
+                    <div style="font-size:10px;color:#8E9AA9;">${g.price} Stars</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectGiftReward(giftId) {
+            document.querySelectorAll('.gift-picker-card').forEach(c => {
+                c.style.borderColor = c.dataset.giftId == giftId ? '#6B8AFF' : 'rgba(255,255,255,0.08)';
+                c.style.background = c.dataset.giftId == giftId ? 'rgba(107,138,255,0.15)' : 'rgba(255,255,255,0.04)';
+            });
+            document.getElementById('rewardGiftId').value = giftId;
+        }
+
+        async function loadTasks() {
+            try {
+                const res = await fetch('/api/admin/tasks');
+                const tasks = await res.json();
+                renderTasks(tasks);
+            } catch(e) {}
+        }
+
+        const TL = { subscribe:'Подписка', chat:'Чат', story:'История', bot:'Бот', topup:'Пополнение', referral:'Рефералы', earn_stars:'Заработок' };
+
+        function renderTasks(tasks) {
+            const c = document.getElementById('tasksList');
+            if (!tasks.length) { c.innerHTML = '<p style="color:#8E9AA9;font-size:14px;text-align:center;padding:16px 0;">Заданий нет</p>'; return; }
+            c.innerHTML = tasks.map(t => {
+                const rewardLabel = t.reward_type === 'gift' ? `${t.gift_name || 'Подарок'}` : `${t.reward} Stars`;
+                const goalLabel = t.goal_amount ? ` | Цель: ${t.goal_amount}` : '';
+                return `
+                <div class="admin-list-item">
+                    <div class="admin-list-dot ${t.is_active ? 'active' : 'inactive'}"></div>
+                    <div class="admin-list-info">
+                        <div class="admin-list-title">${t.title}</div>
+                        <div class="admin-list-meta">${TL[t.type]||t.type} | ${rewardLabel}${goalLabel} | ${t.is_active?'Вкл':'Откл'}</div>
+                    </div>
+                    <div class="admin-list-actions">
+                        <button class="admin-icon-btn" onclick="toggleTask(${t.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${t.is_active?'#E64C4C':'#2EC76E'}" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </button>
+                        <button class="admin-icon-btn danger" onclick="deleteTask(${t.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E64C4C" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        async function createTask() {
+            const type = document.getElementById('taskType').value;
+            const title = document.getElementById('taskTitle').value;
+            const desc = document.getElementById('taskDesc').value;
+            const rewardType = document.getElementById('rewardType').value;
+            const reward = parseFloat(document.getElementById('taskReward').value) || 0;
+            const rewardGiftId = parseInt(document.getElementById('rewardGiftId').value) || 0;
+            const link = document.getElementById('taskLink').value;
+            const channelId = document.getElementById('taskChannelId').value;
+            const goalAmount = parseFloat(document.getElementById('taskGoalAmount').value) || 0;
+            const goalType = GOAL_TYPES.includes(type) ? type : '';
+
+            if (!title) { showNotification('Заполните название', 'error'); return; }
+            if (rewardType === 'stars' && !reward) { showNotification('Укажите награду', 'error'); return; }
+            if (rewardType === 'gift' && !rewardGiftId) { showNotification('Выберите подарок', 'error'); return; }
+            if (goalType && !goalAmount) { showNotification('Укажите цель', 'error'); return; }
+
+            try {
+                const res = await fetch('/api/admin/tasks', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body: JSON.stringify({
+                        admin_id: adminId, type, title, description: desc,
+                        reward, link, channel_id: channelId,
+                        reward_type: rewardType,
+                        reward_gift_id: rewardGiftId,
+                        goal_type: goalType,
+                        goal_amount: goalAmount
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Задание создано!', 'success');
+                    ['taskTitle','taskDesc','taskReward','taskLink','taskChannelId','taskGoalAmount'].forEach(id => document.getElementById(id).value='');
+                    document.getElementById('rewardGiftId').value = '';
+                    document.querySelectorAll('.gift-picker-card').forEach(c => { c.style.borderColor = 'rgba(255,255,255,0.08)'; c.style.background = 'rgba(255,255,255,0.04)'; });
+                    loadTasks();
+                } else showNotification(data.error||'Ошибка', 'error');
+            } catch(e) { showNotification('Ошибка соединения', 'error'); }
+        }
+
+        async function toggleTask(id) {
+            await fetch('/api/admin/tasks/'+id+'/toggle', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({admin_id:adminId}) });
+            loadTasks();
+        }
+
+        async function deleteTask(id) {
+            if (!confirm('Удалить задание?')) return;
+            await fetch('/api/admin/tasks/'+id, { method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({admin_id:adminId}) });
+            showNotification('Удалено', 'success');
+            loadTasks();
+        }
+
+        // ============ CASES ============
+        async function loadCasesAdmin() {
+            try { const res = await fetch('/api/cases?show_hidden=1'); allCases = await res.json(); renderCasesAdmin(); } catch(e) {}
+        }
+
+        function renderCasesAdmin() {
+            const c = document.getElementById('casesListAdmin');
+            if (!allCases.length) { c.innerHTML = '<p style="color:#8E9AA9;text-align:center;padding:16px;">Кейсов нет</p>'; return; }
+            c.innerHTML = allCases.map(cs => {
+                const img = cs.image ? (cs.image.startsWith('/')?cs.image:'/'+cs.image) : '/static/img/star.png';
+                const hiddenBadge = cs.hidden ? '<span style="color:#E64C4C;font-size:11px;margin-left:6px;">скрыт</span>' : '';
+                return `
+                <div class="admin-case-card" onclick="editCase(${cs.id})">
+                    <img src="${img}" alt="${cs.name}" onerror="this.src='/static/img/star.png'">
+                    <div class="admin-case-info">
+                        <div class="admin-case-name">${cs.name}${hiddenBadge}</div>
+                        <div class="admin-case-meta">${cs.price} | ${(cs.drops||[]).length} дропов</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>`;
+            }).join('');
+        }
+
+        function showAddCaseForm() {
+            document.getElementById('caseFormContainer').style.display = 'block';
+            document.getElementById('caseFormTitle').textContent = 'Новый кейс';
+            document.getElementById('caseEditId').value = '';
+            ['caseName','casePrice','caseId','caseImage'].forEach(id => document.getElementById(id).value='');
+            document.getElementById('caseHidden').checked = false;
+            document.getElementById('caseDropsList').innerHTML = '';
+            addDropField();
+        }
+
+        function editCase(caseId) {
+            const cs = allCases.find(c => c.id===caseId);
+            if (!cs) return;
+            document.getElementById('caseFormContainer').style.display = 'block';
+            document.getElementById('caseFormTitle').textContent = cs.name;
+            document.getElementById('caseEditId').value = cs.id;
+            document.getElementById('caseName').value = cs.name;
+            document.getElementById('casePrice').value = cs.price;
+            document.getElementById('caseId').value = cs.id;
+            document.getElementById('caseImage').value = cs.image||'';
+            document.getElementById('caseHidden').checked = !!cs.hidden;
+            const dl = document.getElementById('caseDropsList');
+            dl.innerHTML = '';
+            (cs.drops||[]).forEach(d => addDropField(d));
+        }
+
+        function addDropField(drop) {
+            const div = document.createElement('div');
+            div.className = 'admin-drop-row';
+            const isGift = drop && drop.type === 'gift';
+            // Build gift options
+            let giftOpts = '<option value="">-- Подарок --</option>';
+            allGifts.forEach(g => {
+                const sel = (isGift && drop.gift_id == g.id) ? 'selected' : '';
+                giftOpts += `<option value="${g.id}" ${sel}>${g.name} (${g.price})</option>`;
+            });
+            div.innerHTML = `
+                <select class="admin-input drop-type" onchange="toggleDropFields(this)" style="width:auto;flex:0 0 80px;font-size:13px;">
+                    <option value="stars" ${!isGift?'selected':''}>Stars</option>
+                    <option value="gift" ${isGift?'selected':''}>Gift</option>
+                </select>
+                <input class="admin-input drop-amount" type="number" placeholder="Кол-во" value="${drop&&!isGift?drop.amount:''}" style="flex:1;${isGift?'display:none':''}">
+                <select class="admin-input drop-gift-select" style="flex:1;${!isGift?'display:none':''}">${giftOpts}</select>
+                <input class="admin-input drop-chance" type="number" placeholder="%" value="${drop?drop.chance:''}" style="flex:0 0 55px;">
+                <button class="admin-icon-btn danger" onclick="this.parentElement.remove()" style="flex:0 0 30px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E64C4C" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>`;
+            document.getElementById('caseDropsList').appendChild(div);
+        }
+
+        function toggleDropFields(el) {
+            const row = el.parentElement;
+            const amountInput = row.querySelector('.drop-amount');
+            const giftSelect = row.querySelector('.drop-gift-select');
+            if (el.value === 'gift') {
+                amountInput.style.display = 'none';
+                giftSelect.style.display = '';
+            } else {
+                amountInput.style.display = '';
+                giftSelect.style.display = 'none';
+            }
+        }
+
+        function cancelCaseForm() { document.getElementById('caseFormContainer').style.display = 'none'; }
+
+        async function saveCase() {
+            const name = document.getElementById('caseName').value;
+            const price = parseFloat(document.getElementById('casePrice').value);
+            const image = document.getElementById('caseImage').value;
+            const hidden = document.getElementById('caseHidden').checked;
+            let id = parseInt(document.getElementById('caseId').value);
+            if (!name || !price) { showNotification('Заполните название и цену', 'error'); return; }
+            if (!id) id = allCases.length ? Math.max(...allCases.map(c=>c.id))+1 : 1;
+            const drops = [];
+            document.querySelectorAll('.admin-drop-row').forEach(row => {
+                const type = row.querySelector('.drop-type').value;
+                const chance = parseFloat(row.querySelector('.drop-chance').value);
+                if (!chance) return;
+                if (type === 'stars') {
+                    const val = parseFloat(row.querySelector('.drop-amount').value);
+                    if (!val) return;
+                    drops.push({type:'stars', amount:val, chance});
+                } else {
+                    const giftId = parseInt(row.querySelector('.drop-gift-select').value);
+                    if (!giftId) return;
+                    drops.push({type:'gift', gift_id:giftId, chance});
+                }
+            });
+            try {
+                const res = await fetch('/api/admin/cases/update', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({admin_id:adminId, case:{id,name,price,image,drops,hidden}})
+                });
+                const data = await res.json();
+                if (data.success) { showNotification('Сохранено!', 'success'); cancelCaseForm(); loadCasesAdmin(); }
+                else showNotification(data.error||'Ошибка', 'error');
+            } catch(e) { showNotification('Ошибка', 'error'); }
+        }
+
+        // ============ GIFTS ============
+        async function loadGiftsAdmin() {
+            try { const res = await fetch('/api/gifts'); allGifts = await res.json(); document.getElementById('giftsCount').textContent = allGifts.length; renderGiftsAdmin(allGifts); } catch(e) {}
+        }
+
+        function renderGiftsAdmin(list) {
+            const c = document.getElementById('giftsListAdmin');
+            if (!list.length) { c.innerHTML = '<p style="color:#8E9AA9;text-align:center;padding:16px;">Подарков нет</p>'; return; }
+            c.innerHTML = list.map(g => {
+                const img = g.image?(g.image.startsWith('/')?g.image:'/'+g.image):'/static/img/star.png';
+                return `
+                <div class="admin-gift-row" onclick="editGift(${g.id})">
+                    <img src="${img}" alt="${g.name}" onerror="this.src='/static/img/star.png'">
+                    <div class="admin-gift-info">
+                        <div class="admin-gift-name">${g.name}</div>
+                        <div class="admin-gift-meta">${g.price} | ${g.slug||'no slug'}${g.telegram_gift_id ? ' | TG:'+g.telegram_gift_id : ''}${g.withdrawable ? ' | вывод' : ''}</div>
+                    </div>
+                    <button class="admin-icon-btn danger" onclick="event.stopPropagation();deleteGift(${g.id},'${g.name.replace(/'/g,"\\'")}')" style="flex-shrink:0;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E64C4C" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>`;
+            }).join('');
+        }
+
+        function filterGifts() {
+            const q = document.getElementById('giftSearch').value.toLowerCase();
+            renderGiftsAdmin(allGifts.filter(g => g.name.toLowerCase().includes(q)||(g.slug||'').toLowerCase().includes(q)||String(g.id).includes(q)));
+        }
+
+        function showAddGiftForm() {
+            document.getElementById('giftFormContainer').style.display = 'block';
+            document.getElementById('giftFormTitle').textContent = 'Новый подарок';
+            document.getElementById('giftEditId').value = '';
+            ['giftName','giftIdField','giftPrice','giftSlug','giftImage','giftTelegramId'].forEach(id => document.getElementById(id).value='');
+            document.getElementById('giftWithdrawable').checked = false;
+            document.getElementById('tgStarGiftsList').style.display = 'none';
+        }
+
+        function editGift(giftId) {
+            const g = allGifts.find(x => x.id===giftId);
+            if (!g) return;
+            document.getElementById('giftFormContainer').style.display = 'block';
+            document.getElementById('giftFormTitle').textContent = g.name;
+            document.getElementById('giftEditId').value = g.id;
+            document.getElementById('giftName').value = g.name;
+            document.getElementById('giftIdField').value = g.id;
+            document.getElementById('giftPrice').value = g.price;
+            document.getElementById('giftSlug').value = g.slug||'';
+            document.getElementById('giftImage').value = g.image||'';
+            document.getElementById('giftTelegramId').value = g.telegram_gift_id||'';
+            document.getElementById('giftWithdrawable').checked = !!g.withdrawable;
+            document.getElementById('tgStarGiftsList').style.display = 'none';
+        }
+
+        function cancelGiftForm() { document.getElementById('giftFormContainer').style.display = 'none'; }
+
+        async function saveGift() {
+            const name = document.getElementById('giftName').value;
+            const price = parseFloat(document.getElementById('giftPrice').value);
+            const slug = document.getElementById('giftSlug').value;
+            const image = document.getElementById('giftImage').value;
+            const telegram_gift_id = document.getElementById('giftTelegramId').value.trim();
+            const withdrawable = document.getElementById('giftWithdrawable').checked;
+            let id = parseInt(document.getElementById('giftIdField').value);
+            if (!name || isNaN(price)) { showNotification('Заполните название и цену', 'error'); return; }
+            if (!id) id = allGifts.length ? Math.max(...allGifts.map(g=>g.id))+1 : 1;
+            try {
+                const gift = {id, name, price, slug, image, withdrawable};
+                if (telegram_gift_id) gift.telegram_gift_id = telegram_gift_id;
+                const res = await fetch('/api/admin/gifts/update', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({admin_id:adminId, gift})
+                });
+                const data = await res.json();
+                if (data.success) { showNotification('Сохранено!', 'success'); cancelGiftForm(); loadGiftsAdmin(); }
+                else showNotification(data.error||'Ошибка', 'error');
+            } catch(e) { showNotification('Ошибка', 'error'); }
+        }
+
+        async function loadTgStarGifts() {
+            const container = document.getElementById('tgStarGiftsList');
+            container.style.display = 'block';
+            container.innerHTML = '<div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>';
+            try {
+                const res = await fetchWithTimeout('/api/admin/telethon/star-gifts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId})
+                }, 30000);
+                const data = await res.json();
+                if (!data.ok && data.error) {
+                    container.innerHTML = '<p style="color:#ff6b6b;">'+data.error+'</p>';
+                    return;
+                }
+                const gifts = data.gifts || [];
+                if (!gifts.length) {
+                    container.innerHTML = '<p style="color:#8E9AA9;">Нет доступных подарков</p>';
+                    return;
+                }
+                container.innerHTML = gifts.filter(g => !g.sold_out).map(g => `
+                    <div onclick="document.getElementById('giftTelegramId').value='${g.id}'" style="cursor:pointer;padding:6px 8px;border-bottom:1px solid #2a3040;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:#e0e0e0;">${g.title || 'Gift #'+g.id}</span>
+                        <span style="color:var(--gold);font-size:12px;">${g.stars} Stars | ID: ${g.id}</span>
+                    </div>
+                `).join('');
+            } catch(e) {
+                container.innerHTML = '<p style="color:#ff6b6b;">Ошибка: '+e.message+'</p>';
+            }
+        }
+
+        async function deleteGift(giftId, name) {
+            if (!confirm('Удалить "'+name+'"?')) return;
+            await fetch('/api/admin/gifts/delete', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({admin_id:adminId, gift_id:giftId}) });
+            showNotification('Удалено', 'success');
+            loadGiftsAdmin();
+        }
+
+        // ============ TG CATALOG TAB ============
+        let _tgCatalogGifts = [];
+
+        function switchGiftTab(tab) {
+            document.getElementById('localGiftsTab').style.display = tab === 'local' ? 'block' : 'none';
+            document.getElementById('tgCatalogTab').style.display = tab === 'tg' ? 'block' : 'none';
+            document.getElementById('tabLocalGifts').classList.toggle('active', tab === 'local');
+            document.getElementById('tabTgCatalog').classList.toggle('active', tab === 'tg');
+            document.getElementById('btnAddGiftLocal').style.display = tab === 'local' ? '' : 'none';
+            if (tab === 'tg') loadTgCatalog();
+        }
+
+        async function loadTgCatalog() {
+            const grid = document.getElementById('tgCatalogGrid');
+            grid.innerHTML = '<div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>';
+            try {
+                const res = await fetchWithTimeout('/api/telegram-catalog', {}, 45000);
+                const data = await res.json();
+                if (!data.ok) {
+                    grid.innerHTML = '<p style="color:#ff6b6b;text-align:center;padding:16px;">' + (data.error || 'Ошибка загрузки каталога') + '</p>';
+                    return;
+                }
+                if (data.star_balance !== null && data.star_balance !== undefined) {
+                    document.getElementById('tgCatalogBalanceCard').style.display = 'flex';
+                    document.getElementById('tgStarBalance').textContent = Math.floor(data.star_balance) + ' Stars';
+                }
+                _tgCatalogGifts = data.gifts || [];
+                renderTgCatalog(_tgCatalogGifts);
+            } catch(e) {
+                grid.innerHTML = '<p style="color:#ff6b6b;text-align:center;padding:16px;">Ошибка: ' + e.message + '</p>';
+            }
+        }
+
+        function renderTgCatalog(gifts) {
+            const grid = document.getElementById('tgCatalogGrid');
+            if (!gifts.length) {
+                grid.innerHTML = '<p style="color:#8E9AA9;text-align:center;padding:16px;">Нет доступных подарков в каталоге</p>';
+                return;
+            }
+            grid.innerHTML = gifts.map(g => {
+                const thumb = g.thumb_b64
+                    ? '<img src="data:' + (g.thumb_mime||'image/webp') + ';base64,' + g.thumb_b64 + '" alt="' + g.name + '">'
+                    : '<div class="tg-gift-no-img"><img src="/static/img/star.png" alt="" style="width:32px;height:32px;"></div>';
+                const limited = g.limited ? '<span class="tg-gift-badge">Limited</span>' : '';
+                const avail = (g.limited && g.availability_remains !== null)
+                    ? '<div class="tg-gift-avail">' + g.availability_remains.toLocaleString() + ' / ' + (g.availability_total||'').toLocaleString() + '</div>'
+                    : '';
+                const existing = allGifts.find(lg => String(lg.telegram_gift_id) === String(g.telegram_gift_id));
+                const importBtn = existing
+                    ? '<div class="tg-gift-imported">Добавлен</div>'
+                    : '<button class="admin-btn primary small tg-gift-add-btn" onclick="event.stopPropagation();importTgGift(\'' + g.telegram_gift_id + '\',\'' + (g.name||'').replace(/'/g,"\\'") + '\',' + g.stars + ')">+ Добавить</button>';
+                return '<div class="tg-gift-card">'
+                    + '<div class="tg-gift-thumb">' + thumb + '</div>'
+                    + '<div class="tg-gift-name">' + g.name + '</div>'
+                    + '<div class="tg-gift-stars">' + g.stars + ' Stars</div>'
+                    + '<div class="tg-gift-id">ID: ' + g.telegram_gift_id + '</div>'
+                    + limited + avail + importBtn
+                    + '</div>';
+            }).join('');
+        }
+
+        function filterTgCatalog() {
+            const q = document.getElementById('tgCatalogSearch').value.toLowerCase();
+            if (!q) { renderTgCatalog(_tgCatalogGifts); return; }
+            renderTgCatalog(_tgCatalogGifts.filter(g =>
+                (g.name||'').toLowerCase().includes(q) || String(g.stars).includes(q) || String(g.telegram_gift_id).includes(q)
+            ));
+        }
+
+        async function importTgGift(tgId, name, stars) {
+            const id = allGifts.length ? Math.max(...allGifts.map(g => g.id)) + 1 : 1;
+            const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '').substring(0, 20);
+            const gift = {
+                id, name, price: stars, slug: slug,
+                image: '', withdrawable: true, telegram_gift_id: tgId
+            };
+            try {
+                const res = await fetch('/api/admin/gifts/update', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId, gift})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Подарок "' + name + '" добавлен!', 'success');
+                    await loadGiftsAdmin();
+                    renderTgCatalog(_tgCatalogGifts);
+                } else {
+                    showNotification(data.error || 'Ошибка', 'error');
+                }
+            } catch(e) {
+                showNotification('Ошибка: ' + e.message, 'error');
+            }
+        }
+
+        // ============ USERS ============
+        async function loadUsersAdmin() {
+            try { const res = await fetch('/api/admin/users?admin_id='+adminId); allUsers = await res.json(); renderUsersAdmin(allUsers); } catch(e) {}
+        }
+
+        function renderUsersAdmin(list) {
+            const c = document.getElementById('usersListAdmin');
+            if (!list.length) { c.innerHTML = '<p style="color:#8E9AA9;text-align:center;">Нет пользователей</p>'; return; }
+            c.innerHTML = list.map(u => `
+                <div class="admin-user-row" onclick="quickSetBalance(${u.telegram_id},'${(u.first_name||u.username||'User').replace(/'/g,"\\'")}',${u.balance})">
+                    <div class="admin-user-avatar">${(u.first_name||u.username||'U').charAt(0).toUpperCase()}</div>
+                    <div class="admin-user-info">
+                        <div class="admin-user-name">${u.first_name||u.username||'User'} ${u.last_name||''}</div>
+                        <div class="admin-user-meta">ID: ${u.telegram_id} | ${Math.floor(u.balance)} | dep: ${Math.floor(u.deposited_balance)}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterUsers() {
+            const q = document.getElementById('userSearch').value.toLowerCase();
+            renderUsersAdmin(allUsers.filter(u => String(u.telegram_id).includes(q)||(u.username||'').toLowerCase().includes(q)||(u.first_name||'').toLowerCase().includes(q)));
+        }
+
+        function quickSetBalance(tgId, name, bal) {
+            document.getElementById('targetUserId').value = tgId;
+            document.getElementById('newBalance').value = Math.floor(bal);
+            document.getElementById('targetUserId').scrollIntoView({behavior:'smooth',block:'center'});
+        }
+
+        async function setBalance() {
+            const targetId = document.getElementById('targetUserId').value;
+            const amount = parseFloat(document.getElementById('newBalance').value);
+            if (!targetId || isNaN(amount)) { showNotification('Заполните все поля', 'error'); return; }
+            try {
+                const res = await fetch('/api/admin/balance', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({admin_id:adminId, target_id:parseInt(targetId), amount})
+                });
+                const data = await res.json();
+                if (data.success) { showNotification('Баланс обновлен!', 'success'); if (currentSection==='users') loadUsersAdmin(); }
+                else showNotification(data.error||'Ошибка', 'error');
+            } catch(e) { showNotification('Ошибка', 'error'); }
+        }
+
+        // ============ PROMOS ============
+        const PROMO_TYPES = {stars:'Звёзды',topup_percent:'% к пополнению',case_discount:'Скидка на кейс',scratch_discount:'Скидка на скретч',gift_discount:'Скидка на подарок',case_to_inventory:'Кейс в инвентарь',gift_to_inventory:'Подарок в инвентарь'};
+        let allGiftsAdmin = [];
+
+        function onPromoTypeChange() {
+            const t = document.getElementById('promoType').value;
+            const vl = document.getElementById('promoValueLabel');
+            const cg = document.getElementById('promoCaseGroup');
+            const sg = document.getElementById('promoScratchGroup');
+            const gg = document.getElementById('promoGiftGroup');
+            const vg = document.getElementById('promoValueGroup');
+            cg.style.display='none'; sg.style.display='none'; gg.style.display='none'; vg.style.display='';
+            if (t === 'stars') { vl.textContent = 'Кол-во звёзд'; }
+            else if (t === 'topup_percent') { vl.textContent = 'Процент бонуса'; }
+            else if (t === 'case_discount') { vl.textContent = 'Скидка %'; cg.style.display='block'; populatePromoCases(); }
+            else if (t === 'scratch_discount') { vl.textContent = 'Скидка %'; sg.style.display='block'; populatePromoScratches(); }
+            else if (t === 'gift_discount') { vl.textContent = 'Скидка %'; }
+            else if (t === 'case_to_inventory') { vl.textContent = 'Значение (0)'; cg.style.display='block'; populatePromoCases(); }
+            else if (t === 'gift_to_inventory') { vg.style.display='none'; gg.style.display='block'; populatePromoGifts(); }
+        }
+
+        function populatePromoCases() {
+            const sel = document.getElementById('promoCaseId');
+            sel.innerHTML = '<option value="0">-- Выберите кейс --</option>';
+            allCases.forEach(cs => {
+                sel.innerHTML += `<option value="${cs.id}">${cs.name} (${cs.price} Stars)</option>`;
+            });
+        }
+
+        function populatePromoScratches() {
+            const sel = document.getElementById('promoScratchId');
+            sel.innerHTML = '<option value="0">-- Выберите скретч --</option>';
+            fetch('/api/scratch').then(r=>r.json()).then(scratches => {
+                scratches.forEach(s => {
+                    sel.innerHTML += `<option value="${s.id}">${s.name} (${s.price} Stars)</option>`;
+                });
+            });
+        }
+
+        async function populatePromoGifts() {
+            if (!allGiftsAdmin.length) {
+                try { const res = await fetch('/api/gifts'); allGiftsAdmin = await res.json(); } catch(e){}
+            }
+            renderGiftPicker(allGiftsAdmin);
+        }
+
+        function renderGiftPicker(gifts) {
+            const list = document.getElementById('promoGiftList');
+            list.innerHTML = gifts.slice(0, 50).map(g => `
+                <div class="gift-picker-item" onclick="selectPromoGift(${g.id},'${(g.name||'').replace(/'/g,"\\'")}','${g.image||''}',${g.price||0})">
+                    <img src="${g.image||'/static/img/star.png'}" alt="" onerror="this.src='/static/img/star.png'">
+                    <div class="gift-picker-item-info">
+                        <div class="gift-picker-item-name">${g.name}</div>
+                        <div class="gift-picker-item-price">${g.price||0} Stars</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterGiftPicker() {
+            const q = document.getElementById('promoGiftSearch').value.toLowerCase();
+            const filtered = allGiftsAdmin.filter(g => (g.name||'').toLowerCase().includes(q));
+            renderGiftPicker(filtered);
+        }
+
+        function selectPromoGift(id, name, image, price) {
+            document.getElementById('promoGiftId').value = id;
+            document.getElementById('promoGiftSearch').value = '';
+            document.getElementById('promoGiftList').innerHTML = '';
+            const sel = document.getElementById('promoGiftSelected');
+            sel.style.display = 'flex';
+            sel.innerHTML = `<img src="${image||'/static/img/star.png'}" alt="" onerror="this.src='/static/img/star.png'" style="width:32px;height:32px;border-radius:8px;object-fit:cover;"><div><b>${name}</b><br><span style="font-size:11px;color:var(--gold);">${price} Stars</span></div><button class="admin-btn small" onclick="clearPromoGift()" style="margin-left:auto;">X</button>`;
+        }
+
+        function clearPromoGift() {
+            document.getElementById('promoGiftId').value = '0';
+            document.getElementById('promoGiftSelected').style.display = 'none';
+        }
+
+        async function loadPromosAdmin() {
+            // Also load cases for case_to_inventory type
+            try { const res = await fetch('/api/cases?show_hidden=1'); allCases = await res.json(); } catch(e) {}
+            try {
+                const res = await fetch('/api/admin/promos?admin_id=' + adminId);
+                const promos = await res.json();
+                renderPromos(promos);
+            } catch(e) {}
+        }
+
+        function renderPromos(promos) {
+            const c = document.getElementById('promosListAdmin');
+            if (!promos.length) { c.innerHTML = '<p style="color:#8E9AA9;text-align:center;padding:16px;">Промокодов нет</p>'; return; }
+            c.innerHTML = promos.map(p => `
+                <div class="admin-list-item">
+                    <div class="admin-list-dot ${p.is_active ? 'active' : 'inactive'}"></div>
+                    <div class="admin-list-info">
+                        <div class="admin-list-title" style="font-family:monospace;letter-spacing:1px;">${p.code}</div>
+                        <div class="admin-list-meta">${PROMO_TYPES[p.type]||p.type} | Значение: ${p.value} | Исп: ${p.used_count}/${p.max_uses}</div>
+                    </div>
+                    <div class="admin-list-actions">
+                        <button class="admin-icon-btn danger" onclick="deletePromo(${p.id})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E64C4C" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function createPromo() {
+            const code = document.getElementById('promoCode').value.trim();
+            const type = document.getElementById('promoType').value;
+            const value = parseFloat(document.getElementById('promoValue').value) || 0;
+            const maxUses = parseInt(document.getElementById('promoMaxUses').value) || 100;
+            const caseId = parseInt(document.getElementById('promoCaseId').value) || 0;
+            const scratchId = parseInt(document.getElementById('promoScratchId').value) || 0;
+            const giftId = parseInt(document.getElementById('promoGiftId').value) || 0;
+            if (!code) { showNotification('Введите код', 'error'); return; }
+            if (type === 'gift_to_inventory' && !giftId) { showNotification('Выберите подарок', 'error'); return; }
+            try {
+                const res = await fetch('/api/admin/promos', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({admin_id:adminId, code, type, value, max_uses:maxUses, case_id:caseId, gift_id:giftId, scratch_id:scratchId})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Промокод создан!', 'success');
+                    document.getElementById('promoCode').value = '';
+                    clearPromoGift();
+                    loadPromosAdmin();
+                } else showNotification(data.error||'Ошибка', 'error');
+            } catch(e) { showNotification('Ошибка', 'error'); }
+        }
+
+        async function deletePromo(id) {
+            if (!confirm('Удалить промокод?')) return;
+            await fetch('/api/admin/promos/' + id, { method:'DELETE', headers:{'Content-Type':'application/json'}, body:JSON.stringify({admin_id:adminId}) });
+            showNotification('Удалено', 'success');
+            loadPromosAdmin();
+        }
+
+        // ============ WITHDRAWALS ADMIN ============
+        const W_STATUS = {pending:'Ожидает',queued:'В очереди',processing:'Обработка',completed:'Завершён',manual:'Ручной',partial:'Частично',rejected:'Отклонён',failed:'Ошибка'};
+
+        // ---- Telethon session management (via relay) ----
+        async function loadRelayConfig() {
+            try {
+                const res = await fetch('/api/admin/telethon/relay-config?admin_id=' + adminId);
+                const d = await res.json();
+                if (d.relay_url) document.getElementById('relayUrl').value = d.relay_url;
+                if (d.relay_secret) document.getElementById('relaySecret').value = d.relay_secret;
+            } catch(e) { console.error('loadRelayConfig error', e); }
+        }
+
+        async function saveRelayConfig() {
+            const url = document.getElementById('relayUrl').value.trim();
+            const secret = document.getElementById('relaySecret').value.trim();
+            if (!url) { showNotification('Укажите Relay URL', 'error'); return; }
+            const btn = document.getElementById('saveRelayBtn');
+            btn.disabled = true; btn.textContent = 'Загрузка...';
+            try {
+                const res = await fetch('/api/admin/telethon/relay-config', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId, relay_url: url, relay_secret: secret})
+                });
+                const d = await res.json();
+                if (d.success) {
+                    showNotification('Relay сохранён', 'success');
+                    const line = document.getElementById('relayStatusLine');
+                    line.style.display = 'block'; line.style.color = 'var(--green)';
+                    line.textContent = url;
+                } else {
+                    showNotification(d.error || 'Ошибка', 'error');
+                }
+            } catch(e) { showNotification('Ошибка сети', 'error'); }
+            btn.disabled = false; btn.textContent = 'Сохранить relay';
+        }
+
+        async function loadTelethonStatus() {
+            await loadRelayConfig();
+            try {
+                const res = await fetchWithTimeout('/api/admin/telethon/status?admin_id=' + adminId, {}, 30000);
+                const d = await res.json();
+
+                const statusEl = document.getElementById('telethonStatus');
+                const connectedEl = document.getElementById('telethonConnected');
+                const authForm = document.getElementById('telethonAuthForm');
+
+                if (!d.available) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.background = 'rgba(230,76,76,.15)';
+                    statusEl.style.color = '#E64C4C';
+                    statusEl.textContent = d.error || 'Relay не настроен';
+                    return;
+                }
+
+                if (d.relay_error) {
+                    statusEl.style.display = 'block';
+                    statusEl.style.background = 'rgba(230,176,76,.15)';
+                    statusEl.style.color = '#E6B04C';
+                    statusEl.textContent = 'Relay: ' + d.relay_error;
+                }
+
+                // Fill saved fields
+                if (d.api_id) {
+                    document.getElementById('telethonApiId').value = d.api_id;
+                    document.getElementById('qrApiId').value = d.api_id;
+                    document.getElementById('sessionApiId').value = d.api_id;
+                }
+                if (d.api_hash) {
+                    document.getElementById('telethonApiHash').value = d.api_hash;
+                    document.getElementById('qrApiHash').value = d.api_hash;
+                    document.getElementById('sessionApiHash').value = d.api_hash;
+                }
+                if (d.phone) document.getElementById('telethonPhone').value = d.phone;
+
+                if (d.connected) {
+                    connectedEl.style.display = 'block';
+                    authForm.style.display = 'none';
+                    document.getElementById('telethonAccountName').textContent = d.account_name || d.phone;
+                    const info = d.username ? '@' + d.username + ' • ' : '';
+                    const balanceStr = d.star_balance != null ? ' • ' + Math.floor(d.star_balance) + ' Stars' : '';
+                    document.getElementById('telethonAccountInfo').textContent = info + 'ID: ' + (d.account_id || '?') + balanceStr + ' • Автовывод активен';
+                    statusEl.style.display = 'block';
+                    statusEl.style.background = 'rgba(39,174,96,.15)';
+                    statusEl.style.color = '#27AE60';
+                    const balanceNote = d.star_balance != null ? ' Баланс: ' + Math.floor(d.star_balance) + ' Stars' : '';
+                    statusEl.textContent = 'Сессия активна.' + balanceNote;
+                } else {
+                    connectedEl.style.display = 'none';
+                    authForm.style.display = 'block';
+                    statusEl.style.display = d.api_id ? 'block' : 'none';
+                    if (d.api_id) {
+                        statusEl.style.background = 'rgba(230,176,76,.15)';
+                        statusEl.style.color = '#E6B04C';
+                        statusEl.textContent = 'Сессия не активна. Авторизуйтесь заново.';
+                    }
+                }
+            } catch(e) {
+                console.error('loadTelethonStatus error', e);
+            }
+        }
+
+        function showTelethonMsg(text, type) {
+            const el = document.getElementById('telethonMessage');
+            el.style.display = 'block';
+            el.style.background = type === 'error' ? 'rgba(230,76,76,.15)' : type === 'success' ? 'rgba(39,174,96,.15)' : 'rgba(94,124,230,.15)';
+            el.style.color = type === 'error' ? '#E64C4C' : type === 'success' ? '#27AE60' : '#5E7CE6';
+            el.textContent = text;
+        }
+
+        // Fetch with timeout (AbortController)
+        function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            return fetch(url, {...options, signal: controller.signal})
+                .then(r => { clearTimeout(timer); return r; })
+                .catch(e => { clearTimeout(timer); throw e; });
+        }
+
+        let _qrPollTimer = null;
+
+        function switchAuthTab(tab) {
+            const qrTab = document.getElementById('authTabQr');
+            const codeTab = document.getElementById('authTabCode');
+            const sessionTab = document.getElementById('authTabSession');
+            const btnQr = document.getElementById('tabQrAuth');
+            const btnCode = document.getElementById('tabCodeAuth');
+            const btnSession = document.getElementById('tabSessionAuth');
+            // Reset all
+            [qrTab, codeTab, sessionTab].forEach(t => t.style.display = 'none');
+            [btnQr, btnCode, btnSession].forEach(b => { b.style.background = 'transparent'; b.style.color = 'var(--text-secondary)'; });
+            // Stop QR polling when leaving QR tab
+            if (tab !== 'qr' && _qrPollTimer) { clearInterval(_qrPollTimer); _qrPollTimer = null; }
+
+            if (tab === 'qr') {
+                qrTab.style.display = 'block';
+                btnQr.style.background = 'var(--blue)'; btnQr.style.color = 'white';
+                // Sync API ID/Hash
+                const aid = document.getElementById('telethonApiId').value || document.getElementById('sessionApiId').value;
+                const ahash = document.getElementById('telethonApiHash').value || document.getElementById('sessionApiHash').value;
+                if (aid && !document.getElementById('qrApiId').value) document.getElementById('qrApiId').value = aid;
+                if (ahash && !document.getElementById('qrApiHash').value) document.getElementById('qrApiHash').value = ahash;
+            } else if (tab === 'session') {
+                sessionTab.style.display = 'block';
+                btnSession.style.background = 'var(--blue)'; btnSession.style.color = 'white';
+                const aid = document.getElementById('telethonApiId').value || document.getElementById('qrApiId').value;
+                const ahash = document.getElementById('telethonApiHash').value || document.getElementById('qrApiHash').value;
+                if (aid && !document.getElementById('sessionApiId').value) document.getElementById('sessionApiId').value = aid;
+                if (ahash && !document.getElementById('sessionApiHash').value) document.getElementById('sessionApiHash').value = ahash;
+            } else {
+                codeTab.style.display = 'block';
+                btnCode.style.background = 'var(--blue)'; btnCode.style.color = 'white';
+            }
+        }
+
+        // ---- QR Login ----
+        function drawQr(canvas, token) {
+            const url = 'tg://login?token=' + token;
+            // Use qrcode-generator lib (inline minimal)
+            if (!window._qrGen) {
+                // Load qrcode lib dynamically
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
+                s.onload = () => { window._qrGen = true; drawQr(canvas, token); };
+                document.head.appendChild(s);
+                return;
+            }
+            const qr = qrcode(0, 'M');
+            qr.addData(url);
+            qr.make();
+            const size = qr.getModuleCount();
+            const scale = Math.max(4, Math.floor(240 / size));
+            canvas.width = size * scale;
+            canvas.height = size * scale;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#000000';
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (qr.isDark(r, c)) ctx.fillRect(c * scale, r * scale, scale, scale);
+                }
+            }
+        }
+
+        async function startQrLogin() {
+            const apiId = document.getElementById('qrApiId').value.trim();
+            const apiHash = document.getElementById('qrApiHash').value.trim();
+            if (!apiId || !apiHash) { showNotification('Заполните API ID и API Hash', 'error'); return; }
+
+            const btn = document.getElementById('qrStartBtn');
+            btn.disabled = true; btn.textContent = 'Прогрев relay (~30сек)...';
+            showTelethonMsg('Будим relay-сервер (Render cold-start ~30 сек)... Не закрывайте страницу.', 'info');
+
+            try {
+                const res = await fetchWithTimeout('/api/admin/telethon/qr-start', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId, api_id: apiId, api_hash: apiHash})
+                }, 120000);
+                const d = await res.json();
+                if (d.success && d.token) {
+                    document.getElementById('telethonMessage').style.display = 'none';
+                    document.getElementById('qrDisplayArea').style.display = 'block';
+                    document.getElementById('qr2faSection').style.display = 'none';
+                    drawQr(document.getElementById('qrCanvas'), d.token);
+                    // Start polling
+                    if (_qrPollTimer) clearInterval(_qrPollTimer);
+                    _qrPollTimer = setInterval(pollQrStatus, 3000);
+                } else {
+                    showTelethonMsg(d.error || 'Ошибка запуска QR', 'error');
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') showTelethonMsg('⏱ Таймаут — relay не ответил за 2 мин. Попробуйте ещё раз.', 'error');
+                else showTelethonMsg('Ошибка сети: ' + e.message, 'error');
+            }
+            btn.disabled = false; btn.textContent = 'Показать QR-код';
+        }
+
+        async function pollQrStatus() {
+            try {
+                const res = await fetchWithTimeout('/api/admin/telethon/qr-check', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId})
+                }, 20000);
+                const d = await res.json();
+
+                if (d.success) {
+                    // Authorized!
+                    if (_qrPollTimer) { clearInterval(_qrPollTimer); _qrPollTimer = null; }
+                    showNotification('Авторизация успешна!', 'success');
+                    document.getElementById('qrDisplayArea').style.display = 'none';
+                    loadTelethonStatus();
+                    return;
+                }
+
+                if (d.need_2fa) {
+                    // Need 2FA password
+                    if (_qrPollTimer) { clearInterval(_qrPollTimer); _qrPollTimer = null; }
+                    document.getElementById('qrDisplayArea').style.display = 'none';
+                    document.getElementById('qr2faSection').style.display = 'block';
+                    document.getElementById('qr2faPassword').focus();
+                    return;
+                }
+
+                if (d.waiting && d.token) {
+                    // Update QR if token changed
+                    drawQr(document.getElementById('qrCanvas'), d.token);
+                }
+
+                if (d.error) {
+                    if (_qrPollTimer) { clearInterval(_qrPollTimer); _qrPollTimer = null; }
+                    showTelethonMsg(d.error, 'error');
+                }
+            } catch(e) { /* ignore network blip, will retry */ }
+        }
+
+        async function submitQr2fa() {
+            const pw = document.getElementById('qr2faPassword').value.trim();
+            if (!pw) { showNotification('Введите пароль', 'error'); return; }
+
+            const btn = document.getElementById('qr2faBtn');
+            btn.disabled = true; btn.textContent = 'Проверка...';
+            try {
+                const res = await fetchWithTimeout('/api/admin/telethon/qr-2fa', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId, password: pw})
+                }, 60000);
+                const d = await res.json();
+                if (d.success) {
+                    showNotification('Авторизация успешна!', 'success');
+                    document.getElementById('qr2faSection').style.display = 'none';
+                    loadTelethonStatus();
+                } else {
+                    showTelethonMsg(d.error || 'Ошибка 2FA', 'error');
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') showTelethonMsg('Таймаут — попробуйте ещё раз.', 'error');
+                else showTelethonMsg('Ошибка сети: ' + e.message, 'error');
+            }
+            btn.disabled = false; btn.textContent = 'Войти';
+        }
+
+        async function importSession() {
+            const apiId = document.getElementById('sessionApiId').value.trim();
+            const apiHash = document.getElementById('sessionApiHash').value.trim();
+            const sessionStr = document.getElementById('sessionStringInput').value.trim();
+            if (!apiId || !apiHash) { showNotification('Заполните API ID и API Hash', 'error'); return; }
+            if (!sessionStr) { showNotification('Вставьте строку сессии', 'error'); return; }
+
+            const btn = document.getElementById('importSessionBtn');
+            btn.disabled = true; btn.textContent = 'Проверка...';
+            showTelethonMsg('Будим relay-сервер (Render cold-start ~30 сек)... Не закрывайте страницу.', 'info');
+            try {
+                const res = await fetchWithTimeout('/api/admin/telethon/import-session', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId, api_id: apiId, api_hash: apiHash, session_string: sessionStr})
+                }, 120000);
+                const d = await res.json();
+                if (d.success) {
+                    showNotification('Сессия импортирована!', 'success');
+                    document.getElementById('telethonMessage').style.display = 'none';
+                    loadTelethonStatus();
+                } else {
+                    showTelethonMsg(d.error || 'Ошибка импорта сессии', 'error');
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') showTelethonMsg('Таймаут — relay не ответил за 2 мин. Попробуйте ещё раз.', 'error');
+                else showTelethonMsg('Ошибка сети: ' + e.message, 'error');
+            }
+            btn.disabled = false; btn.textContent = 'Импорт сессии';
+        }
+
+        async function sendTelethonCode(forceSms) {
+            const apiId = document.getElementById('telethonApiId').value.trim();
+            const apiHash = document.getElementById('telethonApiHash').value.trim();
+            const phone = document.getElementById('telethonPhone').value.trim();
+            if (!apiId || !apiHash || !phone) { showNotification('Заполните все поля', 'error'); return; }
+
+            const btn = forceSms ? document.getElementById('resendSmsBtn') : document.getElementById('sendCodeBtn');
+            const oldText = btn.textContent;
+            btn.disabled = true; btn.textContent = 'Прогрев relay...';
+            showTelethonMsg('Будим relay-сервер (Render cold-start может занять ~30 сек)...', 'info');
+            try {
+                const payload = {admin_id: adminId, api_id: apiId, api_hash: apiHash, phone: phone};
+                if (forceSms) payload.force_sms = true;
+                btn.textContent = 'Отправка кода...';
+                const res = await fetchWithTimeout('/api/admin/telethon/send-code', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                }, 120000);
+                const d = await res.json();
+                if (d.success) {
+                    const codeType = d.code_type || 'Telegram';
+                    showTelethonMsg(`${d.message || 'Код отправлен!'}  Введите его ниже.`, 'info');
+                    document.getElementById('telethonCodeSection').style.display = 'block';
+                    document.getElementById('telethonCode').focus();
+                } else {
+                    showTelethonMsg(d.error || 'Ошибка отправки кода', 'error');
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') showTelethonMsg('Таймаут — relay не ответил за 2 мин. Попробуйте ещё раз.', 'error');
+                else showTelethonMsg('Ошибка сети: ' + e.message, 'error');
+            }
+            btn.disabled = false; btn.textContent = oldText;
+        }
+
+        async function telethonSignIn() {
+            const code = document.getElementById('telethonCode').value.trim();
+            const password = document.getElementById('telethonPassword').value.trim();
+            if (!code && !password) { showNotification('Введите код', 'error'); return; }
+
+            const btn = document.getElementById('signInBtn');
+            btn.disabled = true; btn.textContent = 'Вход...';
+            try {
+                const body = {admin_id: adminId};
+                if (code) body.code = code;
+                if (password) body.password = password;
+                const res = await fetchWithTimeout('/api/admin/telethon/sign-in', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(body)
+                }, 60000);
+                const d = await res.json();
+                if (d.success) {
+                    showNotification('Авторизация успешна!', 'success');
+                    document.getElementById('telethonMessage').style.display = 'none';
+                    document.getElementById('telethonCodeSection').style.display = 'none';
+                    document.getElementById('telethonPasswordSection').style.display = 'none';
+                    loadTelethonStatus();
+                } else if (d.need_2fa) {
+                    document.getElementById('telethonPasswordSection').style.display = 'block';
+                    document.getElementById('telethonPassword').focus();
+                    showTelethonMsg('Требуется пароль 2FA. Введите пароль и нажмите «Войти».', 'info');
+                } else {
+                    showTelethonMsg(d.error || 'Ошибка входа', 'error');
+                }
+            } catch(e) {
+                if (e.name === 'AbortError') showTelethonMsg('Таймаут — попробуйте ещё раз.', 'error');
+                else showTelethonMsg('Ошибка сети', 'error');
+            }
+            btn.disabled = false; btn.textContent = 'Войти';
+        }
+
+        async function disconnectTelethon() {
+            if (!confirm('Отключить сессию? Автовывод перестанет работать.')) return;
+            try {
+                const res = await fetch('/api/admin/telethon/disconnect', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId})
+                });
+                const d = await res.json();
+                if (d.success) {
+                    showNotification('Сессия отключена', 'success');
+                    document.getElementById('telethonCode').value = '';
+                    document.getElementById('telethonPassword').value = '';
+                    document.getElementById('telethonCodeSection').style.display = 'none';
+                    document.getElementById('telethonPasswordSection').style.display = 'none';
+                    document.getElementById('telethonMessage').style.display = 'none';
+                    loadTelethonStatus();
+                }
+            } catch(e) { showNotification('Ошибка', 'error'); }
+        }
+
+        async function loadWithdrawalsAdmin() {
+            // Load Telethon session status
+            loadTelethonStatus();
+
+            try {
+                const res = await fetch('/api/admin/withdrawals?admin_id=' + adminId);
+                const data = await res.json();
+                renderWithdrawals(data);
+                const pending = data.filter(w => ['pending','queued','partial'].includes(w.status)).length;
+                const completed = data.filter(w => w.status === 'completed').length;
+                const totalStars = data.reduce((s, w) => s + (w.amount || 0), 0);
+                document.getElementById('wStatPending').textContent = pending;
+                document.getElementById('wStatCompleted').textContent = completed;
+                document.getElementById('wStatTotal').textContent = Math.floor(totalStars);
+            } catch(e) {
+                document.getElementById('withdrawalsList').innerHTML = '<p style="color:#8E9AA9;text-align:center;">Ошибка загрузки</p>';
+            }
+        }
+
+        function renderWithdrawals(list) {
+            const c = document.getElementById('withdrawalsList');
+            if (!list.length) { c.innerHTML = '<p style="color:#8E9AA9;text-align:center;padding:16px;">Заявок нет</p>'; return; }
+            c.innerHTML = list.map(w => {
+                const status = W_STATUS[w.status] || w.status;
+                const name = w.first_name || w.username || w.user_id;
+                const gifts = (w.gifts || []).map(g => `${g.qty||1}x ${g.star_count} Stars`).join(', ');
+                const needsAction = ['pending','manual','queued','partial','failed'].includes(w.status);
+                return `
+                <div class="admin-list-item" style="flex-wrap:wrap;">
+                    <div class="admin-list-info" style="flex:1;min-width:0;">
+                        <div class="admin-list-title">${name} — ${Math.floor(w.amount)} Stars</div>
+                        <div class="admin-list-meta">${status} | ${gifts || 'N/A'} | ${new Date(w.created_at).toLocaleString('ru')}</div>
+                        ${w.error_msg ? '<div class="admin-list-meta" style="color:#E64C4C;">'+w.error_msg+'</div>' : ''}
+                    </div>
+                    ${needsAction ? `
+                    <div class="admin-list-actions" style="display:flex;gap:6px;margin-top:6px;">
+                        <button class="admin-btn primary small" onclick="processWithdrawal(${w.id},'complete')">Выполнено</button>
+                        <button class="admin-btn danger small" onclick="processWithdrawal(${w.id},'reject')">Отклонить</button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        async function processWithdrawal(id, action) {
+            if (action === 'reject' && !confirm('Отклонить вывод? Баланс будет возвращён.')) return;
+            try {
+                const res = await fetch('/api/admin/withdrawals/' + id + '/process', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({admin_id:adminId, action})
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification(action === 'complete' ? 'Вывод завершён' : 'Вывод отклонён, баланс возвращён', 'success');
+                    loadWithdrawalsAdmin();
+                } else showNotification(data.error || 'Ошибка', 'error');
+            } catch(e) { showNotification('Ошибка', 'error'); }
+        }
+
+        async function setupWebhook() {
+            try {
+                const res = await fetch('/api/bot/setup-webhook', {
+                    method:'POST', headers:{'Content-Type':'application/json'},
+                    body:JSON.stringify({admin_id:adminId})
+                });
+                const data = await res.json();
+                document.getElementById('webhookStatus').textContent = data.ok ? 'Webhook установлен!' : 'Ошибка: ' + JSON.stringify(data);
+            } catch(e) { document.getElementById('webhookStatus').textContent = 'Ошибка'; }
+        }
+
+        // ============ SCRATCHES ============
+        async function loadScratchesAdmin() {
+            try {
+                const res = await fetch('/api/admin/scratches?admin_id=' + adminId);
+                allScratches = await res.json();
+                renderScratchesAdmin();
+            } catch(e) { console.error('loadScratchesAdmin', e); }
+        }
+
+        function renderScratchesAdmin() {
+            const c = document.getElementById('scratchesListAdmin');
+            if (!allScratches.length) { c.innerHTML = '<p style="color:#8E9AA9;text-align:center;padding:16px;">Скретчей нет</p>'; return; }
+            c.innerHTML = allScratches.map(sc => {
+                const img = sc.image ? (sc.image.startsWith('/') ? sc.image : '/' + sc.image) : '/static/img/star.png';
+                return `
+                <div class="admin-case-card" onclick="editScratch(${sc.id})">
+                    <img src="${img}" alt="${sc.name}" onerror="this.src='/static/img/star.png'" style="border-radius:14px;">
+                    <div class="admin-case-info">
+                        <div class="admin-case-name">${sc.name}</div>
+                        <div class="admin-case-meta">${sc.price} Stars | ${sc.cells||4} ячеек${sc.picks&&sc.picks>1?' | x'+sc.picks+' стирание':''} | ${(sc.drops||[]).length} дропов</div>
+                    </div>
+                    <div style="display:flex;gap:4px;align-items:center;flex-shrink:0;">
+                        <button class="admin-icon-btn danger" onclick="event.stopPropagation();deleteScratch(${sc.id},'${sc.name.replace(/'/g,"\\'")}')">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E64C4C" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                        <svg class="admin-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function showAddScratchForm() {
+            document.getElementById('scratchFormContainer').style.display = 'block';
+            document.getElementById('scratchFormTitle').textContent = 'Новый скретч';
+            document.getElementById('scratchEditId').value = '';
+            document.getElementById('scratchName').value = '';
+            document.getElementById('scratchPrice').value = '';
+            document.getElementById('scratchCells').value = '4';
+            document.getElementById('scratchPicks').value = '1';
+            document.getElementById('scratchImage').value = '';
+            document.getElementById('scratchImgPreview').style.display = 'none';
+            document.getElementById('scratchDropsList').innerHTML = '';
+            addScratchDropField();
+        }
+
+        function editScratch(id) {
+            const sc = allScratches.find(s => s.id === id);
+            if (!sc) return;
+            document.getElementById('scratchFormContainer').style.display = 'block';
+            document.getElementById('scratchFormTitle').textContent = sc.name;
+            document.getElementById('scratchEditId').value = sc.id;
+            document.getElementById('scratchName').value = sc.name;
+            document.getElementById('scratchPrice').value = sc.price;
+            document.getElementById('scratchCells').value = sc.cells || 4;
+            document.getElementById('scratchPicks').value = sc.picks || 1;
+            document.getElementById('scratchImage').value = sc.image || '';
+            // Show preview
+            if (sc.image) {
+                document.getElementById('scratchImgPrev').src = sc.image.startsWith('/') ? sc.image : '/' + sc.image;
+                document.getElementById('scratchImgPreview').style.display = 'block';
+            } else {
+                document.getElementById('scratchImgPreview').style.display = 'none';
+            }
+            const dl = document.getElementById('scratchDropsList');
+            dl.innerHTML = '';
+            (sc.drops || []).forEach(d => addScratchDropField(d));
+        }
+
+        function addScratchDropField(drop) {
+            const div = document.createElement('div');
+            div.className = 'admin-drop-row scratch-drop-row';
+            const isGift = drop && drop.type === 'gift';
+            let giftOpts = '<option value="">-- Подарок --</option>';
+            allGifts.forEach(g => {
+                const sel = (isGift && drop.gift_id == g.id) ? 'selected' : '';
+                giftOpts += `<option value="${g.id}" ${sel}>${g.name} (${g.price})</option>`;
+            });
+            div.innerHTML = `
+                <select class="admin-input sdrop-type" onchange="toggleScratchDropFields(this)" style="width:auto;flex:0 0 80px;font-size:13px;">
+                    <option value="stars" ${!isGift?'selected':''}>Stars</option>
+                    <option value="gift" ${isGift?'selected':''}>Gift</option>
+                </select>
+                <input class="admin-input sdrop-amount" type="number" placeholder="Кол-во" value="${drop&&!isGift?drop.amount:''}" style="flex:1;${isGift?'display:none':''}">
+                <select class="admin-input sdrop-gift-select" style="flex:1;${!isGift?'display:none':''}">${giftOpts}</select>
+                <input class="admin-input sdrop-chance" type="number" placeholder="%" value="${drop?drop.chance:''}" style="flex:0 0 55px;">
+                <button class="admin-icon-btn danger" onclick="this.parentElement.remove()" style="flex:0 0 30px;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E64C4C" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>`;
+            document.getElementById('scratchDropsList').appendChild(div);
+        }
+
+        function toggleScratchDropFields(el) {
+            const row = el.parentElement;
+            const amountInput = row.querySelector('.sdrop-amount');
+            const giftSelect = row.querySelector('.sdrop-gift-select');
+            if (el.value === 'gift') {
+                amountInput.style.display = 'none';
+                giftSelect.style.display = '';
+            } else {
+                amountInput.style.display = '';
+                giftSelect.style.display = 'none';
+            }
+        }
+
+        function cancelScratchForm() { document.getElementById('scratchFormContainer').style.display = 'none'; }
+
+        async function saveScratch() {
+            const name = document.getElementById('scratchName').value;
+            const price = parseFloat(document.getElementById('scratchPrice').value);
+            const cells = parseInt(document.getElementById('scratchCells').value) || 4;
+            const picks = Math.min(Math.max(parseInt(document.getElementById('scratchPicks').value) || 1, 1), 5);
+            const image = document.getElementById('scratchImage').value;
+            let id = parseInt(document.getElementById('scratchEditId').value);
+            if (!name || !price) { showNotification('Заполните название и цену', 'error'); return; }
+
+            const drops = [];
+            document.querySelectorAll('.scratch-drop-row').forEach(row => {
+                const type = row.querySelector('.sdrop-type').value;
+                const chance = parseFloat(row.querySelector('.sdrop-chance').value);
+                if (!chance) return;
+                if (type === 'stars') {
+                    const val = parseFloat(row.querySelector('.sdrop-amount').value);
+                    if (!val) return;
+                    drops.push({ type: 'stars', amount: val, chance });
+                } else {
+                    const giftId = parseInt(row.querySelector('.sdrop-gift-select').value);
+                    if (!giftId) return;
+                    drops.push({ type: 'gift', gift_id: giftId, chance });
+                }
+            });
+
+            const scratch = { name, price, cells, picks, image, drops };
+            if (id) scratch.id = id;
+
+            try {
+                const res = await fetch('/api/admin/scratches/update', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: adminId, scratch })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Скретч сохранён!', 'success');
+                    cancelScratchForm();
+                    loadScratchesAdmin();
+                } else showNotification(data.error || 'Ошибка', 'error');
+            } catch (e) { showNotification('Ошибка', 'error'); }
+        }
+
+        async function deleteScratch(id, name) {
+            if (!confirm('Удалить скретч "' + name + '"?')) return;
+            try {
+                const res = await fetch('/api/admin/scratches/delete', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ admin_id: adminId, scratch_id: id })
+                });
+                const data = await res.json();
+                if (data.success) { showNotification('Удалено', 'success'); loadScratchesAdmin(); }
+                else showNotification(data.error || 'Ошибка', 'error');
+            } catch (e) { showNotification('Ошибка', 'error'); }
+        }
+
+        // Scratch image preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const scrImgInput = document.getElementById('scratchImage');
+            if (scrImgInput) {
+                scrImgInput.addEventListener('input', function() {
+                    const val = this.value.trim();
+                    const preview = document.getElementById('scratchImgPreview');
+                    const img = document.getElementById('scratchImgPrev');
+                    if (val) {
+                        img.src = val.startsWith('/') ? val : '/' + val;
+                        preview.style.display = 'block';
+                    } else {
+                        preview.style.display = 'none';
+                    }
+                });
+            }
+        });
+
+        // ============ DETAILED STATISTICS ============
+        async function loadDetailedStats() {
+            try {
+                const res = await fetch('/api/admin/stats?admin_id=' + adminId);
+                const d = await res.json();
+
+                // Overview cards
+                document.getElementById('dsUsers').textContent = d.total_users || 0;
+                document.getElementById('dsUsersToday').textContent = d.users_today || 0;
+                document.getElementById('dsUsersWeek').textContent = d.users_week || 0;
+                document.getElementById('dsBalance').textContent = (d.total_balance || 0) + ' Stars';
+                document.getElementById('dsDeposited').textContent = (d.total_deposited || 0) + ' Stars';
+                document.getElementById('dsInventory').textContent = d.total_inventory || 0;
+                document.getElementById('dsReferrals').textContent = d.total_referrals || 0;
+                document.getElementById('dsWithdrawals').textContent = d.total_withdrawals || 0;
+                document.getElementById('dsCompleted').textContent = d.completed_withdrawals || 0;
+                document.getElementById('dsPending').textContent = d.pending_withdrawals || 0;
+
+                // Task stats
+                const tc = document.getElementById('taskStatsContainer');
+                if (d.task_stats && d.task_stats.length) {
+                    tc.innerHTML = d.task_stats.map(t => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <div>
+                                <span style="color:#fff;font-weight:600;font-size:13px;">${t.title}</span>
+                                <span style="color:${t.is_active ? '#2EC76E' : '#E64C4C'};font-size:11px;margin-left:6px;">${t.is_active ? '● вкл' : '● откл'}</span>
+                            </div>
+                            <div style="color:#8A5CF6;font-weight:700;font-size:14px;">${t.completed_count} выполн.</div>
+                        </div>
+                    `).join('');
+                } else {
+                    tc.innerHTML = '<p style="color:#6B7B8D;font-size:13px;">Заданий нет</p>';
+                }
+
+                // Top users
+                const uc = document.getElementById('topUsersContainer');
+                if (d.top_users && d.top_users.length) {
+                    uc.innerHTML = d.top_users.map((u, i) => `
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="color:#6B7B8D;font-size:12px;width:18px;text-align:right;">${i + 1}.</span>
+                                <div>
+                                    <div style="color:#fff;font-weight:600;font-size:13px;">${u.name}</div>
+                                    <div style="color:#6B7B8D;font-size:11px;">ID: ${u.telegram_id}</div>
+                                </div>
+                            </div>
+                            <div style="color:#FFD700;font-weight:700;font-size:14px;">${u.balance} <img src="/static/img/star.png" alt="" style="width:14px;height:14px;display:inline;vertical-align:middle;"></div>
+                        </div>
+                    `).join('');
+                } else {
+                    uc.innerHTML = '<p style="color:#6B7B8D;font-size:13px;">Нет данных</p>';
+                }
+
+            } catch (e) {
+                console.error('loadDetailedStats', e);
+                showNotification('Ошибка загрузки статистики', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initApp();
+            if (currentUser && currentUser.is_admin) {
+                adminId = currentUser.telegram_id;
+                document.getElementById('adminContent').style.display = 'block';
+                document.getElementById('accessDenied').style.display = 'none';
+                loadStats();
+            } else {
+                document.getElementById('adminContent').style.display = 'none';
+                document.getElementById('accessDenied').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

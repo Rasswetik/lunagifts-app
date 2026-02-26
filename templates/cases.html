@@ -1,0 +1,611 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Кейсы</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="container">
+        <div class="header-v2">
+            <div class="header-avatar-wrap" onclick="window.location.href='/inventory'">
+                <img class="user-avatar" src="" alt="">
+                <div class="avatar-wallet-overlay" id="avatarWallet" style="display:none"></div>
+            </div>
+            <div class="balance-pill">
+                <div class="balance-section ton-balance" onclick="showTonTopup()">
+                    <span class="balance-val" id="tonBalVal">0.00</span>
+                    <img src="/static/img/ton.png" alt="TON">
+                </div>
+                <div class="balance-divider"></div>
+                <div class="balance-section star-balance" onclick="openBalanceAction()">
+                    <span class="balance-val balance-amount" style="color:var(--gold)">0</span>
+                    <img src="/static/img/star.png" alt="⭐">
+                </div>
+            </div>
+            <button class="balance-plus-btn" onclick="injectTopupModals();openModal('topupModal')">+</button>
+            <div class="online-badge" id="onlineBadge">
+                <span class="online-dot"></span>
+                <span class="online-count" id="onlineCount">...</span>
+            </div>
+        </div>
+
+        <!-- Recent Wins Carousel -->
+        <div class="recent-wins-section" id="recentWinsSection" style="display:none;">
+            <div class="recent-wins-scroll" id="recentWinsScroll"></div>
+        </div>
+
+        <!-- Cases Grid View -->
+        <div id="casesGridView">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <h2 style="font-size:22px;font-weight:600;">Кейсы</h2>
+            </div>
+
+            <!-- Popular Case Showcase -->
+            <div class="popular-case-card" id="popularCaseCard" style="display:none;" onclick="openPopularCase()">
+                <div class="popular-case-info">
+                    <div class="popular-badge"><img src="/static/img/fire.png" alt="" style="width:12px;height:12px;"> Популярно</div>
+                    <div class="popular-case-name" id="popularCaseName"></div>
+                    <div class="popular-case-drops" id="popularCaseDrops"></div>
+                    <button class="popular-case-price-btn" id="popularCasePriceBtn"></button>
+                </div>
+                <img class="popular-case-img" id="popularCaseImg" src="" alt="">
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="case-filter-tabs" id="caseFilterTabs">
+                <button class="case-filter-tab active" data-filter="all" onclick="filterCases('all',this)">Все</button>
+                <button class="case-filter-tab" data-filter="ton" onclick="filterCases('ton',this)"><img src="/static/img/ton.png" alt="" style="width:13px;height:13px;"> За TON</button>
+                <button class="case-filter-tab" data-filter="stars" onclick="filterCases('stars',this)"><img src="/static/img/star.png" alt="" style="width:13px;height:13px;"> Звёздные</button>
+                <button class="case-filter-tab" data-filter="free" onclick="filterCases('free',this)">Бесплатные</button>
+            </div>
+
+            <div class="cases-grid-v2" id="casesGrid">
+                <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
+            </div>
+        </div>
+
+        <!-- Case Detail Bottom Sheet -->
+        <div class="case-sheet-overlay" id="caseSheetOverlay" onclick="if(event.target===this)closeCaseSheet();">
+            <div class="case-sheet" id="caseSheet">
+                <div class="sheet-handle"></div>
+
+                <!-- Big case image + roulette animation zone -->
+                <div class="card-opening-area" id="cardOpeningArea">
+                    <!-- Big case PNG (before opening) -->
+                    <div class="case-hero" id="caseHero">
+                        <img class="case-hero-img" id="caseHeroImg" src="" alt="">
+                    </div>
+                    <!-- Roulette (during opening) -->
+                    <div class="roulette-wrapper" id="rouletteWrapper">
+                        <div class="roulette-pointer"></div>
+                        <div class="roulette-track" id="rouletteTrack"></div>
+                    </div>
+                    <!-- Won item display (after opening) -->
+                    <div class="won-display" id="wonDisplay">
+                        <div class="won-display-visual" id="wonDisplayVisual"></div>
+                        <div class="won-display-name" id="wonDisplayName"></div>
+                    </div>
+                </div>
+
+                <!-- Case header below cards -->
+                <div class="case-sheet-header">
+                    <div class="case-sheet-header-left">
+                        <div class="case-sheet-name" id="caseSheetName"></div>
+                        <div class="case-sheet-price" id="caseSheetPrice"><img src="/static/img/star.png" alt=""> <span id="caseSheetPriceVal"></span></div>
+                        <div class="case-sheet-demo">
+                            <span>Демо</span>
+                            <button class="case-sheet-demo-toggle" id="caseSheetDemoToggle" onclick="this.classList.toggle('active')"></button>
+                        </div>
+                    </div>
+                    <img class="case-sheet-header-img" id="caseSheetHeaderImg" src="" alt="">
+                </div>
+
+                <!-- Items grid -->
+                <div id="caseSheetContent">
+                    <div class="case-sheet-items" id="caseSheetItems">
+                        <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:24px;height:24px;"></div>
+                    </div>
+                </div>
+
+                <!-- Result area (hidden by default) -->
+                <div class="case-result-area" id="caseResultArea"></div>
+
+                <button class="case-sheet-open-btn" id="caseSheetOpenBtn" onclick="openCaseFromSheet()">Открыть кейс</button>
+                <div class="case-sheet-sub" id="caseSheetSub">Один спин <img src="/static/img/ton.png" alt=""> <span id="caseSheetSubPrice">0</span></div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* === Cases Page Overrides === */
+    .result-gift-visual{position:relative;display:inline-flex;align-items:center;justify-content:center;width:109px;height:109px;margin:0 auto 12px;border-radius:12px;background:#333232;box-shadow:0 11px 8px rgba(0,0,0,.25);}
+    .result-gift-visual::before{content:'';position:absolute;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(22,137,255,.18) 0%,transparent 70%);animation:resultGlow 2s ease-in-out infinite alternate;pointer-events:none;}
+    @keyframes resultGlow{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.15);opacity:1}}
+    .result-gift-visual .result-img{width:100%;height:100%;object-fit:contain;animation:resultBounce .6s cubic-bezier(.16,1,.3,1);filter:drop-shadow(0 10px 30px rgba(22,137,255,.3));}
+    .result-title{font-family:'Onest',sans-serif;font-size:32px;font-weight:400;letter-spacing:-0.04em;margin-bottom:15px;line-height:100%;}
+    .result-sub{font-family:'Inter',sans-serif;font-size:18px;font-weight:500;color:#fff;margin-bottom:12px;}
+    .result-btn.sell{background:var(--gold);color:#131313;border-radius:12px;}
+    .result-btn.next{background:var(--accent);color:#fff;border-radius:12px;}
+    </style>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    let casesData=[];let currentCaseId=null;let currentCaseDrops=[];let selectedOpenCount=1;
+    let activeDiscounts={};let _currentFilter='all';let _popularCase=null;let _isSpinning=false;
+    function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+    async function loadCases(){
+        try{
+            const res=await fetch('/api/cases');casesData=await res.json();
+            try{
+                const disc=JSON.parse(localStorage.getItem('luna_case_discount')||'{}');
+                if(disc.case_id&&disc.percent){activeDiscounts[disc.case_id]=disc.percent;}
+            }catch(e){}
+            renderCases();
+            loadRecentWins();
+            setupPopularCase();
+        }
+        catch(e){document.getElementById('casesGrid').innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/cases.png" alt=""></div><p>Кейсов пока нет</p></div>';}
+    }
+
+    function getDiscountedPrice(cs){
+        const disc=activeDiscounts[cs.id]||0;
+        if(!disc)return null;
+        return Math.max(0, Math.round(cs.price*(1-disc/100)));
+    }
+
+    function filterCases(filter,el){
+        _currentFilter=filter;
+        document.querySelectorAll('.case-filter-tab').forEach(t=>t.classList.remove('active'));
+        if(el)el.classList.add('active');
+        renderCases();
+    }
+
+    function renderCases(){
+        const c=document.getElementById('casesGrid');
+        let filtered=casesData;
+        if(_currentFilter==='free')filtered=casesData.filter(cs=>cs.price===0);
+        else if(_currentFilter==='ton')filtered=casesData.filter(cs=>cs.currency==='ton');
+        else if(_currentFilter==='stars')filtered=casesData.filter(cs=>cs.price>0&&cs.currency!=='ton');
+
+        if(!filtered.length){c.innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/cases.png" alt=""></div><p>Кейсов нет</p></div>';return;}
+        c.innerHTML=filtered.map(cs=>{
+            const dp=getDiscountedPrice(cs);
+            const isTon=cs.currency==='ton';
+            const icon=isTon?'/static/img/ton.png':'/static/img/star.png';
+            let priceHtml;
+            if(dp!==null){
+                priceHtml='<span style="text-decoration:line-through;opacity:.4;font-size:11px;margin-right:3px;">'+cs.price+'</span><span style="color:var(--green);">'+dp+'</span> <img src="'+icon+'" alt="">';
+            }else if(cs.price===0){
+                priceHtml='<span style="color:var(--green);">Бесплатно</span>';
+            }else{
+                priceHtml='<img src="'+icon+'" alt=""> <span>'+cs.price+'</span>';
+            }
+            return '<div class="case-card-v2" onclick="openCaseDetail('+cs.id+')">'
+                +'<div class="case-card-v2-visual"><img src="'+imgSrc(cs.image)+'" alt="'+cs.name+'" onerror="this.src=\'/static/img/star.png\'"></div>'
+                +'<div class="case-card-v2-name">'+cs.name+'</div>'
+                +'<div class="case-card-v2-price">'+priceHtml+'</div></div>';
+        }).join('');
+    }
+
+    function setupPopularCase(){
+        if(!casesData.length)return;
+        _popularCase=casesData.reduce((a,b)=>b.price>a.price?b:a,casesData[0]);
+        if(!_popularCase)return;
+        const card=document.getElementById('popularCaseCard');
+        document.getElementById('popularCaseName').textContent=_popularCase.name;
+        document.getElementById('popularCaseImg').src=imgSrc(_popularCase.image);
+        const priceBtn=document.getElementById('popularCasePriceBtn');
+        const popIcon=_popularCase.currency==='ton'?'/static/img/ton.png':'/static/img/star.png';
+        priceBtn.innerHTML='<img src="'+popIcon+'" alt=""> '+_popularCase.price;
+        card.style.display='flex';
+        fetch('/api/cases/drops/'+_popularCase.id).then(r=>r.json()).then(drops=>{
+            const dContainer=document.getElementById('popularCaseDrops');
+            const show=drops.slice(0,3);
+            const more=drops.length-3;
+            dContainer.innerHTML=show.map(d=>'<img class="popular-drop-thumb" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.png\'">').join('')
+                +(more>0?'<div class="popular-drop-more">+'+more+'</div>':'');
+        }).catch(()=>{});
+    }
+
+    function openPopularCase(){
+        if(_popularCase)openCaseDetail(_popularCase.id);
+    }
+
+    async function loadRecentWins(){
+        try{
+            const r=await fetch('/api/cases/recent-wins');const wins=await r.json();
+            if(!wins.length)return;
+            const section=document.getElementById('recentWinsSection');
+            const scroll=document.getElementById('recentWinsScroll');
+            scroll.innerHTML=wins.map(w=>{
+                const avatar=w.photo_url||generateAvatar(w.username||'U');
+                const prize=w.gift_image||'/static/img/star.png';
+                return '<div class="recent-win-card">'
+                    +'<div class="recent-win-avatar"><img src="'+avatar+'" alt="" onerror="this.src=\''+generateAvatar(w.username||"U")+'\'"><img class="recent-win-prize" src="'+imgSrc(prize)+'" alt="" onerror="this.src=\'/static/img/star.png\'"></div>'
+                    +'<div class="recent-win-name">'+(w.username||'User')+'</div>'
+                    +'</div>';
+            }).join('');
+            section.style.display='block';
+        }catch(e){}
+    }
+
+    // ============ CASE HERO (big case PNG in blue box) ============
+    function showCaseHero(cs){
+        const hero=document.getElementById('caseHero');
+        const heroImg=document.getElementById('caseHeroImg');
+        const wrapper=document.getElementById('rouletteWrapper');
+        const wonDisp=document.getElementById('wonDisplay');
+        hero.style.display='';
+        heroImg.src=imgSrc(cs.image);
+        wrapper.classList.remove('active');
+        wonDisp.classList.remove('active');
+        document.getElementById('rouletteTrack').innerHTML='';
+        document.getElementById('cardOpeningArea').classList.remove('is-lose');
+    }
+
+    // ============ CASE DETAIL (Bottom Sheet) ============
+    async function openCaseDetail(id){
+        const cs=casesData.find(c=>c.id===id);if(!cs)return;
+        currentCaseId=id;_isSpinning=false;
+        const overlay=document.getElementById('caseSheetOverlay');
+        document.getElementById('caseSheetName').textContent=cs.name;
+        const dp=getDiscountedPrice(cs);
+        const price=dp!==null?dp:cs.price;
+        const isTon=cs.currency==='ton';
+        const currIcon=isTon?'/static/img/ton.png':'/static/img/star.png';
+        document.getElementById('caseSheetPriceVal').textContent=price;
+        document.getElementById('caseSheetPrice').querySelector('img').src=currIcon;
+        document.getElementById('caseSheetSubPrice').textContent=price;
+        document.getElementById('caseSheetSub').querySelector('img').src=currIcon;
+        document.getElementById('caseSheetHeaderImg').src=imgSrc(cs.image);
+        document.getElementById('caseSheetItems').innerHTML='<div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:24px;height:24px;"></div>';
+        // Reset state
+        const openBtn=document.getElementById('caseSheetOpenBtn');
+        openBtn.disabled=false;openBtn.textContent='Открыть кейс';
+        openBtn.onclick=function(){openCaseFromSheet();};
+        document.getElementById('caseSheetContent').style.display='';
+        document.getElementById('caseResultArea').style.display='none';
+        document.getElementById('caseResultArea').innerHTML='';
+        document.getElementById('caseSheetSub').style.display='';
+        const demoRow=document.querySelector('.case-sheet-demo');if(demoRow)demoRow.style.display='';
+        // Show big case PNG in blue box
+        document.getElementById('cardOpeningArea').style.display='block';
+        showCaseHero(cs);
+        overlay.classList.add('active');
+        try{
+            const res=await fetch('/api/cases/drops/'+id);
+            currentCaseDrops=await res.json();
+            currentCaseDrops.sort((a,b)=>(b.price||0)-(a.price||0));
+            renderSheetDrops(currentCaseDrops);
+        }catch(e){document.getElementById('caseSheetItems').innerHTML='<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center;font-size:13px;">Ошибка</p>';}
+    }
+
+    function renderSheetDrops(drops){
+        const g=document.getElementById('caseSheetItems');
+        if(!drops.length){g.innerHTML='<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center;">Пусто</p>';return;}
+        const cs=casesData.find(c=>c.id===currentCaseId);
+        const currIcon=cs&&cs.currency==='ton'?'/static/img/ton.png':'/static/img/star.png';
+        g.innerHTML=drops.map(d=>{
+            const bg=getNftBg(d.slug,d.item_count);
+            let visualHtml;
+            if(bg){
+                visualHtml='<div class="case-sheet-item-visual">'
+                    +'<img class="csi-bg" src="'+bg+'" alt="">'
+                    +'</div>';
+            }else{
+                visualHtml='<div class="case-sheet-item-visual">'
+                    +'<img class="csi-model" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.png\'">'
+                    +'</div>';
+            }
+            return '<div class="case-sheet-item">'
+                +visualHtml
+                +'<div class="case-sheet-item-price"><img src="'+currIcon+'" alt=""> '+d.price+'</div>'
+                +'<div class="case-sheet-item-random">random</div>'
+                +'</div>';
+        }).join('');
+    }
+
+    function closeCaseSheet(){
+        if(_isSpinning)return;
+        document.getElementById('caseSheetOverlay').classList.remove('active');
+        currentCaseId=null;
+    }
+
+    // ============ CASE OPENING (horizontal roulette animation) ============
+    async function openCaseFromSheet(){
+        if(!currentUser||!currentCaseId||_isSpinning)return;
+        const cs=casesData.find(c=>c.id===currentCaseId);if(!cs)return;
+        const openBtn=document.getElementById('caseSheetOpenBtn');
+        openBtn.disabled=true;_isSpinning=true;
+
+        // Call API first
+        let data;
+        try{
+            const res=await fetch('/api/cases/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,case_id:currentCaseId})});
+            data=await res.json();
+            if(data.error){showNotification(data.error,'error');openBtn.disabled=false;_isSpinning=false;return;}
+        }catch(e){showNotification('Ошибка соединения','error');openBtn.disabled=false;_isSpinning=false;return;}
+
+        // Scroll sheet to top so roulette is visible
+        document.getElementById('caseSheet').scrollTop=0;
+
+        // Build item pool & won item
+        const wonItem=buildWonItem(data);
+        const isTon=cs&&cs.currency==='ton';
+        const currIcon=isTon?'/static/img/ton.png':'/static/img/star.png';
+        let pool=currentCaseDrops.map(d=>({name:d.name,image:imgSrc(d.image),backdrop:getNftBg(d.slug,d.item_count),price:d.price||0}));
+        if(!pool.length)pool=[wonItem];
+
+        const area=document.getElementById('cardOpeningArea');
+        const hero=document.getElementById('caseHero');
+        const wrapper=document.getElementById('rouletteWrapper');
+        const track=document.getElementById('rouletteTrack');
+        const wonDisp=document.getElementById('wonDisplay');
+
+        area.classList.remove('is-lose');
+        wonDisp.classList.remove('active');
+
+        // Hide sub text & items during animation
+        document.getElementById('caseSheetSub').style.display='none';
+        document.getElementById('caseSheetContent').style.display='none';
+        const demoRow=document.querySelector('.case-sheet-demo');if(demoRow)demoRow.style.display='none';
+
+        // Build roulette strip: 50 cards, winner at random index 35-42
+        const TOTAL=50;
+        const WIN_IDX=35+Math.floor(Math.random()*8);
+        track.innerHTML='';
+        track.style.transition='none';
+        track.style.transform='translateX(0)';
+
+        function randomItem(){return pool[Math.floor(Math.random()*pool.length)];}
+
+        function createRouletteCard(item){
+            const card=document.createElement('div');card.className='roulette-card';
+            const visual=document.createElement('div');visual.className='roulette-card-visual';
+            if(item.backdrop){
+                const bg=document.createElement('img');bg.className='rc-bg';bg.src=item.backdrop;bg.alt='';
+                visual.appendChild(bg);
+            }else{
+                const img=document.createElement('img');img.className='rc-img';
+                img.src=item.image;img.alt='';img.onerror=function(){this.src='/static/img/star.png';};
+                visual.appendChild(img);
+            }
+            card.appendChild(visual);
+            const price=document.createElement('div');price.className='roulette-card-price';
+            const pImg=document.createElement('img');pImg.src=currIcon;pImg.alt='';
+            price.appendChild(pImg);
+            price.appendChild(document.createTextNode(' '+item.price));
+            card.appendChild(price);
+            return card;
+        }
+
+        let winnerCard;
+        for(let i=0;i<TOTAL;i++){
+            const item=(i===WIN_IDX)?wonItem:randomItem();
+            const card=createRouletteCard(item);
+            if(i===WIN_IDX)winnerCard=card;
+            track.appendChild(card);
+        }
+
+        // Hide hero, show roulette
+        hero.style.display='none';
+        wrapper.classList.add('active');
+
+        // Force layout reflow
+        track.getBoundingClientRect();
+
+        // Calculate offset to center the winning card
+        const CARD_W=90;const GAP=8;const SLOT=CARD_W+GAP;
+        const wrapperWidth=wrapper.offsetWidth;
+        const targetOffset=WIN_IDX*SLOT+(CARD_W/2)-(wrapperWidth/2);
+        const randOffset=(Math.random()-0.5)*30;
+
+        // Haptic start
+        try{if(tg)tg.HapticFeedback.impactOccurred('medium');}catch(e){}
+
+        // Start periodic haptic during spin
+        let hapticCount=0;
+        const hapticTimer=setInterval(()=>{
+            hapticCount++;
+            try{if(tg)tg.HapticFeedback.impactOccurred('light');}catch(e){}
+            if(hapticCount>30)clearInterval(hapticTimer);
+        },130);
+
+        // Animate with smooth deceleration
+        await sleep(30);
+        track.style.transition='transform 5s cubic-bezier(0.15, 0.85, 0.18, 1)';
+        track.style.transform='translateX(-'+(targetOffset+randOffset)+'px)';
+
+        // Wait for animation to finish
+        await new Promise(resolve=>{
+            track.addEventListener('transitionend',resolve,{once:true});
+            setTimeout(resolve,5200);
+        });
+
+        clearInterval(hapticTimer);
+
+        // Highlight winner
+        winnerCard.classList.add('winner');
+        try{if(tg)tg.HapticFeedback.impactOccurred('heavy');}catch(e){}
+
+        await sleep(1200);
+
+        // Hide roulette, show won item in the blue box
+        wrapper.classList.remove('active');
+        track.innerHTML='';
+
+        // Show won display in blue box
+        const wonVisual=document.getElementById('wonDisplayVisual');
+        const wonName=document.getElementById('wonDisplayName');
+        wonVisual.innerHTML='';
+        if(wonItem.backdrop){
+            const bgImg=document.createElement('img');bgImg.className='won-bg';bgImg.src=wonItem.backdrop;bgImg.alt='';
+            wonVisual.appendChild(bgImg);
+        }else{
+            const img=document.createElement('img');img.src=wonItem.image;img.alt='';
+            img.onerror=function(){this.src='/static/img/star.png';};
+            wonVisual.appendChild(img);
+        }
+        wonName.textContent=wonItem.name;
+        wonDisp.classList.add('active');
+
+        // Update balance & show result area below
+        currentUser.balance=data.new_balance;updateUI();
+        const resultArea=document.getElementById('caseResultArea');
+        resultArea.style.display='block';
+        showSingleResult(data,wonItem);
+
+        // Change button
+        openBtn.style.display='';
+        openBtn.disabled=false;
+        openBtn.textContent='Ещё раз';
+        openBtn.onclick=function(){resetSheetToItems();};
+        _isSpinning=false;
+    }
+
+    function buildWonItem(data){
+        return{name:data.type==='stars'?'+'+data.amount+' Stars':data.gift.name,image:data.type==='stars'?'/static/img/star.png':imgSrc(data.gift.image),backdrop:data.type==='stars'?'':getNftBg(data.gift.slug,data.gift.item_count),price:data.type==='stars'?data.amount:(data.gift.price||0),type:data.type};
+    }
+
+    function showSingleResult(data,wonItem){
+        const ra=document.getElementById('caseResultArea');
+        if(data.type==='stars'){
+            ra.innerHTML='<div class="result-title" style="color:var(--gold);">+'+data.amount+' <img src="/static/img/star.png" alt="" style="width:18px;height:18px;vertical-align:middle;"></div>'
+                +'<div class="result-sub">Звёзды зачислены на баланс</div>';
+        }else{
+            const sp=Math.floor(data.gift.price||0);const sn=data.gift.name.replace(/'/g,"\\'");
+            const canW=data.gift.withdrawable&&data.gift.telegram_gift_id;
+            const wBtn=canW?'<button class="result-btn next" id="withdrawResultBtn" onclick="withdrawResult('+data.gift.id+',\''+sn+'\')" style="background:linear-gradient(135deg,#6B8AFF,#8B5CF6);">Вывести</button>':'';
+            ra.innerHTML='<div class="result-sub">Подарок добавлен в инвентарь</div>'
+                +'<div class="result-buttons"><button class="result-btn sell" id="sellResultBtn" onclick="sellResult('+data.gift.id+',\''+sn+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;"></button>'+wBtn+'</div>';
+        }
+    }
+
+    function resetSheetToItems(){
+        document.getElementById('caseResultArea').style.display='none';
+        document.getElementById('caseResultArea').innerHTML='';
+        document.getElementById('caseSheetContent').style.display='';
+        const demoRow=document.querySelector('.case-sheet-demo');if(demoRow)demoRow.style.display='';
+        document.getElementById('caseSheetSub').style.display='';
+        const openBtn=document.getElementById('caseSheetOpenBtn');
+        openBtn.textContent='Открыть кейс';
+        openBtn.onclick=function(){openCaseFromSheet();};
+        openBtn.disabled=false;
+        // Reset roulette + won display, restore case hero
+        document.getElementById('rouletteWrapper').classList.remove('active');
+        document.getElementById('rouletteTrack').innerHTML='';
+        document.getElementById('wonDisplay').classList.remove('active');
+        document.getElementById('cardOpeningArea').classList.remove('is-lose');
+        document.getElementById('cardOpeningArea').style.display='block';
+        if(currentCaseId){
+            const cs=casesData.find(c=>c.id===currentCaseId);
+            if(cs)showCaseHero(cs);
+        }
+    }
+
+    async function sellResult(giftId,giftName,sellPrice){
+        if(!currentUser)return;
+        try{
+            const invRes=await fetch('/api/inventory/'+currentUser.telegram_id);const inv=await invRes.json();
+            const item=inv.find(i=>i.gift_id===giftId);if(!item){showNotification('Предмет не найден','error');return;}
+            const res=await fetch('/api/inventory/sell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,inventory_id:item.id})});
+            const d=await res.json();
+            if(d.success){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();showNotification(giftName+' продан за '+Math.floor(d.sell_price)+' Stars','success');const btn=document.getElementById('sellResultBtn');if(btn){btn.disabled=true;btn.textContent='Продано ✓';}}
+            else showNotification(d.error||'Ошибка','error');
+        }catch(e){showNotification('Ошибка соединения','error');}
+    }
+
+    async function withdrawResult(giftId,giftName){
+        if(!currentUser)return;
+        const btn=document.getElementById('withdrawResultBtn');
+        if(btn){btn.disabled=true;btn.textContent='...';}
+        try{
+            const invRes=await fetch('/api/inventory/'+currentUser.telegram_id);const inv=await invRes.json();
+            const item=inv.find(i=>i.gift_id===giftId);if(!item){showNotification('Предмет не найден','error');if(btn){btn.disabled=false;btn.textContent='Вывести';}return;}
+            const res=await fetch('/api/inventory/withdraw',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,inventory_id:item.id})});
+            const d=await res.json();
+            if(d.success){showNotification(d.message||giftName+' выведен!','success');if(btn){btn.textContent='Готово ✓';}if(d.new_balance!==undefined){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();}}
+            else{showNotification(d.error||'Ошибка','error');if(btn){btn.disabled=false;btn.textContent='Вывести';}}
+        }catch(e){showNotification('Ошибка','error');if(btn){btn.disabled=false;btn.textContent='Вывести';}}
+    }
+
+    // ============ SHEET DRAG TO CLOSE ============
+    function initSheetDrag(){
+        const sheet=document.getElementById('caseSheet');
+        const handle=sheet.querySelector('.sheet-handle');
+        let startY=0,currentY=0,isDragging=false;
+        function onStart(e){
+            if(_isSpinning)return;
+            if(sheet.scrollTop>5)return;
+            startY=e.touches?e.touches[0].clientY:e.clientY;
+            currentY=startY;isDragging=true;
+            sheet.style.transition='none';
+        }
+        function onMove(e){
+            if(!isDragging)return;
+            currentY=e.touches?e.touches[0].clientY:e.clientY;
+            const dy=Math.max(0,currentY-startY);
+            sheet.style.transform='translateY('+dy+'px)';
+        }
+        function onEnd(){
+            if(!isDragging)return;isDragging=false;
+            const dy=currentY-startY;
+            sheet.style.transition='transform .3s ease';
+            if(dy>100){
+                sheet.style.transform='translateY(100%)';
+                setTimeout(()=>{
+                    closeCaseSheet();
+                    sheet.style.transition='';sheet.style.transform='';
+                },300);
+            }else{
+                sheet.style.transform='';
+                setTimeout(()=>{sheet.style.transition='';},300);
+            }
+        }
+        handle.addEventListener('touchstart',onStart,{passive:true});
+        handle.addEventListener('touchmove',onMove,{passive:true});
+        handle.addEventListener('touchend',onEnd);
+        handle.addEventListener('mousedown',onStart);
+        document.addEventListener('mousemove',onMove);
+        document.addEventListener('mouseup',onEnd);
+    }
+
+    document.addEventListener('DOMContentLoaded',async function(){
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        setLoadProgress(75, 'Загрузка кейсов...');
+        await loadCases();
+        setLoadProgress(90, 'Почти готово...');
+        initSheetDrag();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

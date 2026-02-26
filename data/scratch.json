@@ -1,0 +1,1252 @@
+[
+  {
+    "id": 1,
+    "name": "Lunar Lite",
+    "image": "/static/gifs/moon7.gif",
+    "price": 20,
+    "cells": 3,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 109,
+        "chance": 72
+      },
+      {
+        "type": "gift",
+        "gift_id": 110,
+        "chance": 16
+      },
+      {
+        "type": "gift",
+        "gift_id": 111,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 112,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 113,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 114,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 0.7
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 0.3
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Moon Classic",
+    "image": "/static/gifs/moon8.gif",
+    "price": 50,
+    "cells": 4,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 109,
+        "chance": 42
+      },
+      {
+        "type": "gift",
+        "gift_id": 110,
+        "chance": 28
+      },
+      {
+        "type": "gift",
+        "gift_id": 111,
+        "chance": 10
+      },
+      {
+        "type": "gift",
+        "gift_id": 112,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 113,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 114,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 115,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 118,
+        "chance": 0.5
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Eclipse",
+    "image": "/static/gifs/moon1.gif",
+    "price": 100,
+    "cells": 4,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 109,
+        "chance": 25
+      },
+      {
+        "type": "gift",
+        "gift_id": 110,
+        "chance": 18
+      },
+      {
+        "type": "gift",
+        "gift_id": 111,
+        "chance": 12
+      },
+      {
+        "type": "gift",
+        "gift_id": 112,
+        "chance": 10
+      },
+      {
+        "type": "gift",
+        "gift_id": 113,
+        "chance": 10
+      },
+      {
+        "type": "gift",
+        "gift_id": 114,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 115,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 119,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 118,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 68,
+        "chance": 1
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Musulman",
+    "image": "/static/gifs/moon9.gif",
+    "price": 200,
+    "cells": 5,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 109,
+        "chance": 14
+      },
+      {
+        "type": "gift",
+        "gift_id": 110,
+        "chance": 12
+      },
+      {
+        "type": "gift",
+        "gift_id": 111,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 112,
+        "chance": 6
+      },
+      {
+        "type": "gift",
+        "gift_id": 113,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 114,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 115,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 119,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 6
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 118,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 68,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 15,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 4,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 22,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 5,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 13,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 6,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 2,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 23,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 14,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 30,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 41,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 17,
+        "chance": 0.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 28,
+        "chance": 0.7
+      },
+      {
+        "type": "gift",
+        "gift_id": 1,
+        "chance": 0.6
+      },
+      {
+        "type": "gift",
+        "gift_id": 12,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 40,
+        "chance": 0.4
+      },
+      {
+        "type": "gift",
+        "gift_id": 42,
+        "chance": 0.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 70,
+        "chance": 0.1
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Supernova",
+    "image": "/static/gifs/moon2.gif",
+    "price": 250,
+    "cells": 5,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 113,
+        "chance": 22
+      },
+      {
+        "type": "gift",
+        "gift_id": 114,
+        "chance": 16
+      },
+      {
+        "type": "gift",
+        "gift_id": 115,
+        "chance": 12
+      },
+      {
+        "type": "gift",
+        "gift_id": 119,
+        "chance": 10
+      },
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 12
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 9
+      },
+      {
+        "type": "gift",
+        "gift_id": 118,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 68,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 4,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 22,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 14,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 12,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 40,
+        "chance": 0.5
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Nebula",
+    "image": "/static/gifs/moon3.gif",
+    "price": 500,
+    "cells": 5,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 25
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 18
+      },
+      {
+        "type": "gift",
+        "gift_id": 118,
+        "chance": 14
+      },
+      {
+        "type": "gift",
+        "gift_id": 68,
+        "chance": 10
+      },
+      {
+        "type": "gift",
+        "gift_id": 15,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 4,
+        "chance": 6
+      },
+      {
+        "type": "gift",
+        "gift_id": 22,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 5,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 14,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 30,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 12,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 40,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 42,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 70,
+        "chance": 0.7
+      },
+      {
+        "type": "gift",
+        "gift_id": 43,
+        "chance": 0.3
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Moonrise",
+    "image": "/static/gifs/moon10.gif",
+    "price": 750,
+    "cells": 6,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 116,
+        "chance": 7.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 117,
+        "chance": 9
+      },
+      {
+        "type": "gift",
+        "gift_id": 118,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 68,
+        "chance": 10
+      },
+      {
+        "type": "gift",
+        "gift_id": 15,
+        "chance": 7.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 29,
+        "chance": 6
+      },
+      {
+        "type": "gift",
+        "gift_id": 4,
+        "chance": 6
+      },
+      {
+        "type": "gift",
+        "gift_id": 22,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 5,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 13,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 6,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 2,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 23,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 14,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 74,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 30,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 82,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 41,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 7,
+        "chance": 1.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 17,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 9,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 28,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 1,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 69,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 12,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 26,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 40,
+        "chance": 0.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 47,
+        "chance": 0.7
+      },
+      {
+        "type": "gift",
+        "gift_id": 42,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 55,
+        "chance": 0.3
+      },
+      {
+        "type": "gift",
+        "gift_id": 70,
+        "chance": 0.2
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "name": "Galaxy",
+    "image": "/static/gifs/moon4.gif",
+    "price": 1000,
+    "cells": 6,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 68,
+        "chance": 12.1
+      },
+      {
+        "type": "gift",
+        "gift_id": 15,
+        "chance": 8
+      },
+      {
+        "type": "gift",
+        "gift_id": 29,
+        "chance": 6.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 18,
+        "chance": 5.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 4,
+        "chance": 5.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 66,
+        "chance": 4.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 61,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 22,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 35,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 48,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 5,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 101,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 73,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 10,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 13,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 11,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 6,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 32,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 2,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 44,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 23,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 14,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 74,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 30,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 82,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 41,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 17,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 28,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 1,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 12,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 26,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 40,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 47,
+        "chance": 0.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 42,
+        "chance": 0.6
+      },
+      {
+        "type": "gift",
+        "gift_id": 55,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 70,
+        "chance": 0.3
+      },
+      {
+        "type": "gift",
+        "gift_id": 43,
+        "chance": 0.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 8,
+        "chance": 0.1
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "name": "Cosmos",
+    "image": "/static/gifs/moon5.gif",
+    "price": 2000,
+    "cells": 6,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 12,
+        "chance": 10.75
+      },
+      {
+        "type": "gift",
+        "gift_id": 26,
+        "chance": 9
+      },
+      {
+        "type": "gift",
+        "gift_id": 40,
+        "chance": 7.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 47,
+        "chance": 7
+      },
+      {
+        "type": "gift",
+        "gift_id": 31,
+        "chance": 6.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 81,
+        "chance": 6
+      },
+      {
+        "type": "gift",
+        "gift_id": 33,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 50,
+        "chance": 5
+      },
+      {
+        "type": "gift",
+        "gift_id": 102,
+        "chance": 4.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 96,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 45,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 60,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 64,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 84,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 42,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 38,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 78,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 55,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 53,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 80,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 93,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 70,
+        "chance": 1.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 95,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 72,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 43,
+        "chance": 0.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 39,
+        "chance": 0.7
+      },
+      {
+        "type": "gift",
+        "gift_id": 65,
+        "chance": 0.6
+      },
+      {
+        "type": "gift",
+        "gift_id": 71,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 104,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 59,
+        "chance": 0.4
+      },
+      {
+        "type": "gift",
+        "gift_id": 77,
+        "chance": 0.35
+      },
+      {
+        "type": "gift",
+        "gift_id": 8,
+        "chance": 0.25
+      },
+      {
+        "type": "gift",
+        "gift_id": 54,
+        "chance": 0.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 91,
+        "chance": 0.15
+      },
+      {
+        "type": "gift",
+        "gift_id": 36,
+        "chance": 0.1
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Universe",
+    "image": "/static/gifs/moon6.gif",
+    "price": 3000,
+    "cells": 6,
+    "drops": [
+      {
+        "type": "gift",
+        "gift_id": 50,
+        "chance": 9.1
+      },
+      {
+        "type": "gift",
+        "gift_id": 102,
+        "chance": 8
+      },
+      {
+        "type": "gift",
+        "gift_id": 96,
+        "chance": 6.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 45,
+        "chance": 6.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 60,
+        "chance": 5.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 64,
+        "chance": 5.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 84,
+        "chance": 4.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 42,
+        "chance": 4.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 38,
+        "chance": 4.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 78,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 55,
+        "chance": 4
+      },
+      {
+        "type": "gift",
+        "gift_id": 53,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 80,
+        "chance": 3.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 93,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 70,
+        "chance": 3
+      },
+      {
+        "type": "gift",
+        "gift_id": 95,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 72,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 43,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 39,
+        "chance": 2.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 65,
+        "chance": 2
+      },
+      {
+        "type": "gift",
+        "gift_id": 71,
+        "chance": 1.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 104,
+        "chance": 1.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 59,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 77,
+        "chance": 1.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 8,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 54,
+        "chance": 1
+      },
+      {
+        "type": "gift",
+        "gift_id": 79,
+        "chance": 0.8
+      },
+      {
+        "type": "gift",
+        "gift_id": 91,
+        "chance": 0.7
+      },
+      {
+        "type": "gift",
+        "gift_id": 36,
+        "chance": 0.6
+      },
+      {
+        "type": "gift",
+        "gift_id": 88,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 51,
+        "chance": 0.5
+      },
+      {
+        "type": "gift",
+        "gift_id": 90,
+        "chance": 0.3
+      },
+      {
+        "type": "gift",
+        "gift_id": 75,
+        "chance": 0.25
+      },
+      {
+        "type": "gift",
+        "gift_id": 86,
+        "chance": 0.2
+      },
+      {
+        "type": "gift",
+        "gift_id": 98,
+        "chance": 0.15
+      },
+      {
+        "type": "gift",
+        "gift_id": 92,
+        "chance": 0.12
+      },
+      {
+        "type": "gift",
+        "gift_id": 85,
+        "chance": 0.1
+      },
+      {
+        "type": "gift",
+        "gift_id": 97,
+        "chance": 0.08
+      },
+      {
+        "type": "gift",
+        "gift_id": 52,
+        "chance": 0.05
+      },
+      {
+        "type": "gift",
+        "gift_id": 108,
+        "chance": 0.05
+      }
+    ]
+  }
+]

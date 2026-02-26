@@ -1,0 +1,52 @@
+# Dependencies
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Environment
+.env
+.venv/
+env/
+venv/
+
+# SQLite (local only)
+*.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp / deploy helpers
+_*.py
+_*.json
+_*.txt
+__*.txt
+__*.css
+__*.html
+.deploy_hashes.json
+
+# Large 3D models
+*.glb
+
+# Not needed on Render
+cf-worker/
+cf-site-proxy/
+gas-proxy/
+telethon_relay/
+prompt/
+deploy.ps1
+deploy.py
+download_nft_bgs.py
+pa_extract.py
+scrape_fragment.py
+update_prices.py
+upload_nft.py
+upload_nft2.py
+qr_login.py
+bot.py
+relay_bot.py
+cmd_req.json
+console_req.json

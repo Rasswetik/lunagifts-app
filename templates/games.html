@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Игры</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: #0E1621;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background:
+                radial-gradient(circle at 15% 25%, rgba(138, 92, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+            z-index: -1;
+            animation: bgFlow 20s ease infinite alternate;
+        }
+        @keyframes bgFlow {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.1) rotate(180deg); }
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-image:
+                radial-gradient(1px 1px at 10% 20%, rgba(138, 92, 246, 0.12) 1px, transparent 0),
+                radial-gradient(1px 1px at 30% 60%, rgba(245, 158, 11, 0.08) 1px, transparent 0),
+                radial-gradient(1px 1px at 70% 40%, rgba(59, 130, 246, 0.1) 1px, transparent 0),
+                radial-gradient(1px 1px at 90% 80%, rgba(138, 92, 246, 0.08) 1px, transparent 0);
+            background-size: 200px 200px;
+            z-index: -1;
+            animation: particleDrift 25s linear infinite;
+        }
+        @keyframes particleDrift {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(-80px) translateX(80px); }
+        }
+
+        .games-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 30px 20px 120px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Title */
+        .games-title {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: titleFade 0.8s ease forwards;
+            opacity: 0;
+        }
+        @keyframes titleFade {
+            to { opacity: 1; transform: translateY(0); }
+            from { transform: translateY(-20px); }
+        }
+
+        .games-title h1 {
+            font-size: 38px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #8A5CF6, #A78BFA, #8A5CF6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% auto;
+            letter-spacing: 1.5px;
+            margin-bottom: 8px;
+            animation: titleShine 3s linear infinite;
+        }
+        @keyframes titleShine {
+            to { background-position: 200% center; }
+        }
+
+        .games-title p {
+            color: #8E9AA9;
+            font-size: 15px;
+            font-weight: 400;
+        }
+
+        /* Game cards */
+        .games-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .game-card {
+            position: relative;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            width: 100%;
+            height: 150px;
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 12px 35px rgba(0, 0, 0, 0.5),
+                inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            animation: cardAppear 0.7s ease-out forwards;
+            opacity: 0;
+            transform: translateY(40px);
+        }
+
+        @keyframes cardAppear {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg,
+                rgba(255,255,255,0.06) 0%,
+                rgba(255,255,255,0.02) 50%,
+                rgba(255,255,255,0) 100%);
+            z-index: 1;
+            border-radius: 20px;
+        }
+
+        .game-card::after {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg,
+                transparent 20%, rgba(255,255,255,0.15) 50%, transparent 80%);
+            z-index: -1;
+            border-radius: 22px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            background-size: 200% 100%;
+        }
+
+        .game-card:hover::after {
+            opacity: 1;
+            animation: cardGlow 2s linear infinite;
+        }
+        @keyframes cardGlow {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow:
+                0 25px 50px rgba(0, 0, 0, 0.7),
+                inset 0 1px 1px rgba(255,255,255,0.15);
+        }
+
+        .game-card:active {
+            transform: translateY(-4px) scale(0.98);
+            transition: transform 0.1s ease;
+        }
+
+        .game-card-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 35px;
+            height: 100%;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .game-card-text {
+            font-size: 30px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(45deg, #fff, #f0f0f0, #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% auto;
+            animation: titleShine 2.5s linear infinite;
+        }
+
+        .game-card-gif {
+            width: 85px;
+            height: 85px;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.6)) brightness(1.15) saturate(1.2);
+            transition: all 0.5s ease;
+        }
+
+        .game-card:hover .game-card-gif {
+            transform: scale(1.2) rotate(10deg);
+            filter: drop-shadow(0 8px 25px rgba(0,0,0,0.8)) brightness(1.4) saturate(1.5);
+        }
+
+        /* Card colors */
+        .game-card-cases {
+            background: linear-gradient(135deg,
+                rgba(59, 130, 246, 0.9) 0%,
+                rgba(37, 99, 235, 0.9) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            animation-delay: 0.1s;
+        }
+
+        .game-card-scratch {
+            background: linear-gradient(135deg,
+                rgba(138, 92, 246, 0.9) 0%,
+                rgba(109, 40, 217, 0.9) 100%);
+            border: 1px solid rgba(138, 92, 246, 0.3);
+            animation-delay: 0.2s;
+        }
+
+        /* Ripple effect */
+        @keyframes ripple {
+            to { transform: scale(3); opacity: 0; }
+        }
+
+        @media (max-width: 480px) {
+            .games-container { padding: 25px 15px 120px; }
+            .games-title h1 { font-size: 32px; }
+            .game-card { height: 135px; }
+            .game-card-content { padding: 0 25px; }
+            .game-card-text { font-size: 26px; letter-spacing: 1.5px; }
+            .game-card-gif { width: 75px; height: 75px; }
+        }
+
+        @media (max-width: 360px) {
+            .games-title h1 { font-size: 28px; }
+            .game-card { height: 120px; }
+            .game-card-text { font-size: 22px; }
+            .game-card-gif { width: 65px; height: 65px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="games-container">
+        <div class="games-title">
+            <h1>LUNA GAMES</h1>
+            <p>Выберите режим игры</p>
+        </div>
+
+        <div class="games-menu">
+            <div class="game-card game-card-cases" onclick="window.location.href='/cases'">
+                <div class="game-card-content">
+                    <span class="game-card-text">Кейсы</span>
+                    <img src="/static/img/gifs/cases.gif" alt="Cases" class="game-card-gif">
+                </div>
+            </div>
+
+            <div class="game-card game-card-scratch" onclick="window.location.href='/scratch'">
+                <div class="game-card-content">
+                    <span class="game-card-text">Moon Scratch</span>
+                    <img src="/static/img/gifs/moon.gif" alt="Moon Scratch" class="game-card-gif">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    // Ripple effect
+    document.querySelectorAll('.game-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            ripple.style.cssText = `position:absolute;border-radius:50%;background:rgba(255,255,255,0.25);transform:scale(0);animation:ripple 0.8s ease-out;width:${size}px;height:${size}px;top:${e.clientY-rect.top-size/2}px;left:${e.clientX-rect.left-size/2}px;z-index:1;pointer-events:none;`;
+            this.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 800);
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,453 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Инвентарь</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .inv-action-row {
+            display: flex; gap: 10px; margin-bottom: 14px;
+        }
+        .inv-action-btn {
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+            padding: 14px 16px; border-radius: 16px; border: none;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s cubic-bezier(.175,.885,.32,1.275);
+            position: relative; overflow: hidden;
+        }
+        .inv-action-btn:active { transform: scale(0.96); }
+        .inv-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .inv-action-btn img { width: 16px; height: 16px; }
+        .sell-all-btn {
+            background: #FFCC00;
+            color: #131313;
+        }
+        .sell-all-btn:hover { transform: translateY(-1px); }
+        .withdraw-all-btn {
+            background: #1689FF;
+            color: #fff;
+        }
+        .withdraw-all-btn:hover { transform: translateY(-1px); }
+        .withdraw-all-btn svg { flex-shrink: 0; }
+
+        /* Confirm modal */
+        .confirm-overlay {
+            position: fixed; inset: 0; z-index: 2000;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+            display: none; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .confirm-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        .confirm-box {
+            background: #191919; border-radius: 24px; padding: 28px 24px;
+            max-width: 360px; width: 100%; text-align: center;
+            border: 1px solid #2E2E2E;
+            animation: slideUp 0.3s cubic-bezier(.32,.72,0,1);
+        }
+        .confirm-box-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .confirm-box-text { font-size: 14px; color: rgba(255,255,255,0.64); margin-bottom: 20px; line-height: 1.5; }
+        .confirm-box-btns { display: flex; gap: 10px; }
+        .confirm-box-btns button { flex: 1; padding: 13px; border-radius: 14px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s; }
+        .confirm-box-btns button:active { transform: scale(0.96); }
+        .confirm-cancel { background: #202020; color: rgba(255,255,255,0.64); }
+        .confirm-action { background: #FFCC00; color: #131313; }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <img class="user-avatar" src="" alt="">
+                <div class="user-info">
+                    <span class="user-name">Загрузка...</span>
+                    <div class="balance-row" onclick="openBalanceAction()">
+                        <span class="balance-amount">0</span>
+                        <img class="balance-icon" src="/static/img/star.png" alt="⭐">
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="topup-btn" onclick="injectTopupModals();openModal('topupModal')"><img src="/static/img/plus.png" alt="+"></button>
+            </div>
+        </div>
+
+        <!-- Inventory Header -->
+        <div class="inventory-header">
+            <h2>Мой инвентарь</h2>
+            <p id="inventoryCount">0 предметов</p>
+        </div>
+
+        <!-- Sell All / Withdraw All Buttons -->
+        <div class="inv-action-row" id="invActionRow" style="display:none;">
+            <button class="inv-action-btn sell-all-btn" id="sellAllBtn" onclick="sellAllItems()">
+                <img src="/static/img/star.png" alt=""> Продать всё
+            </button>
+            <button class="inv-action-btn withdraw-all-btn" id="withdrawAllBtn" onclick="withdrawAllItems()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Вывести NFT
+            </button>
+        </div>
+
+        <div class="inventory-grid" id="inventoryGrid">
+            <div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
+        </div>
+
+        <!-- Referral Section -->
+        <div class="referral-section" id="referralSection">
+            <h3>Реферальная программа</h3>
+            <p class="referral-desc">Приглашайте друзей и получайте бонусы!</p>
+            <div class="referral-stats" id="referralStats">
+                <div class="ref-stat"><span class="ref-stat-val" id="refCount">0</span><span class="ref-stat-label">Приглашено</span></div>
+                <div class="ref-stat"><span class="ref-stat-val" id="refEarnings">0 <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;"></span><span class="ref-stat-label">Заработано</span></div>
+            </div>
+            <div class="referral-link-wrap">
+                <input type="text" readonly class="referral-link-input" id="refLinkInput" value="">
+                <button class="referral-copy-btn" onclick="copyRefLink()">Копировать</button>
+            </div>
+        </div>
+
+        <!-- Promo Code Section -->
+        <div class="promo-section">
+            <h3>Промокод</h3>
+            <div class="promo-row">
+                <input type="text" class="promo-input" id="promoInput" placeholder="Введите промокод">
+                <button class="promo-btn" onclick="redeemPromo()">Активировать</button>
+            </div>
+        </div>
+
+        <!-- Admin link for admins -->
+        <div id="adminLink" style="display:none;text-align:center;margin:20px 0;">
+            <a href="/admin" class="admin-panel-link" style="font-size:14px;">&#9881; Админ-панель</a>
+        </div>
+    </div>
+
+    <!-- Item Modal -->
+    <div class="modal-overlay" id="itemModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal('itemModal')">&times;</button>
+            <div class="item-modal-visual" id="itemModalVisual"></div>
+            <div class="item-modal-name" id="itemModalName"></div>
+            <div class="item-modal-price" id="itemModalPrice"></div>
+            <div class="item-modal-buttons" id="itemModalButtons"></div>
+        </div>
+    </div>
+
+    <!-- Inventory Roulette Overlay (for opening cases from inventory) -->
+    <div class="modal-overlay" id="invRouletteOverlay" style="z-index:1100;">
+        <div class="modal-content" style="max-width:400px;padding:16px;">
+            <div class="roulette-container" id="invRouletteContainer" style="height:110px;margin-bottom:16px;">
+                <div class="roulette-pointer"></div>
+                <div class="roulette-strip" id="invRouletteStrip"></div>
+            </div>
+            <div id="invRouletteResult" style="text-align:center;"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+        </div>
+    </nav>
+
+    <!-- Confirm Sell All Modal -->
+    <div class="confirm-overlay" id="confirmSellAll">
+        <div class="confirm-box">
+            <div class="confirm-box-title">Продать всё?</div>
+            <div class="confirm-box-text" id="confirmSellText">Все подарки будут проданы</div>
+            <div class="confirm-box-btns">
+                <button class="confirm-cancel" onclick="document.getElementById('confirmSellAll').classList.remove('active')">Отмена</button>
+                <button class="confirm-action" onclick="doSellAll()">Продать</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw All Confirm Modal -->
+    <div class="confirm-overlay" id="confirmWithdrawAll">
+        <div class="confirm-box">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1689FF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 14px;display:block;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <div class="confirm-box-title">Вывести все NFT?</div>
+            <div class="confirm-box-text" id="confirmWithdrawText">Все доступные подарки будут выведены в Telegram</div>
+            <div class="confirm-box-btns">
+                <button class="confirm-cancel" onclick="document.getElementById('confirmWithdrawAll').classList.remove('active')">Отмена</button>
+                <button class="confirm-action" style="background:#1689FF;color:#fff;" onclick="doWithdrawAll()">Вывести</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    let inventoryData=[];
+
+    async function loadInventory(){
+        if(!currentUser)return;
+        try{
+            const res=await fetch('/api/inventory/'+currentUser.telegram_id);
+            inventoryData=await res.json();
+            renderInventory();
+        }catch(e){document.getElementById('inventoryGrid').innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Ошибка загрузки</p></div>';}
+    }
+
+    function renderInventory(){
+        const g=document.getElementById('inventoryGrid');
+        const cnt=document.getElementById('inventoryCount');
+        cnt.textContent=inventoryData.length+' предмет'+(inventoryData.length===1?'':'ов');
+        // Show/hide action buttons based on non-case items
+        const nonCaseItems=inventoryData.filter(i=>i.type!=='case');
+        const actionRow=document.getElementById('invActionRow');
+        if(nonCaseItems.length>0){actionRow.style.display='flex';}else{actionRow.style.display='none';}
+        if(!inventoryData.length){g.innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Инвентарь пуст.<br>Откройте кейсы или купите подарки!</p></div>';return;}
+        g.innerHTML=inventoryData.map(item=>{
+            const isCase=item.type==='case';
+            const bg=!isCase?getNftBg(item.slug,item.item_count):'';
+            return '<div class="inventory-item" onclick="'+(isCase?'openCaseItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+item.case_id+')':'openItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+(item.price||0)+',\''+esc(item.slug||'')+'\','+(item.item_count||1000)+','+(item.gift_id||0)+')')+'"><div class="inv-item-visual">'+(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+(item.slug||'')+'" data-count="'+(item.item_count||1000)+'" alt="">':'<img class="inv-item-img" src="'+imgSrc(item.image)+'" alt="'+esc(item.name)+'" onerror="this.src=\'/static/img/star.png\'">')+'</div><div class="inv-item-name">'+esc(item.name)+'</div>'+(isCase?'<div class="inv-item-tag">Кейс</div>':'<div class="inv-item-price">'+Math.floor(item.price||0)+' <img src="/static/img/star.png" alt=""></div>')+'</div>';
+        }).join('');
+    }
+
+    function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+    function openItemModal(invId,name,image,price,slug,itemCount,giftId){
+        const invItem = inventoryData.find(it => it.id === invId);
+        const canWithdraw = invItem && invItem.withdrawable && invItem.telegram_gift_id;
+        const isNft = !!slug;
+        const bg=getNftBg(slug,itemCount);
+        document.getElementById('itemModalVisual').innerHTML=bg?'<img class="item-modal-backdrop" src="'+bg+'" alt="" style="width:200px;height:200px;object-fit:cover;border-radius:20px;">':'<img class="item-modal-img" src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';
+        document.getElementById('itemModalName').textContent=name;
+        document.getElementById('itemModalPrice').innerHTML=Math.floor(price)+' <img src="/static/img/star.png" alt="" style="width:16px;height:16px;vertical-align:middle;">';
+        const sp=Math.floor(price);
+        const escapedName=name.replace(/'/g,"\\'");
+        let btns='<div style="display:flex;flex-direction:column;gap:10px;width:100%;">';
+        btns+='<button class="result-btn sell" style="width:100%;" onclick="sellItem('+invId+',\''+escapedName+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.png" alt=""></button>';
+        if(canWithdraw){
+            btns+='<button class="result-btn next" style="width:100%;" onclick="withdrawItem('+invId+',\''+escapedName+'\')">Вывести в Telegram</button>';
+        } else if(isNft){
+            btns+='<button style="width:100%;padding:14px;border-radius:14px;border:none;font-size:15px;font-weight:700;background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.3);cursor:not-allowed;display:flex;align-items:center;justify-content:center;gap:8px;" disabled><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.5;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Вывод скоро</button>';
+        }
+        btns+='</div>';
+        document.getElementById('itemModalButtons').innerHTML=btns;
+        openModal('itemModal');
+    }
+
+    function openCaseItemModal(invId,name,image,caseId){
+        document.getElementById('itemModalVisual').innerHTML='<img src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';
+        document.getElementById('itemModalName').textContent=name;
+        document.getElementById('itemModalPrice').innerHTML='Кейс';
+        document.getElementById('itemModalButtons').innerHTML='<button class="result-btn next" onclick="closeModal(\'itemModal\');openCaseFromInventory('+invId+','+caseId+')">Открыть кейс</button>';
+        openModal('itemModal');
+    }
+
+    async function openCaseFromInventory(invId,caseId){
+        if(!currentUser)return;
+        try{
+            const res=await fetch('/api/cases/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,case_id:caseId,inventory_id:invId})});
+            const data=await res.json();if(data.error){showNotification(data.error,'error');return;}
+            let dropsRes,drops=[];try{dropsRes=await fetch('/api/cases/drops/'+caseId);drops=await dropsRes.json();}catch(e){}
+            const wonItem={name:data.type==='stars'?'+'+data.amount+' Stars':data.gift.name,image:data.type==='stars'?'/static/img/star.png':imgSrc(data.gift.image),backdrop:data.type==='stars'?'':getNftBg(data.gift.slug,data.gift.item_count),price:data.type==='stars'?data.amount:(data.gift.price||0)};
+            let pool=drops.map(d=>({name:d.name,image:imgSrc(d.image),backdrop:getNftBg(d.slug,d.item_count),price:d.price||0}));
+            if(!pool.length)pool=[wonItem];
+            const totalItems=60;const winnerIndex=50+Math.floor(Math.random()*5);
+            let stripItems=[];for(let i=0;i<totalItems;i++)stripItems.push(i===winnerIndex?wonItem:pool[Math.floor(Math.random()*pool.length)]);
+            const stripHtml=stripItems.map(item=>'<div class="roulette-item" style="'+(item.backdrop?'background-image:url('+item.backdrop+');background-size:cover;background-position:center;':'')+'">'+(item.backdrop?'':'<img src="'+item.image+'" alt="" onerror="this.src=\'/static/img/star.png\'">')+'</div>').join('');
+            document.getElementById('invRouletteStrip').innerHTML=stripHtml;
+            document.getElementById('invRouletteResult').innerHTML='';
+            openModal('invRouletteOverlay');
+            try{if(tg)tg.HapticFeedback.impactOccurred('medium');}catch(e){}
+            const strip=document.getElementById('invRouletteStrip');
+            const container=document.getElementById('invRouletteContainer');
+            const itemWidth=110;const containerWidth=container.offsetWidth;
+            const targetOffset=(winnerIndex*itemWidth)-(containerWidth/2)+(itemWidth/2)+(Math.random()-.5)*40;
+            let startTime=null;const totalDuration=6000;
+            function ease(t){return 1-Math.pow(1-t,4);}
+            await new Promise(resolve=>{
+                function anim(ts){if(!startTime)startTime=ts;const t=Math.min((ts-startTime)/totalDuration,1);strip.style.transform='translateX(-'+(ease(t)*targetOffset)+'px)';if(t<1)requestAnimationFrame(anim);else resolve();}
+                setTimeout(()=>requestAnimationFrame(anim),300);
+            });
+            try{if(tg)tg.HapticFeedback.impactOccurred('heavy');}catch(e){}
+            showInvRouletteResult(data);
+            currentUser.balance=data.new_balance;updateUI();loadInventory();
+        }catch(e){showNotification('Ошибка соединения','error');}
+    }
+
+    function showInvRouletteResult(data){
+        const r=document.getElementById('invRouletteResult');
+        if(data.type==='stars'){r.innerHTML='<div style="margin-top:16px;font-size:24px;font-weight:700;color:var(--gold);">+'+data.amount+' <img src="/static/img/star.png" alt="" style="width:20px;height:20px;vertical-align:middle;"></div><p style="color:var(--text-secondary);font-size:14px;">Звёзды зачислены</p><button class="result-btn next" onclick="closeModal(\'invRouletteOverlay\')" style="margin-top:12px;">Закрыть</button>';}
+        else{const bg=getNftBg(data.gift.slug,data.gift.item_count);r.innerHTML='<div style="margin-top:16px;">'+(bg?'<img src="'+bg+'" style="width:100px;height:100px;object-fit:cover;border-radius:16px;" alt="">':'<img src="'+imgSrc(data.gift.image)+'" style="width:100px;height:100px;object-fit:contain;" alt="" onerror="this.src=\'/static/img/star.png\'">')+'</div><div style="font-size:18px;font-weight:700;margin:8px 0;">'+data.gift.name+'</div><button class="result-btn next" onclick="closeModal(\'invRouletteOverlay\')" style="margin-top:8px;">Закрыть</button>';}
+    }
+
+    async function sellItem(invId,name,price){
+        if(!currentUser)return;
+        try{
+            const res=await fetch('/api/inventory/sell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,inventory_id:invId})});
+            const d=await res.json();
+            if(d.success){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();showNotification(name+' продан за '+Math.floor(d.sell_price)+' Stars','success');closeModal('itemModal');loadInventory();}
+            else showNotification(d.error||'Ошибка','error');
+        }catch(e){showNotification('Ошибка соединения','error');}
+    }
+
+    async function withdrawItem(invId,name){
+        if(!currentUser)return;
+        showNotification('Отправка подарка в Telegram...','info');
+        try{
+            const res=await fetch('/api/inventory/withdraw',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,inventory_id:invId})});
+            const d=await res.json();
+            if(d.success){
+                if(d.is_first_withdrawal){
+                    showFirstWithdrawModal();
+                }
+                showNotification(d.message||name+' выведен! Проверьте Telegram','success');
+                closeModal('itemModal');
+                if(d.new_balance!==undefined){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();}
+                loadInventory();
+            }
+            else showNotification(d.error||'Ошибка вывода','error');
+        }catch(e){showNotification('Ошибка соединения','error');}
+    }
+
+    function showFirstWithdrawModal(){
+        const ov=document.createElement('div');
+        ov.className='modal-overlay active';
+        ov.id='firstWithdrawModal';
+        ov.style.alignItems='center';
+        ov.innerHTML='<div class="modal" style="border-radius:24px;max-width:380px;text-align:center;padding:30px 24px;">'
+            +'<img src="/static/img/gift.png" style="width:64px;height:64px;margin:0 auto 16px;" alt="">'
+            +'<div style="font-size:20px;font-weight:800;margin-bottom:10px;">Первый вывод!</div>'
+            +'<div style="font-size:14px;color:rgba(255,255,255,0.64);margin-bottom:20px;line-height:1.6;">Для получения подарка напишите <b>любое сообщение</b> боту:</div>'
+            +'<a href="https://t.me/RasswetGiftsRelayer" target="_blank" style="display:block;background:#202020;border:1px solid #2E2E2E;border-radius:14px;padding:16px;margin-bottom:20px;text-decoration:none;">'
+            +'<div style="font-size:18px;font-weight:800;color:#1689FF;">@RasswetGiftsRelayer</div>'
+            +'<div style="font-size:12px;color:rgba(255,255,255,0.36);margin-top:4px;">Нажмите чтобы перейти</div></a>'
+            +'<button onclick="document.getElementById(\'firstWithdrawModal\').remove()" style="width:100%;padding:12px;border:none;border-radius:12px;background:#1689FF;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Понятно</button>'
+            +'</div>';
+        document.body.appendChild(ov);
+    }
+
+    async function loadReferralStats(){
+        if(!currentUser)return;
+        try{
+            const res=await fetch('/api/referral/stats/'+currentUser.telegram_id);const d=await res.json();
+            document.getElementById('refCount').textContent=d.count||0;
+            document.getElementById('refEarnings').innerHTML=(d.earnings||0)+' <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;">';
+            document.getElementById('refLinkInput').value='https://t.me/lunagifts_robot?start=ref_'+currentUser.telegram_id;
+        }catch(e){}
+    }
+
+    function copyRefLink(){
+        const inp=document.getElementById('refLinkInput');
+        if(navigator.clipboard){navigator.clipboard.writeText(inp.value).then(()=>showNotification('Ссылка скопирована!','success'));}
+        else{inp.select();document.execCommand('copy');showNotification('Ссылка скопирована!','success');}
+    }
+
+    async function redeemPromo(){
+        if(!currentUser)return;
+        const code=document.getElementById('promoInput').value.trim();
+        if(!code){showNotification('Введите промокод','error');return;}
+        try{
+            const res=await fetch('/api/promo/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,code:code})});
+            const d=await res.json();
+            if(d.error){showNotification(d.error,'error');return;}
+            // Handle different promo types
+            if(d.new_balance!==undefined){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();}
+            if(d.case_discount_percent){localStorage.setItem('luna_case_discount',JSON.stringify({case_id:d.case_id||0,percent:d.case_discount_percent}));}
+            if(d.scratch_discount_percent){localStorage.setItem('luna_scratch_discount',JSON.stringify({scratch_id:d.scratch_id||0,percent:d.scratch_discount_percent}));}
+            showNotification(d.message||'Промокод активирован!','success');
+            document.getElementById('promoInput').value='';
+            if(d.type==='gift_to_inventory'||d.type==='case_to_inventory')loadInventory();
+        }catch(e){showNotification('Ошибка соединения','error');}
+    }
+
+    function sellAllItems(){
+        const nonCase=inventoryData.filter(i=>i.type!=='case');
+        if(!nonCase.length){showNotification('Нет предметов для продажи','error');return;}
+        const totalPrice=nonCase.reduce((s,i)=>s+Math.floor(i.price||0),0);
+        document.getElementById('confirmSellText').innerHTML='Будет продано <b>'+nonCase.length+'</b> предмет(ов) за <b>'+totalPrice+'</b> <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;">';
+        document.getElementById('confirmSellAll').classList.add('active');
+    }
+
+    async function doSellAll(){
+        document.getElementById('confirmSellAll').classList.remove('active');
+        if(!currentUser)return;
+        const btn=document.getElementById('sellAllBtn');
+        btn.disabled=true;
+        try{
+            const res=await fetch('/api/inventory/sell-all',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id})});
+            const d=await res.json();
+            if(d.success){
+                currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();
+                showNotification('Продано '+d.sold_count+' предметов за '+Math.floor(d.total_price)+' Stars','success');
+                loadInventory();
+            }else{showNotification(d.error||'Ошибка','error');}
+        }catch(e){showNotification('Ошибка соединения','error');}
+        btn.disabled=false;
+    }
+
+    function withdrawAllItems(){
+        // Count withdrawable items
+        const withdrawable = inventoryData.filter(i => i.type !== 'case' && i.withdrawable && i.telegram_gift_id);
+        if(!withdrawable.length){
+            showNotification('Нет подарков для вывода в Telegram','error');
+            return;
+        }
+        document.getElementById('confirmWithdrawText').innerHTML =
+            'Будет выведено <b>' + withdrawable.length + '</b> подарок(ов) в Telegram';
+        document.getElementById('confirmWithdrawAll').classList.add('active');
+    }
+
+    async function doWithdrawAll(){
+        document.getElementById('confirmWithdrawAll').classList.remove('active');
+        if(!currentUser) return;
+        const btn = document.getElementById('withdrawAllBtn');
+        btn.disabled = true;
+        showNotification('Вывод подарков...','info');
+        try{
+            const res = await fetch('/api/inventory/withdraw-all', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({telegram_id: currentUser.telegram_id})
+            });
+            const d = await res.json();
+            if(d.success){
+                if(d.is_first_withdrawal) showFirstWithdrawModal();
+                showNotification(d.message, 'success');
+                if(d.new_balance !== undefined){
+                    currentUser.balance = d.new_balance;
+                    localStorage.setItem('luna_user', JSON.stringify(currentUser));
+                    updateUI();
+                }
+                loadInventory();
+            } else {
+                showNotification(d.error || 'Ошибка вывода', 'error');
+            }
+        } catch(e){
+            showNotification('Ошибка соединения', 'error');
+        }
+        btn.disabled = false;
+    }
+
+    document.addEventListener('DOMContentLoaded',async function(){
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        setLoadProgress(75, 'Загрузка инвентаря...');
+        try{await Promise.all([loadInventory(),loadReferralStats()]);}catch(e){console.error(e);}
+        try{if(currentUser&&currentUser.is_admin)document.getElementById('adminLink').style.display='block';}catch(e){console.error(e);}
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

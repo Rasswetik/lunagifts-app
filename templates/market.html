@@ -1,0 +1,132 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Маркет</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <img class="user-avatar" src="" alt="" onclick="window.location.href='/inventory'">
+                <div class="user-info">
+                    <span class="user-name">Загрузка...</span>
+                    <div class="balance-row" onclick="openBalanceAction()">
+                        <span class="balance-amount">0</span>
+                        <img class="balance-icon" src="/static/img/star.png" alt="⭐">
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="topup-btn" onclick="injectTopupModals();openModal('topupModal')"><img src="/static/img/plus.png" alt="+"></button>
+            </div>
+        </div>
+
+        <div class="section-header">
+            <h2><img class="section-icon" src="/static/img/gift.png" alt=""> Магазин подарков</h2>
+            <p>Тратьте звёзды на NFT подарки</p>
+        </div>
+
+        <div class="gifts-grid" id="giftsGrid">
+            <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div class="modal-overlay" id="buyModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('buyModal')"><img src="/static/img/exit.png" alt="✕"></button>
+            <div id="buyModalContent"></div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
+            <a href="/market" class="nav-item active"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    let giftsData=[];
+
+    async function loadGifts(){
+        try{
+            const res=await fetch('/api/gifts');
+            giftsData=await res.json();
+            renderGifts();
+        }catch(e){
+            document.getElementById('giftsGrid').innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Подарки не найдены</p></div>';
+        }
+    }
+
+    function renderGifts(){
+        const c=document.getElementById('giftsGrid');
+        if(!giftsData.length){c.innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Подарков пока нет</p></div>';return;}
+        c.innerHTML=giftsData.filter(g=>g.price<=2500).map(g=>{
+            const hasBg=g.bg_color&&!g.slug;
+            const bg=g.slug?getNftBg(g.slug,g.item_count):'';
+            return '<div class="gift-card" onclick="openBuyModal('+g.id+')">'
+            +'<div class="gift-visual">'
+            +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'50 0%,'+g.bg_color+'20 60%,transparent 80%);"></div>':'')
+            +(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+g.slug+'" data-count="'+(g.item_count||1000)+'" alt="">':'<img class="gift-img" src="'+imgSrc(g.image)+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.png\'">')
+            +'</div>'
+            +'<div class="gift-price"><span>'+g.price+'</span><img src="/static/img/star.png" alt=""></div>'
+            +'</div>';
+        }).join('');
+    }
+
+    function openBuyModal(id){
+        const g=giftsData.find(x=>x.id===id);if(!g)return;
+        const hasBg=g.bg_color&&!g.slug;
+        document.getElementById('buyModalContent').innerHTML=''
+        +'<div class="modal-gift-visual">'
+        +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'60 0%,'+g.bg_color+'25 50%,transparent 75%);"></div>':'')
+        +(g.slug?'<img class="gift-backdrop" src="'+getNftBg(g.slug,g.item_count)+'" data-slug="'+g.slug+'" data-count="'+(g.item_count||1000)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">':'<img class="modal-gift-image" src="'+imgSrc(g.image)+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.png\'">')
+        +'</div>'
+        +'<div class="modal-gift-name">'+g.name+'</div>'
+        +'<div class="modal-gift-type">'+(g.withdrawable?'Выводимый подарок':'Случайный')+'</div>'
+        +'<button class="modal-buy-btn" onclick="buyGift('+g.id+')">Купить за '+g.price+' <img src="/static/img/star.png" alt=""></button>';
+        openModal('buyModal');
+    }
+
+    async function buyGift(id){
+        if(!currentUser)return;
+        try{
+            const res=await fetch('/api/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,gift_id:id})});
+            const data=await res.json();
+            if(data.success){currentUser.balance=data.new_balance;updateUI();closeModal('buyModal');showNotification(data.gift.name+' добавлен в инвентарь!','success');}
+            else showNotification(data.error||'Ошибка покупки','error');
+        }catch(e){showNotification('Ошибка соединения','error');}
+    }
+
+    document.addEventListener('DOMContentLoaded',async function(){
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        setLoadProgress(75, 'Загрузка подарков...');
+        await loadGifts();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

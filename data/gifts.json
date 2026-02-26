@@ -1,0 +1,1194 @@
+{
+  "gifts": [
+    {
+      "id": 1,
+      "name": "Desk Calendars",
+      "type": "item",
+      "image": "/static/img/gifts/deskcalendar.webp",
+      "value": 720,
+      "slug": "deskcalendar",
+      "fragment_url": "https://fragment.com/gifts/deskcalendar",
+      "item_count": 26926
+    },
+    {
+      "id": 2,
+      "name": "Easter Eggs",
+      "type": "item",
+      "image": "/static/img/gifts/easteregg.webp",
+      "value": 490,
+      "slug": "easteregg",
+      "fragment_url": "https://fragment.com/gifts/easteregg",
+      "item_count": 21564
+    },
+    {
+      "id": 3,
+      "name": "Homemade Cakes",
+      "type": "item",
+      "image": "/static/img/gifts/homemadecake.webp",
+      "value": 527,
+      "slug": "homemadecake",
+      "fragment_url": "https://fragment.com/gifts/homemadecake",
+      "item_count": 30164
+    },
+    {
+      "id": 4,
+      "name": "Ice Creams",
+      "type": "item",
+      "image": "/static/img/gifts/icecream.webp",
+      "value": 433,
+      "slug": "icecream",
+      "fragment_url": "https://fragment.com/gifts/icecream",
+      "item_count": 22069
+    },
+    {
+      "id": 5,
+      "name": "Lol Pops",
+      "type": "item",
+      "image": "/static/img/gifts/lolpop.webp",
+      "value": 460,
+      "slug": "lolpop",
+      "fragment_url": "https://fragment.com/gifts/lolpop",
+      "item_count": 55454
+    },
+    {
+      "id": 6,
+      "name": "Snoop Doggs",
+      "type": "item",
+      "image": "/static/img/gifts/snoopdogg.webp",
+      "value": 485,
+      "slug": "snoopdogg",
+      "fragment_url": "https://fragment.com/gifts/snoopdogg",
+      "item_count": 36842
+    },
+    {
+      "id": 7,
+      "name": "Spy Agarics",
+      "type": "item",
+      "image": "/static/img/gifts/spyagaric.webp",
+      "value": 620,
+      "slug": "spyagaric",
+      "fragment_url": "https://fragment.com/gifts/spyagaric",
+      "item_count": 26809
+    },
+    {
+      "id": 8,
+      "name": "Toy Bears",
+      "type": "item",
+      "image": "/static/img/gifts/toybear.webp",
+      "value": 4400,
+      "slug": "toybear",
+      "fragment_url": "https://fragment.com/gifts/toybear",
+      "item_count": 27368
+    },
+    {
+      "id": 9,
+      "name": "Witch Hats",
+      "type": "item",
+      "image": "/static/img/gifts/witchhat.webp",
+      "value": 649,
+      "slug": "witchhat",
+      "fragment_url": "https://fragment.com/gifts/witchhat",
+      "item_count": 29061
+    },
+    {
+      "id": 10,
+      "name": "B-Day Candles",
+      "type": "item",
+      "image": "/static/img/gifts/bdaycandle.webp",
+      "value": 465,
+      "slug": "bdaycandle",
+      "fragment_url": "https://fragment.com/gifts/bdaycandle",
+      "item_count": 19917
+    },
+    {
+      "id": 11,
+      "name": "Clover Pins",
+      "type": "item",
+      "image": "/static/img/gifts/cloverpin.webp",
+      "value": 472,
+      "slug": "cloverpin",
+      "fragment_url": "https://fragment.com/gifts/cloverpin",
+      "item_count": 12387
+    },
+    {
+      "id": 12,
+      "name": "Evil Eyes",
+      "type": "item",
+      "image": "/static/img/gifts/evileye.webp",
+      "value": 800,
+      "slug": "evileye",
+      "fragment_url": "https://fragment.com/gifts/evileye",
+      "item_count": 15792
+    },
+    {
+      "id": 13,
+      "name": "Ginger Cookies",
+      "type": "item",
+      "image": "/static/img/gifts/gingercookie.webp",
+      "value": 470,
+      "slug": "gingercookie",
+      "fragment_url": "https://fragment.com/gifts/gingercookie",
+      "item_count": 14015
+    },
+    {
+      "id": 14,
+      "name": "Hex Pots",
+      "type": "item",
+      "image": "/static/img/gifts/hexpot.webp",
+      "value": 530,
+      "slug": "hexpot",
+      "fragment_url": "https://fragment.com/gifts/hexpot",
+      "item_count": 12901
+    },
+    {
+      "id": 15,
+      "name": "Instant Ramens",
+      "type": "item",
+      "image": "/static/img/gifts/instantramen.webp",
+      "value": 428,
+      "slug": "instantramen",
+      "fragment_url": "https://fragment.com/gifts/instantramen",
+      "item_count": 12786
+    },
+    {
+      "id": 16,
+      "name": "Jacks-in-the-Box",
+      "type": "item",
+      "image": "/static/img/gifts/jackinthebox.webp",
+      "value": 464,
+      "slug": "jackinthebox",
+      "fragment_url": "https://fragment.com/gifts/jackinthebox",
+      "item_count": 13713
+    },
+    {
+      "id": 17,
+      "name": "Light Swords",
+      "type": "item",
+      "image": "/static/img/gifts/lightsword.webp",
+      "value": 648,
+      "slug": "lightsword",
+      "fragment_url": "https://fragment.com/gifts/lightsword",
+      "item_count": 12448
+    },
+    {
+      "id": 18,
+      "name": "Party Sparklers",
+      "type": "item",
+      "image": "/static/img/gifts/partysparkler.webp",
+      "value": 430,
+      "slug": "partysparkler",
+      "fragment_url": "https://fragment.com/gifts/partysparkler",
+      "item_count": 17220
+    },
+    {
+      "id": 19,
+      "name": "Scared Cats",
+      "type": "item",
+      "image": "/static/img/gifts/scaredcat.webp",
+      "value": 16470,
+      "slug": "scaredcat",
+      "fragment_url": "https://fragment.com/gifts/scaredcat",
+      "item_count": 12655
+    },
+    {
+      "id": 20,
+      "name": "Swag Bags",
+      "type": "item",
+      "image": "/static/img/gifts/swagbag.webp",
+      "value": 498,
+      "slug": "swagbag",
+      "fragment_url": "https://fragment.com/gifts/swagbag",
+      "item_count": 14469
+    },
+    {
+      "id": 21,
+      "name": "Big Years",
+      "type": "item",
+      "image": "/static/img/gifts/bigyear.webp",
+      "value": 475,
+      "slug": "bigyear",
+      "fragment_url": "https://fragment.com/gifts/bigyear",
+      "item_count": 8396
+    },
+    {
+      "id": 22,
+      "name": "Candy Canes",
+      "type": "item",
+      "image": "/static/img/gifts/candycane.webp",
+      "value": 440,
+      "slug": "candycane",
+      "fragment_url": "https://fragment.com/gifts/candycane",
+      "item_count": 9721
+    },
+    {
+      "id": 23,
+      "name": "Cookie Hearts",
+      "type": "item",
+      "image": "/static/img/gifts/cookieheart.webp",
+      "value": 505,
+      "slug": "cookieheart",
+      "fragment_url": "https://fragment.com/gifts/cookieheart",
+      "item_count": 10317
+    },
+    {
+      "id": 24,
+      "name": "Eternal Candles",
+      "type": "item",
+      "image": "/static/img/gifts/eternalcandle.webp",
+      "value": 672,
+      "slug": "eternalcandle",
+      "fragment_url": "https://fragment.com/gifts/eternalcandle",
+      "item_count": 10001
+    },
+    {
+      "id": 25,
+      "name": "Input Keys",
+      "type": "item",
+      "image": "/static/img/gifts/inputkey.webp",
+      "value": 637,
+      "slug": "inputkey",
+      "fragment_url": "https://fragment.com/gifts/inputkey",
+      "item_count": 8103
+    },
+    {
+      "id": 26,
+      "name": "Jelly Bunnies",
+      "type": "item",
+      "image": "/static/img/gifts/jellybunny.webp",
+      "value": 800,
+      "slug": "jellybunny",
+      "fragment_url": "https://fragment.com/gifts/jellybunny",
+      "item_count": 11553
+    },
+    {
+      "id": 27,
+      "name": "Jester Hats",
+      "type": "item",
+      "image": "/static/img/gifts/jesterhat.webp",
+      "value": 455,
+      "slug": "jesterhat",
+      "fragment_url": "https://fragment.com/gifts/jesterhat",
+      "item_count": 8945
+    },
+    {
+      "id": 28,
+      "name": "Jolly Chimps",
+      "type": "item",
+      "image": "/static/img/gifts/jollychimp.webp",
+      "value": 690,
+      "slug": "jollychimp",
+      "fragment_url": "https://fragment.com/gifts/jollychimp",
+      "item_count": 9515
+    },
+    {
+      "id": 29,
+      "name": "Lunar Snakes",
+      "type": "item",
+      "image": "/static/img/gifts/lunarsnake.webp",
+      "value": 428,
+      "slug": "lunarsnake",
+      "fragment_url": "https://fragment.com/gifts/lunarsnake",
+      "item_count": 11416
+    },
+    {
+      "id": 30,
+      "name": "Moon Pendants",
+      "type": "item",
+      "image": "/static/img/gifts/moonpendant.webp",
+      "value": 559,
+      "slug": "moonpendant",
+      "fragment_url": "https://fragment.com/gifts/moonpendant",
+      "item_count": 9806
+    },
+    {
+      "id": 31,
+      "name": "Sakura Flowers",
+      "type": "item",
+      "image": "/static/img/gifts/sakuraflower.webp",
+      "value": 1050,
+      "slug": "sakuraflower",
+      "fragment_url": "https://fragment.com/gifts/sakuraflower",
+      "item_count": 10374
+    },
+    {
+      "id": 32,
+      "name": "Santa Hats",
+      "type": "item",
+      "image": "/static/img/gifts/santahat.webp",
+      "value": 485,
+      "slug": "santahat",
+      "fragment_url": "https://fragment.com/gifts/santahat",
+      "item_count": 9463
+    },
+    {
+      "id": 33,
+      "name": "Snoop Cigars",
+      "type": "item",
+      "image": "/static/img/gifts/snoopcigar.webp",
+      "value": 1160,
+      "slug": "snoopcigar",
+      "fragment_url": "https://fragment.com/gifts/snoopcigar",
+      "item_count": 11956
+    },
+    {
+      "id": 34,
+      "name": "Spiced Wines",
+      "type": "item",
+      "image": "/static/img/gifts/spicedwine.webp",
+      "value": 514,
+      "slug": "spicedwine",
+      "fragment_url": "https://fragment.com/gifts/spicedwine",
+      "item_count": 10007
+    },
+    {
+      "id": 35,
+      "name": "Stellar Rockets",
+      "type": "item",
+      "image": "/static/img/gifts/stellarrocket.webp",
+      "value": 440,
+      "slug": "stellarrocket",
+      "fragment_url": "https://fragment.com/gifts/stellarrocket",
+      "item_count": 11182
+    },
+    {
+      "id": 36,
+      "name": "Swiss Watches",
+      "type": "item",
+      "image": "/static/img/gifts/swisswatch.webp",
+      "value": 5420,
+      "slug": "swisswatch",
+      "fragment_url": "https://fragment.com/gifts/swisswatch",
+      "item_count": 8823
+    },
+    {
+      "id": 37,
+      "name": "Tama Gadgets",
+      "type": "item",
+      "image": "/static/img/gifts/tamagadget.webp",
+      "value": 440,
+      "slug": "tamagadget",
+      "fragment_url": "https://fragment.com/gifts/tamagadget",
+      "item_count": 8071
+    },
+    {
+      "id": 38,
+      "name": "Trapped Hearts",
+      "type": "item",
+      "image": "/static/img/gifts/trappedheart.webp",
+      "value": 1390,
+      "slug": "trappedheart",
+      "fragment_url": "https://fragment.com/gifts/trappedheart",
+      "item_count": 8949
+    },
+    {
+      "id": 39,
+      "name": "Voodoo Dolls",
+      "type": "item",
+      "image": "/static/img/gifts/voodoodoll.webp",
+      "value": 3100,
+      "slug": "voodoodoll",
+      "fragment_url": "https://fragment.com/gifts/voodoodoll",
+      "item_count": 9238
+    },
+    {
+      "id": 40,
+      "name": "Berry Boxes",
+      "type": "item",
+      "image": "/static/img/gifts/berrybox.webp",
+      "value": 919,
+      "slug": "berrybox",
+      "fragment_url": "https://fragment.com/gifts/berrybox",
+      "item_count": 7697
+    },
+    {
+      "id": 41,
+      "name": "Bow Ties",
+      "type": "item",
+      "image": "/static/img/gifts/bowtie.webp",
+      "value": 616,
+      "slug": "bowtie",
+      "fragment_url": "https://fragment.com/gifts/bowtie",
+      "item_count": 5869
+    },
+    {
+      "id": 42,
+      "name": "Crystal Balls",
+      "type": "item",
+      "image": "/static/img/gifts/crystalball.webp",
+      "value": 1380,
+      "slug": "crystalball",
+      "fragment_url": "https://fragment.com/gifts/crystalball",
+      "item_count": 6998
+    },
+    {
+      "id": 43,
+      "name": "Diamond Rings",
+      "type": "item",
+      "image": "/static/img/gifts/diamondring.webp",
+      "value": 2890,
+      "slug": "diamondring",
+      "fragment_url": "https://fragment.com/gifts/diamondring",
+      "item_count": 6661
+    },
+    {
+      "id": 44,
+      "name": "Faith Amulets",
+      "type": "item",
+      "image": "/static/img/gifts/faithamulet.webp",
+      "value": 499,
+      "slug": "faithamulet",
+      "fragment_url": "https://fragment.com/gifts/faithamulet",
+      "item_count": 7187
+    },
+    {
+      "id": 45,
+      "name": "Flying Brooms",
+      "type": "item",
+      "image": "/static/img/gifts/flyingbroom.webp",
+      "value": 1280,
+      "slug": "flyingbroom",
+      "fragment_url": "https://fragment.com/gifts/flyingbroom",
+      "item_count": 5886
+    },
+    {
+      "id": 46,
+      "name": "Fresh Socks",
+      "type": "item",
+      "image": "/static/img/gifts/freshsocks.webp",
+      "value": 468,
+      "slug": "freshsocks",
+      "fragment_url": "https://fragment.com/gifts/freshsocks",
+      "item_count": 6013
+    },
+    {
+      "id": 47,
+      "name": "Hanging Stars",
+      "type": "item",
+      "image": "/static/img/gifts/hangingstar.webp",
+      "value": 920,
+      "slug": "hangingstar",
+      "fragment_url": "https://fragment.com/gifts/hangingstar",
+      "item_count": 5066
+    },
+    {
+      "id": 48,
+      "name": "Happy Brownies",
+      "type": "item",
+      "image": "/static/img/gifts/happybrownie.webp",
+      "value": 446,
+      "slug": "happybrownie",
+      "fragment_url": "https://fragment.com/gifts/happybrownie",
+      "item_count": 5811
+    },
+    {
+      "id": 49,
+      "name": "Hypno Lollipops",
+      "type": "item",
+      "image": "/static/img/gifts/hypnolollipop.webp",
+      "value": 498,
+      "slug": "hypnolollipop",
+      "fragment_url": "https://fragment.com/gifts/hypnolollipop",
+      "item_count": 6738
+    },
+    {
+      "id": 50,
+      "name": "Jingle Bells",
+      "type": "item",
+      "image": "/static/img/gifts/jinglebells.webp",
+      "value": 1190,
+      "slug": "jinglebells",
+      "fragment_url": "https://fragment.com/gifts/jinglebells",
+      "item_count": 6055
+    },
+    {
+      "id": 51,
+      "name": "Kissed Frogs",
+      "type": "item",
+      "image": "/static/img/gifts/kissedfrog.webp",
+      "value": 5800,
+      "slug": "kissedfrog",
+      "fragment_url": "https://fragment.com/gifts/kissedfrog",
+      "item_count": 6839
+    },
+    {
+      "id": 52,
+      "name": "Loot Bags",
+      "type": "item",
+      "image": "/static/img/gifts/lootbag.webp",
+      "value": 12000,
+      "slug": "lootbag",
+      "fragment_url": "https://fragment.com/gifts/lootbag",
+      "item_count": 5761
+    },
+    {
+      "id": 53,
+      "name": "Love Potions",
+      "type": "item",
+      "image": "/static/img/gifts/lovepotion.webp",
+      "value": 1540,
+      "slug": "lovepotion",
+      "fragment_url": "https://fragment.com/gifts/lovepotion",
+      "item_count": 5289
+    },
+    {
+      "id": 54,
+      "name": "Low Riders",
+      "type": "item",
+      "image": "/static/img/gifts/lowrider.webp",
+      "value": 4550,
+      "slug": "lowrider",
+      "fragment_url": "https://fragment.com/gifts/lowrider",
+      "item_count": 5144
+    },
+    {
+      "id": 55,
+      "name": "Mad Pumpkins",
+      "type": "item",
+      "image": "/static/img/gifts/madpumpkin.webp",
+      "value": 1490,
+      "slug": "madpumpkin",
+      "fragment_url": "https://fragment.com/gifts/madpumpkin",
+      "item_count": 5690
+    },
+    {
+      "id": 56,
+      "name": "Money Pots",
+      "type": "item",
+      "image": "/static/img/gifts/moneypot.webp",
+      "value": 461,
+      "slug": "moneypot",
+      "fragment_url": "https://fragment.com/gifts/moneypot",
+      "item_count": 5654
+    },
+    {
+      "id": 57,
+      "name": "Pet Snakes",
+      "type": "item",
+      "image": "/static/img/gifts/petsnake.webp",
+      "value": 447,
+      "slug": "petsnake",
+      "fragment_url": "https://fragment.com/gifts/petsnake",
+      "item_count": 6607
+    },
+    {
+      "id": 58,
+      "name": "Restless Jars",
+      "type": "item",
+      "image": "/static/img/gifts/restlessjar.webp",
+      "value": 540,
+      "slug": "restlessjar",
+      "fragment_url": "https://fragment.com/gifts/restlessjar",
+      "item_count": 6377
+    },
+    {
+      "id": 59,
+      "name": "Signet Rings",
+      "type": "item",
+      "image": "/static/img/gifts/signetring.webp",
+      "value": 3580,
+      "slug": "signetring",
+      "fragment_url": "https://fragment.com/gifts/signetring",
+      "item_count": 6234
+    },
+    {
+      "id": 60,
+      "name": "Skull Flowers",
+      "type": "item",
+      "image": "/static/img/gifts/skullflower.webp",
+      "value": 1300,
+      "slug": "skullflower",
+      "fragment_url": "https://fragment.com/gifts/skullflower",
+      "item_count": 6059
+    },
+    {
+      "id": 61,
+      "name": "Snake Boxes",
+      "type": "item",
+      "image": "/static/img/gifts/snakebox.webp",
+      "value": 435,
+      "slug": "snakebox",
+      "fragment_url": "https://fragment.com/gifts/snakebox",
+      "item_count": 5315
+    },
+    {
+      "id": 62,
+      "name": "Spring Baskets",
+      "type": "item",
+      "image": "/static/img/gifts/springbasket.webp",
+      "value": 555,
+      "slug": "springbasket",
+      "fragment_url": "https://fragment.com/gifts/springbasket",
+      "item_count": 6659
+    },
+    {
+      "id": 63,
+      "name": "Star Notepads",
+      "type": "item",
+      "image": "/static/img/gifts/starnotepad.webp",
+      "value": 547,
+      "slug": "starnotepad",
+      "fragment_url": "https://fragment.com/gifts/starnotepad",
+      "item_count": 6179
+    },
+    {
+      "id": 64,
+      "name": "Top Hats",
+      "type": "item",
+      "image": "/static/img/gifts/tophat.webp",
+      "value": 1300,
+      "slug": "tophat",
+      "fragment_url": "https://fragment.com/gifts/tophat",
+      "item_count": 6774
+    },
+    {
+      "id": 65,
+      "name": "Vintage Cigars",
+      "type": "item",
+      "image": "/static/img/gifts/vintagecigar.webp",
+      "value": 3440,
+      "slug": "vintagecigar",
+      "fragment_url": "https://fragment.com/gifts/vintagecigar",
+      "item_count": 6984
+    },
+    {
+      "id": 66,
+      "name": "Whip Cupcakes",
+      "type": "item",
+      "image": "/static/img/gifts/whipcupcake.webp",
+      "value": 434,
+      "slug": "whipcupcake",
+      "fragment_url": "https://fragment.com/gifts/whipcupcake",
+      "item_count": 7735
+    },
+    {
+      "id": 67,
+      "name": "Winter Wreaths",
+      "type": "item",
+      "image": "/static/img/gifts/winterwreath.webp",
+      "value": 430,
+      "slug": "winterwreath",
+      "fragment_url": "https://fragment.com/gifts/winterwreath",
+      "item_count": 6481
+    },
+    {
+      "id": 68,
+      "name": "Xmas Stockings",
+      "type": "item",
+      "image": "/static/img/gifts/xmasstocking.webp",
+      "value": 416,
+      "slug": "xmasstocking",
+      "fragment_url": "https://fragment.com/gifts/xmasstocking",
+      "item_count": 7901
+    },
+    {
+      "id": 69,
+      "name": "Bunny Muffins",
+      "type": "item",
+      "image": "/static/img/gifts/bunnymuffin.webp",
+      "value": 770,
+      "slug": "bunnymuffin",
+      "fragment_url": "https://fragment.com/gifts/bunnymuffin",
+      "item_count": 4875
+    },
+    {
+      "id": 70,
+      "name": "Cupid Charms",
+      "type": "item",
+      "image": "/static/img/gifts/cupidcharm.webp",
+      "value": 2000,
+      "slug": "cupidcharm",
+      "fragment_url": "https://fragment.com/gifts/cupidcharm",
+      "item_count": 4369
+    },
+    {
+      "id": 71,
+      "name": "Electric Skulls",
+      "type": "item",
+      "image": "/static/img/gifts/electricskull.webp",
+      "value": 3440,
+      "slug": "electricskull",
+      "fragment_url": "https://fragment.com/gifts/electricskull",
+      "item_count": 3746
+    },
+    {
+      "id": 72,
+      "name": "Eternal Roses",
+      "type": "item",
+      "image": "/static/img/gifts/eternalrose.webp",
+      "value": 2500,
+      "slug": "eternalrose",
+      "fragment_url": "https://fragment.com/gifts/eternalrose",
+      "item_count": 4465
+    },
+    {
+      "id": 73,
+      "name": "Holiday Drinks",
+      "type": "item",
+      "image": "/static/img/gifts/holidaydrink.webp",
+      "value": 463,
+      "slug": "holidaydrink",
+      "fragment_url": "https://fragment.com/gifts/holidaydrink",
+      "item_count": 4244
+    },
+    {
+      "id": 74,
+      "name": "Lush Bouquets",
+      "type": "item",
+      "image": "/static/img/gifts/lushbouquet.webp",
+      "value": 544,
+      "slug": "lushbouquet",
+      "fragment_url": "https://fragment.com/gifts/lushbouquet",
+      "item_count": 3899
+    },
+    {
+      "id": 75,
+      "name": "Magic Potions",
+      "type": "item",
+      "image": "/static/img/gifts/magicpotion.webp",
+      "value": 8290,
+      "slug": "magicpotion",
+      "fragment_url": "https://fragment.com/gifts/magicpotion",
+      "item_count": 3093
+    },
+    {
+      "id": 76,
+      "name": "Mousse Cakes",
+      "type": "item",
+      "image": "/static/img/gifts/moussecake.webp",
+      "value": 456,
+      "slug": "moussecake",
+      "fragment_url": "https://fragment.com/gifts/moussecake",
+      "item_count": 3384
+    },
+    {
+      "id": 77,
+      "name": "Neko Helmets",
+      "type": "item",
+      "image": "/static/img/gifts/nekohelmet.webp",
+      "value": 3990,
+      "slug": "nekohelmet",
+      "fragment_url": "https://fragment.com/gifts/nekohelmet",
+      "item_count": 3286
+    },
+    {
+      "id": 78,
+      "name": "Record Players",
+      "type": "item",
+      "image": "/static/img/gifts/recordplayer.webp",
+      "value": 1390,
+      "slug": "recordplayer",
+      "fragment_url": "https://fragment.com/gifts/recordplayer",
+      "item_count": 4452
+    },
+    {
+      "id": 79,
+      "name": "Sharp Tongues",
+      "type": "item",
+      "image": "/static/img/gifts/sharptongue.webp",
+      "value": 4560,
+      "slug": "sharptongue",
+      "fragment_url": "https://fragment.com/gifts/sharptongue",
+      "item_count": 3415
+    },
+    {
+      "id": 80,
+      "name": "Sky Stilettos",
+      "type": "item",
+      "image": "/static/img/gifts/skystilettos.webp",
+      "value": 1540,
+      "slug": "skystilettos",
+      "fragment_url": "https://fragment.com/gifts/skystilettos",
+      "item_count": 3768
+    },
+    {
+      "id": 81,
+      "name": "Sleigh Bells",
+      "type": "item",
+      "image": "/static/img/gifts/sleighbell.webp",
+      "value": 1120,
+      "slug": "sleighbell",
+      "fragment_url": "https://fragment.com/gifts/sleighbell",
+      "item_count": 3097
+    },
+    {
+      "id": 82,
+      "name": "Snow Globes",
+      "type": "item",
+      "image": "/static/img/gifts/snowglobe.webp",
+      "value": 561,
+      "slug": "snowglobe",
+      "fragment_url": "https://fragment.com/gifts/snowglobe",
+      "item_count": 4362
+    },
+    {
+      "id": 83,
+      "name": "Snow Mittens",
+      "type": "item",
+      "image": "/static/img/gifts/snowmittens.webp",
+      "value": 670,
+      "slug": "snowmittens",
+      "fragment_url": "https://fragment.com/gifts/snowmittens",
+      "item_count": 3638
+    },
+    {
+      "id": 84,
+      "name": "UFC Strikes",
+      "type": "item",
+      "image": "/static/img/gifts/ufcstrike.webp",
+      "value": 1370,
+      "slug": "ufcstrike",
+      "fragment_url": "https://fragment.com/gifts/ufcstrike",
+      "item_count": 3253
+    },
+    {
+      "id": 85,
+      "name": "Westside Signs",
+      "type": "item",
+      "image": "/static/img/gifts/westsidesign.webp",
+      "value": 10260,
+      "slug": "westsidesign",
+      "fragment_url": "https://fragment.com/gifts/westsidesign",
+      "item_count": 3560
+    },
+    {
+      "id": 86,
+      "name": "Artisan Bricks",
+      "type": "item",
+      "image": "/static/img/gifts/artisanbrick.webp",
+      "value": 9300,
+      "slug": "artisanbrick",
+      "fragment_url": "https://fragment.com/gifts/artisanbrick",
+      "item_count": 2168
+    },
+    {
+      "id": 87,
+      "name": "Astral Shards",
+      "type": "item",
+      "image": "/static/img/gifts/astralshard.webp",
+      "value": 20000,
+      "slug": "astralshard",
+      "fragment_url": "https://fragment.com/gifts/astralshard",
+      "item_count": 2482
+    },
+    {
+      "id": 88,
+      "name": "Bonded Rings",
+      "type": "item",
+      "image": "/static/img/gifts/bondedring.webp",
+      "value": 5740,
+      "slug": "bondedring",
+      "fragment_url": "https://fragment.com/gifts/bondedring",
+      "item_count": 2382
+    },
+    {
+      "id": 89,
+      "name": "Durov’s Caps",
+      "type": "item",
+      "image": "/static/img/gifts/durovscap.webp",
+      "value": 70500,
+      "slug": "durovscap",
+      "fragment_url": "https://fragment.com/gifts/durovscap",
+      "item_count": 2774
+    },
+    {
+      "id": 90,
+      "name": "Gem Signets",
+      "type": "item",
+      "image": "/static/img/gifts/gemsignet.webp",
+      "value": 7180,
+      "slug": "gemsignet",
+      "fragment_url": "https://fragment.com/gifts/gemsignet",
+      "item_count": 1726
+    },
+    {
+      "id": 91,
+      "name": "Genie Lamps",
+      "type": "item",
+      "image": "/static/img/gifts/genielamp.webp",
+      "value": 5300,
+      "slug": "genielamp",
+      "fragment_url": "https://fragment.com/gifts/genielamp",
+      "item_count": 2307
+    },
+    {
+      "id": 92,
+      "name": "Ion Gems",
+      "type": "item",
+      "image": "/static/img/gifts/iongem.webp",
+      "value": 10100,
+      "slug": "iongem",
+      "fragment_url": "https://fragment.com/gifts/iongem",
+      "item_count": 2373
+    },
+    {
+      "id": 93,
+      "name": "Ionic Dryers",
+      "type": "item",
+      "image": "/static/img/gifts/ionicdryer.webp",
+      "value": 1920,
+      "slug": "ionicdryer",
+      "fragment_url": "https://fragment.com/gifts/ionicdryer",
+      "item_count": 1753
+    },
+    {
+      "id": 94,
+      "name": "Joyful Bundles",
+      "type": "item",
+      "image": "/static/img/gifts/joyfulbundle.webp",
+      "value": 715,
+      "slug": "joyfulbundle",
+      "fragment_url": "https://fragment.com/gifts/joyfulbundle",
+      "item_count": 2253
+    },
+    {
+      "id": 95,
+      "name": "Khabib’s Papakhas",
+      "type": "item",
+      "image": "/static/img/gifts/khabibspapakha.webp",
+      "value": 2440,
+      "slug": "khabibspapakha",
+      "fragment_url": "https://fragment.com/gifts/khabibspapakha",
+      "item_count": 1757
+    },
+    {
+      "id": 96,
+      "name": "Love Candles",
+      "type": "item",
+      "image": "/static/img/gifts/lovecandle.webp",
+      "value": 1270,
+      "slug": "lovecandle",
+      "fragment_url": "https://fragment.com/gifts/lovecandle",
+      "item_count": 2395
+    },
+    {
+      "id": 97,
+      "name": "Mini Oscars",
+      "type": "item",
+      "image": "/static/img/gifts/minioscar.webp",
+      "value": 10890,
+      "slug": "minioscar",
+      "fragment_url": "https://fragment.com/gifts/minioscar",
+      "item_count": 1898
+    },
+    {
+      "id": 98,
+      "name": "Perfume Bottles",
+      "type": "item",
+      "image": "/static/img/gifts/perfumebottle.webp",
+      "value": 9890,
+      "slug": "perfumebottle",
+      "fragment_url": "https://fragment.com/gifts/perfumebottle",
+      "item_count": 1874
+    },
+    {
+      "id": 99,
+      "name": "Plush Pepes",
+      "type": "item",
+      "image": "/static/img/gifts/plushpepe.webp",
+      "value": 879500,
+      "slug": "plushpepe",
+      "fragment_url": "https://fragment.com/gifts/plushpepe",
+      "item_count": 2342
+    },
+    {
+      "id": 100,
+      "name": "Precious Peaches",
+      "type": "item",
+      "image": "/static/img/gifts/preciouspeach.webp",
+      "value": 44300,
+      "slug": "preciouspeach",
+      "fragment_url": "https://fragment.com/gifts/preciouspeach",
+      "item_count": 1977
+    },
+    {
+      "id": 101,
+      "name": "Pretty Posies",
+      "type": "item",
+      "image": "/static/img/gifts/prettyposy.webp",
+      "value": 462,
+      "slug": "prettyposy",
+      "fragment_url": "https://fragment.com/gifts/prettyposy",
+      "item_count": 2373
+    },
+    {
+      "id": 102,
+      "name": "Valentine Boxes",
+      "type": "item",
+      "image": "/static/img/gifts/valentinebox.webp",
+      "value": 1190,
+      "slug": "valentinebox",
+      "fragment_url": "https://fragment.com/gifts/valentinebox",
+      "item_count": 2419
+    },
+    {
+      "id": 103,
+      "name": "Victory Medals",
+      "type": "item",
+      "image": "/static/img/gifts/victorymedal.webp",
+      "value": 470,
+      "slug": "victorymedal",
+      "fragment_url": "https://fragment.com/gifts/victorymedal",
+      "item_count": 2047
+    },
+    {
+      "id": 104,
+      "name": "Bling Binkies",
+      "type": "item",
+      "image": "/static/img/gifts/blingbinky.webp",
+      "value": 3490,
+      "slug": "blingbinky",
+      "fragment_url": "https://fragment.com/gifts/blingbinky",
+      "item_count": 1230
+    },
+    {
+      "id": 105,
+      "name": "Heart Lockets",
+      "type": "item",
+      "image": "/static/img/gifts/heartlocket.webp",
+      "value": 174900,
+      "slug": "heartlocket",
+      "fragment_url": "https://fragment.com/gifts/heartlocket",
+      "item_count": 930
+    },
+    {
+      "id": 106,
+      "name": "Heroic Helmets",
+      "type": "item",
+      "image": "/static/img/gifts/heroichelmet.webp",
+      "value": 26170,
+      "slug": "heroichelmet",
+      "fragment_url": "https://fragment.com/gifts/heroichelmet",
+      "item_count": 1054
+    },
+    {
+      "id": 107,
+      "name": "Mighty Arms",
+      "type": "item",
+      "image": "/static/img/gifts/mightyarm.webp",
+      "value": 18470,
+      "slug": "mightyarm",
+      "fragment_url": "https://fragment.com/gifts/mightyarm",
+      "item_count": 1371
+    },
+    {
+      "id": 108,
+      "name": "Nail Bracelets",
+      "type": "item",
+      "image": "/static/img/gifts/nailbracelet.webp",
+      "value": 14190,
+      "slug": "nailbracelet",
+      "fragment_url": "https://fragment.com/gifts/nailbracelet",
+      "item_count": 1441
+    },
+    {
+      "id": 109,
+      "name": "Bear",
+      "type": "item",
+      "image": "/static/img/gifts/bear.gif",
+      "value": 15,
+      "withdrawable": true,
+      "bg_color": "#8B5E3C",
+      "telegram_gift_id": "5170233102089322756"
+    },
+    {
+      "id": 110,
+      "name": "Heart",
+      "type": "item",
+      "image": "/static/img/gifts/heart.gif",
+      "value": 15,
+      "withdrawable": true,
+      "bg_color": "#C0392B",
+      "telegram_gift_id": "5170145012310081615"
+    },
+    {
+      "id": 111,
+      "name": "Gift",
+      "type": "item",
+      "image": "/static/img/gifts/gift.gif",
+      "value": 25,
+      "withdrawable": true,
+      "bg_color": "#2E86C1",
+      "telegram_gift_id": "5170250947678437525"
+    },
+    {
+      "id": 112,
+      "name": "Rose",
+      "type": "item",
+      "image": "/static/img/gifts/rose.gif",
+      "value": 25,
+      "withdrawable": true,
+      "bg_color": "#E74C6F",
+      "telegram_gift_id": "5168103777563050263"
+    },
+    {
+      "id": 113,
+      "name": "Rocket",
+      "type": "item",
+      "image": "/static/img/gifts/rocket.gif",
+      "value": 50,
+      "withdrawable": true,
+      "bg_color": "#E67E22",
+      "telegram_gift_id": "5170564780938756245"
+    },
+    {
+      "id": 114,
+      "name": "Cake",
+      "type": "item",
+      "image": "/static/img/gifts/cake.gif",
+      "value": 50,
+      "withdrawable": true,
+      "bg_color": "#F39C6B",
+      "telegram_gift_id": "5170144170496491616"
+    },
+    {
+      "id": 115,
+      "name": "Bouquet",
+      "type": "item",
+      "image": "/static/img/gifts/bouquet.gif",
+      "value": 50,
+      "withdrawable": true,
+      "bg_color": "#27AE60",
+      "telegram_gift_id": "5170314324215857265"
+    },
+    {
+      "id": 116,
+      "name": "Cup",
+      "type": "item",
+      "image": "/static/img/gifts/cup.gif",
+      "value": 100,
+      "withdrawable": true,
+      "bg_color": "#F1C40F",
+      "telegram_gift_id": "5168043875654172773"
+    },
+    {
+      "id": 117,
+      "name": "Ring",
+      "type": "item",
+      "image": "/static/img/gifts/ring.gif",
+      "value": 100,
+      "withdrawable": true,
+      "bg_color": "#8E44AD",
+      "telegram_gift_id": "5170690322832818290"
+    },
+    {
+      "id": 118,
+      "name": "Diamond",
+      "type": "item",
+      "image": "/static/img/gifts/diamond.gif",
+      "value": 100,
+      "withdrawable": true,
+      "bg_color": "#3498DB",
+      "telegram_gift_id": "5170521118301225164"
+    },
+    {
+      "id": 119,
+      "name": "Champagne",
+      "type": "item",
+      "image": "/static/img/gifts/champagne.gif",
+      "value": 50,
+      "withdrawable": true,
+      "bg_color": "#D4AC0D",
+      "telegram_gift_id": "6028601630662853006"
+    }
+  ]
+}

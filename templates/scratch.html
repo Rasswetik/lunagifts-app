@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Moon Scratch</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { background: #0E1621; overflow-x: hidden; }
+
+        .scratch-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 2px;
+        }
+        .scratch-card {
+            background: linear-gradient(160deg, #1C2B3A 0%, #141E2B 100%);
+            border: 1px solid rgba(138,92,246,0.12);
+            border-radius: 20px;
+            padding: 18px 12px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(.175,.885,.32,1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        .scratch-card::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            background: radial-gradient(circle at 50% 0%, rgba(138,92,246,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .scratch-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(138,92,246,0.35);
+            box-shadow: 0 14px 35px rgba(138,92,246,0.12);
+        }
+        .scratch-card:active { transform: translateY(-1px) scale(0.97); }
+        .scratch-card-img {
+            width: 80px; height: 80px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            display: block;
+            border-radius: 16px;
+            filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+            transition: transform 0.35s;
+        }
+        .scratch-card:hover .scratch-card-img { transform: scale(1.08) rotate(-2deg); }
+        .scratch-card-name {
+            font-size: 14px; font-weight: 700; color: #fff;
+            margin-bottom: 6px; letter-spacing: 0.3px;
+        }
+        .scratch-card-price {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 14px; font-weight: 600; color: #F5A623;
+            background: rgba(245,166,35,0.08); padding: 4px 12px; border-radius: 20px;
+        }
+        .scratch-card-price img { width: 14px; height: 14px; }
+        .scratch-card-cells { font-size: 11px; color: #6B7B8D; margin-top: 5px; }
+
+        /* Free scratch badge */
+        .free-badge { position: absolute; top: 8px; right: 8px; background: linear-gradient(135deg, #34d87a, #26a85d); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 8px; z-index: 3; letter-spacing: .5px; box-shadow: 0 2px 10px rgba(52,216,122,.4); animation: freePulse 2s ease-in-out infinite; }
+        @keyframes freePulse { 0%,100%{box-shadow:0 2px 10px rgba(52,216,122,.4);} 50%{box-shadow:0 2px 20px rgba(52,216,122,.7);} }
+        .free-glow { border-color: rgba(52,216,122,.4) !important; }
+        .free-glow::after { background: linear-gradient(135deg, rgba(52,216,122,.06), rgba(52,216,122,.02)) !important; }
+        .disc-badge { position: absolute; top: 8px; right: 8px; background: linear-gradient(135deg, #ff5757, #e64c4c); color: #fff; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 8px; z-index: 3; box-shadow: 0 2px 10px rgba(255,87,87,.4); }
+        .disc-glow { border-color: rgba(255,87,87,.25) !important; }
+
+        /* === DETAIL === */
+        .scratch-detail { display: none; flex-direction: column; align-items: center; padding-bottom: 20px; }
+        .scratch-detail.active { display: flex; }
+        .scratch-detail-back {
+            align-self: flex-start; background: none; border: none; color: #8A5CF6;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 0; margin-bottom: 10px;
+        }
+        .scratch-detail-title {
+            font-size: 24px; font-weight: 800; color: #fff;
+            text-align: center; margin-bottom: 14px; letter-spacing: 0.5px;
+        }
+        .scratch-detail-img {
+            width: 140px; height: 140px; object-fit: contain; border-radius: 24px;
+            filter: drop-shadow(0 8px 24px rgba(138,92,246,0.25));
+            margin-bottom: 16px; animation: floatImg 3.5s ease-in-out infinite;
+        }
+        @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .scratch-detail-price {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 20px; font-weight: 700; color: #F5A623; margin-bottom: 18px;
+        }
+        .scratch-detail-price img { width: 18px; height: 18px; }
+        .scratch-play-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #8A5CF6 0%, #6D28D9 50%, #8A5CF6 100%);
+            background-size: 200% 100%;
+            color: #fff; border: none; border-radius: 14px;
+            padding: 12px 40px; font-size: 15px; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+            box-shadow: 0 4px 18px rgba(138,92,246,0.3);
+            transition: all 0.3s cubic-bezier(.175,.885,.32,1.275); margin-bottom: 20px;
+            position: relative; overflow: hidden;
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
+        .scratch-play-btn::before {
+            content: '';
+            position: absolute; top: -50%; left: -60%; width: 40%; height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transform: skewX(-20deg);
+            animation: btnShine 3s ease-in-out infinite;
+        }
+        @keyframes btnShimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+        @keyframes btnShine { 0%{left:-60%} 100%{left:120%} }
+        @keyframes btnPulseGlow { 0%,100%{box-shadow:0 6px 28px rgba(138,92,246,0.35), 0 0 0 0 rgba(138,92,246,0.4)} 50%{box-shadow:0 8px 35px rgba(138,92,246,0.5), 0 0 0 8px rgba(138,92,246,0.08)} }
+        .scratch-play-btn:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 24px rgba(138,92,246,0.4); }
+        .scratch-play-btn:active { transform: translateY(-1px) scale(0.98); }
+        .scratch-play-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none!important; box-shadow: none!important; animation: none; }
+        .scratch-play-btn:disabled::before { animation: none; display: none; }
+
+        /* Drop grid — 2 per row like cases, no chances */
+        .scratch-drops { width: 100%; }
+        .scratch-drops-title {
+            font-size: 15px; font-weight: 700; color: #6B7B8D;
+            margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .scratch-drops-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+        }
+        .scratch-drop-card {
+            background: linear-gradient(160deg, #1C2B3A, #141E2B);
+            border: 1px solid rgba(138,92,246,0.08);
+            border-radius: 16px; padding: 14px 10px 12px;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .scratch-drop-card::after {
+            content: '';
+            position: absolute; inset: 0; border-radius: 16px;
+            background: radial-gradient(circle at 50% 0%, rgba(138,92,246,0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .scratch-drop-visual {
+            width: 90px; height: 90px;
+            margin: 0 auto 6px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .scratch-drop-visual img {
+            max-width: 82px; max-height: 82px; object-fit: contain;
+            filter: drop-shadow(0 3px 10px rgba(0,0,0,0.35));
+        }
+        .scratch-drop-name {
+            font-size: 12px; font-weight: 700; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+        .scratch-drop-price {
+            font-size: 11px; font-weight: 700; color: #F5A623;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .scratch-drop-price img { width: 11px; height: 11px; }
+
+        /* === FULLSCREEN SCRATCH GAME === */
+        .scratch-game-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(10,16,26,0.97); z-index: 2000;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .scratch-game-overlay.active { display: flex; }
+        .scratch-game-title {
+            font-size: 22px; font-weight: 800; color: #fff;
+            margin-bottom: 8px; text-align: center;
+        }
+        .scratch-game-subtitle {
+            font-size: 13px; color: #6B7B8D;
+            margin-bottom: 24px; text-align: center;
+            transition: color 0.3s;
+        }
+        .scratch-game-grid {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 14px; max-width: 340px; margin-bottom: 24px;
+        }
+        .scratch-cell {
+            width: 92px; height: 92px;
+            border-radius: 20px; position: relative;
+            cursor: pointer; overflow: hidden;
+            box-shadow: 0 4px 16px rgba(138,92,246,0.18);
+            border: 2px solid rgba(138,92,246,0.25);
+            transition: all 0.3s; touch-action: none;
+            background: linear-gradient(145deg, #231A4E, #1B1340);
+        }
+        .scratch-cell:hover:not(.scratching):not(.done):not(.locked) {
+            transform: scale(1.06);
+            border-color: rgba(138,92,246,0.5);
+        }
+        .scratch-cell.locked {
+            opacity: 0.35; pointer-events: none;
+        }
+        .scratch-cell canvas {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            z-index: 2; border-radius: 18px;
+            cursor: pointer;
+        }
+        .scratch-cell-prize {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1;
+        }
+        .scratch-cell-prize img {
+            width: 54px; height: 54px; object-fit: contain;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
+            opacity: 1; transition: transform 0.5s;
+        }
+        .scratch-cell.done .scratch-cell-prize img {
+            animation: prizeReveal 0.5s ease forwards;
+        }
+        @keyframes prizeReveal {
+            0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+            60% { transform: scale(1.1) rotate(3deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        .scratch-cell.done {
+            border-color: rgba(138,92,246,0.6);
+            box-shadow: 0 0 28px rgba(138,92,246,0.35), 0 4px 16px rgba(138,92,246,0.2);
+        }
+        .scratch-cell.done::after {
+            content: ''; position: absolute; inset: -2px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(138,92,246,0.15), transparent 60%);
+            z-index: 0; pointer-events: none;
+            animation: glowPulse 1.5s ease-in-out infinite alternate;
+        }
+        @keyframes glowPulse { 0%{opacity:.5} 100%{opacity:1} }
+
+        .scratch-progress {
+            width: 160px; height: 4px;
+            background: rgba(255,255,255,0.06); border-radius: 4px;
+            margin-bottom: 20px; overflow: hidden;
+        }
+        .scratch-progress-bar {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #8A5CF6, #A78BFA);
+            border-radius: 4px;
+            transition: width 0.15s ease;
+        }
+
+        /* === RESULT === */
+        .scratch-result {
+            display: none; position: fixed; inset: 0;
+            background: rgba(10,16,26,0.96); z-index: 2100;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px 20px 32px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .scratch-result.active { display: flex; }
+        .scratch-result-glow {
+            position: absolute; width: 260px; height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(138,92,246,0.2) 0%, transparent 70%);
+            animation: resultGlow 2s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes resultGlow { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(1.2);opacity:1} }
+        .scratch-result-img {
+            width: 90px; height: 90px; object-fit: contain;
+            margin-bottom: 14px; position: relative; z-index: 1;
+            animation: resultBounce 0.6s ease;
+            filter: drop-shadow(0 8px 25px rgba(138,92,246,0.35));
+        }
+        @keyframes resultBounce { 0%{transform:scale(0) rotate(-15deg)} 60%{transform:scale(1.15) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
+        .scratch-result-text {
+            font-size: 22px; font-weight: 800; color: #fff;
+            text-align: center; margin-bottom: 4px; position: relative; z-index: 1;
+        }
+        .scratch-result-sub {
+            font-size: 13px; color: #6B7B8D;
+            text-align: center; margin-bottom: 18px; position: relative; z-index: 1;
+        }
+        .scratch-result-btn {
+            background: linear-gradient(135deg, #8A5CF6, #6D28D9);
+            color: #fff; border: none; border-radius: 14px;
+            padding: 14px 44px; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; position: relative; z-index: 1;
+            box-shadow: 0 6px 22px rgba(138,92,246,0.3);
+            margin-top: 14px; flex-shrink: 0;
+        }
+        .scratch-result-btn:hover { transform: translateY(-2px); }
+
+        @media (max-width: 380px) {
+            .scratch-cell { width: 80px; height: 80px; }
+            .scratch-cell-prize img { width: 44px; height: 44px; }
+            .scratch-game-grid { gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <img class="user-avatar" src="" alt="" onclick="window.location.href='/inventory'">
+                <div class="user-info">
+                    <span class="user-name">Загрузка...</span>
+                    <div class="balance-row" onclick="openBalanceAction()">
+                        <span class="balance-amount">0</span>
+                        <img class="balance-icon" src="/static/img/star.png" alt="">
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="topup-btn" onclick="injectTopupModals();openModal('topupModal')"><img src="/static/img/plus.png" alt="+"></button>
+            </div>
+        </div>
+
+        <!-- Scratch List -->
+        <div id="scratchListView">
+            <div class="section-header">
+                <h2><img class="section-icon" src="/static/gifs/moon.gif" alt="" style="width:26px;height:26px;"> Moon Scratch</h2>
+                <p>Выберите скретч и испытайте удачу</p>
+            </div>
+            <div class="scratch-list" id="scratchList">
+                <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
+            </div>
+        </div>
+
+        <!-- Scratch Detail -->
+        <div class="scratch-detail" id="scratchDetail">
+            <button class="scratch-detail-back" onclick="backToList()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Назад
+            </button>
+            <div class="scratch-detail-title" id="detailTitle"></div>
+            <img class="scratch-detail-img" id="detailImg" src="" alt="">
+            <div class="scratch-detail-price" id="detailPrice"></div>
+            <button class="scratch-play-btn" id="playBtn" onclick="playScratch()"><img src="/static/img/moon.png" style="width:18px;height:18px;flex-shrink:0;"><span>Стереть</span></button>
+            <div class="scratch-drops">
+                <div class="scratch-drops-title">Возможные призы</div>
+                <div class="scratch-drops-grid" id="dropsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Game -->
+    <div class="scratch-game-overlay" id="scratchGameOverlay">
+        <div class="scratch-game-title" id="gameTitle"></div>
+        <div class="scratch-game-subtitle" id="gameSub">Выберите ячейку и сотрите</div>
+        <div class="scratch-progress" id="scratchProgress" style="display:none;">
+            <div class="scratch-progress-bar" id="scratchProgressBar"></div>
+        </div>
+        <div class="scratch-game-grid" id="gameGrid"></div>
+    </div>
+
+    <!-- Result -->
+    <div class="scratch-result" id="scratchResult">
+        <div class="scratch-result-glow"></div>
+        <img class="scratch-result-img" id="resultImg" src="" alt="">
+        <div class="scratch-result-text" id="resultText"></div>
+        <div class="scratch-result-sub" id="resultSub"></div>
+        <div id="resultMultiCards"></div>
+        <div id="resultGreyDrops"></div>
+        <button class="scratch-result-btn" onclick="closeResult()">Отлично</button>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    let scratches = [];
+    let currentScratch = null;
+    let gameResult = null;
+    let giftsMap = {};
+    let scratchingCell = null;
+    let scratchPercent = 0;
+    const SCRATCH_THRESHOLD = 55;
+    let revealedCount = 0;
+    let totalPicks = 1;
+    let cellPrizes = {}; // idx -> prize data for multi-pick
+    let prizeQueue = []; // real prizes from server, assigned in scratch order
+    let hasFreeScratch = false;
+    let activeScratchDiscount = {}; // {scratch_id, percent}
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    async function loadScratches() {
+        try {
+            const fetches = [fetch('/api/scratch'), fetch('/api/gifts')];
+            if (currentUser) {
+                fetches.push(fetch('/api/scratch/free-check/' + currentUser.telegram_id));
+                fetches.push(fetch('/api/scratch/discount-check/' + currentUser.telegram_id));
+            }
+            const [scrRes, giftRes, freeRes, discRes] = await Promise.all(fetches);
+            scratches = await scrRes.json();
+            const gifts = await giftRes.json();
+            gifts.forEach(g => { giftsMap[g.id] = g; });
+            if (freeRes) { const fd = await freeRes.json(); hasFreeScratch = fd.has_free; }
+            // Load discount from server (authoritative), fall back to localStorage
+            if (discRes) {
+                const dd = await discRes.json();
+                if (dd.has_discount) {
+                    activeScratchDiscount = { scratch_id: dd.scratch_id, percent: dd.percent };
+                    localStorage.setItem('luna_scratch_discount', JSON.stringify(activeScratchDiscount));
+                } else {
+                    activeScratchDiscount = {};
+                    localStorage.removeItem('luna_scratch_discount');
+                }
+            } else {
+                try{activeScratchDiscount=JSON.parse(localStorage.getItem('luna_scratch_discount')||'{}');}catch(e){}
+            }
+            renderScratchList();
+        } catch(e) {
+            document.getElementById('scratchList').innerHTML = '<p style="color:#6B7B8D;text-align:center;grid-column:1/-1;">Ошибка загрузки</p>';
+        }
+    }
+
+    function renderScratchList() {
+        const c = document.getElementById('scratchList');
+        if (!scratches.length) {
+            c.innerHTML = '<p style="color:#6B7B8D;text-align:center;grid-column:1/-1;">Скретчи пока не добавлены</p>';
+            return;
+        }
+        // Always 2 columns
+        c.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        c.style.gap = '12px';
+        const sorted = [...scratches].sort((a,b) => b.price - a.price);
+        const cheapestId = sorted.length ? sorted[sorted.length-1].id : -1;
+        c.innerHTML = sorted.map(s => {
+            const isFreeTarget = hasFreeScratch && s.id === cheapestId;
+            const hasDisc = !isFreeTarget && activeScratchDiscount.scratch_id && (activeScratchDiscount.scratch_id == s.id || activeScratchDiscount.scratch_id == 0) && activeScratchDiscount.percent;
+            const discPrice = hasDisc ? Math.max(0, Math.round(s.price * (1 - activeScratchDiscount.percent / 100))) : null;
+            let priceHtml;
+            if (isFreeTarget) priceHtml = 'Бесплатно';
+            else if (discPrice !== null) priceHtml = '<span style="text-decoration:line-through;opacity:.45;font-size:11px;">' + s.price + '</span> <span style="color:var(--green);">' + discPrice + '</span> <img src="/static/img/star.png" alt="">';
+            else priceHtml = s.price + ' <img src="/static/img/star.png" alt="">';
+            return `<div class="scratch-card${isFreeTarget?' free-glow':''}${hasDisc?' disc-glow':''}" onclick="openScratchDetail(${s.id})">
+                ${isFreeTarget?'<div class="free-badge">FREE</div>':''}${hasDisc?'<div class="disc-badge">-'+activeScratchDiscount.percent+'%</div>':''}
+                <img class="scratch-card-img" src="${s.image}" alt="${esc(s.name)}" onerror="this.src='/static/gifs/moon.gif'">
+                <div class="scratch-card-name">${esc(s.name)}</div>
+                <div class="scratch-card-price">${priceHtml}</div>
+                <div class="scratch-card-cells">${s.cells} ячеек${s.picks && s.picks > 1 ? ' · x' + s.picks : ''}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function openScratchDetail(id) {
+        const s = scratches.find(x => x.id === id);
+        if (!s) return;
+        currentScratch = s;
+        document.getElementById('detailTitle').textContent = s.name;
+        const dImg = document.getElementById('detailImg');
+        dImg.src = s.image;
+        dImg.onerror = function() { this.src = '/static/gifs/moon.gif'; };
+        // Check if this scratch is the free one
+        const sorted = [...scratches].sort((a,b) => b.price - a.price);
+        const cheapestId = sorted.length ? sorted[sorted.length-1].id : -1;
+        const isFree = hasFreeScratch && s.id === cheapestId;
+        const hasDisc = !isFree && activeScratchDiscount.scratch_id && (activeScratchDiscount.scratch_id == s.id || activeScratchDiscount.scratch_id == 0) && activeScratchDiscount.percent;
+        const discPrice = hasDisc ? Math.max(0, Math.round(s.price * (1 - activeScratchDiscount.percent / 100))) : null;
+        if (isFree) {
+            document.getElementById('detailPrice').innerHTML = '<span style="text-decoration:line-through;opacity:.5;">' + s.price + '</span> Бесплатно <img src="/static/img/star.png" alt="">';
+        } else if (discPrice !== null) {
+            document.getElementById('detailPrice').innerHTML = '<span style="text-decoration:line-through;opacity:.45;font-size:13px;">' + s.price + '</span> <span style="color:var(--green);">' + discPrice + '</span> <img src="/static/img/star.png" alt=""> <span style="background:var(--green);color:#000;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-left:4px;">-' + activeScratchDiscount.percent + '%</span>';
+        } else {
+            document.getElementById('detailPrice').innerHTML = s.price + ' <img src="/static/img/star.png" alt="">';
+        }
+        const picksCount = s.picks || 1;
+        document.getElementById('playBtn').querySelector('span').textContent = picksCount > 1 ? 'Стереть x' + picksCount : 'Стереть';
+
+        // Drops: 2-per-row, sorted by value desc, with chances + NFT backdrops
+        const drops = [...s.drops].sort((a,b) => {
+            const va = a.type === 'stars' ? a.amount : (giftsMap[a.gift_id]?.price || 0);
+            const vb = b.type === 'stars' ? b.amount : (giftsMap[b.gift_id]?.price || 0);
+            return vb - va;
+        });
+        document.getElementById('dropsGrid').innerHTML = drops.map(d => {
+            let name, icon, price, slug = '', itemCount = 1000;
+            if (d.type === 'stars') {
+                name = '+' + d.amount + ' Stars';
+                icon = '/static/img/star.png';
+                price = d.amount;
+            } else {
+                const g = giftsMap[d.gift_id];
+                name = g ? g.name : 'Gift #' + d.gift_id;
+                icon = g ? (g.image || '/static/img/gift.png') : '/static/img/gift.png';
+                price = g ? g.price : 0;
+                slug = g ? (g.slug || '') : '';
+                itemCount = g ? (g.item_count || 1000) : 1000;
+            }
+            const nftBg = getNftBg(slug, itemCount);
+            const visualHtml = nftBg
+                ? `<img class="gift-backdrop" src="${nftBg}" data-slug="${slug}" data-count="${itemCount}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px;opacity:0.55;" onerror="this.onerror=null;this.style='';this.src='${icon}';this.className='';">`
+                : `<img src="${icon}" alt="" onerror="this.onerror=null;this.src='/static/img/star.png';">`;
+            return `<div class="scratch-drop-card">
+                <div class="scratch-drop-visual">${visualHtml}</div>
+                <div class="scratch-drop-name">${esc(name)}</div>
+                <div class="scratch-drop-price">${price} <img src="/static/img/star.png" alt=""></div>
+            </div>`;
+        }).join('');
+        // Start NFT backdrop rotation for this detail view
+        startNftRotation();
+
+        document.getElementById('scratchListView').style.display = 'none';
+        document.getElementById('scratchDetail').classList.add('active');
+        document.getElementById('playBtn').disabled = false;
+    }
+
+    function backToList() {
+        document.getElementById('scratchDetail').classList.remove('active');
+        document.getElementById('scratchListView').style.display = '';
+        currentScratch = null;
+    }
+
+    async function playScratch() {
+        if (!currentScratch || !currentUser) return;
+        const btn = document.getElementById('playBtn');
+        btn.disabled = true;
+        // Check if this scratch qualifies for free play
+        const sorted = [...scratches].sort((a,b) => b.price - a.price);
+        const cheapestId = sorted.length ? sorted[sorted.length-1].id : -1;
+        const useFree = hasFreeScratch && currentScratch.id === cheapestId;
+        // Check if scratch discount applies for this scratch
+        const useDisc = !useFree && activeScratchDiscount.scratch_id && (activeScratchDiscount.scratch_id == currentScratch.id || activeScratchDiscount.scratch_id == 0) && activeScratchDiscount.percent;
+        try {
+            const res = await fetch('/api/scratch/play', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: currentUser.telegram_id, scratch_id: currentScratch.id, use_free: useFree, use_scratch_discount: !!useDisc })
+            });
+            const data = await res.json();
+            if (data.error) {
+                showNotification(data.error, 'error');
+                btn.disabled = false;
+                return;
+            }
+            if (useFree) hasFreeScratch = false; // Used the free scratch
+            // Clear scratch discount after one-time use
+            if (useDisc) {
+                activeScratchDiscount = {};
+                localStorage.removeItem('luna_scratch_discount');
+            }
+            gameResult = data;
+            currentUser.balance = data.new_balance;
+            localStorage.setItem('luna_user', JSON.stringify(currentUser));
+            updateUI();
+            openScratchGame();
+        } catch(e) {
+            showNotification('Ошибка соединения', 'error');
+            btn.disabled = false;
+        }
+    }
+
+    /* ===== Canvas scratch mechanic ===== */
+    function openScratchGame() {
+        if (!currentScratch || !gameResult) return;
+        const overlay = document.getElementById('scratchGameOverlay');
+        const grid = document.getElementById('gameGrid');
+        const picks = gameResult.picks || 1;
+        totalPicks = picks;
+        revealedCount = 0;
+        cellPrizes = {};
+        document.getElementById('gameTitle').textContent = currentScratch.name;
+        document.getElementById('gameSub').textContent = picks > 1 ? 'Сотрите ' + picks + ' ячеек' : 'Выберите ячейку и сотрите';
+        document.getElementById('scratchProgress').style.display = 'none';
+        document.getElementById('scratchProgressBar').style.width = '0%';
+        scratchingCell = null;
+        scratchPercent = 0;
+
+        // Build prize queue from server result (real prizes)
+        const cells = currentScratch.cells;
+        const prizesList = picks > 1 ? (gameResult.prizes || []) : [gameResult];
+        prizeQueue = [...prizesList];
+
+        // All cells get filler visuals (real prize swapped on scratch)
+        for (let i = 0; i < cells; i++) {
+            cellPrizes[i] = getRandomFillerPrize();
+        }
+
+        let html = '';
+        for (let i = 0; i < cells; i++) {
+            const cp = cellPrizes[i];
+            let prizeImg, prizeIsNft = false;
+            if (cp.prize_type === 'stars') {
+                prizeImg = '/static/img/star.png';
+            } else if (cp.prize_slug) {
+                prizeImg = getNftBg(cp.prize_slug, cp.prize_item_count || 1000);
+                prizeIsNft = true;
+            } else {
+                prizeImg = cp.prize_image || '/static/img/gift.png';
+            }
+            const imgStyle = prizeIsNft ? 'width:100%;height:100%;object-fit:cover;border-radius:16px;opacity:0.7;' : '';
+            const fallbackImg = cp.prize_image || '/static/img/gift.png';
+            html += `<div class="scratch-cell" id="sc${i}" data-idx="${i}">
+                <div class="scratch-cell-prize"><img src="${prizeImg}" alt="" ${prizeIsNft ? `style="${imgStyle}" data-slug="${cp.prize_slug}" data-count="${cp.prize_item_count||1000}"` : ''} onerror="this.style='';this.src='${fallbackImg}'"></div>
+                <canvas id="cv${i}" width="184" height="184"></canvas>
+            </div>`;
+        }
+        grid.innerHTML = html;
+        overlay.classList.add('active');
+
+        requestAnimationFrame(() => {
+            for (let i = 0; i < cells; i++) initCellCanvas(i);
+        });
+
+        try { if(tg) tg.HapticFeedback.impactOccurred('medium'); } catch(e) {}
+    }
+
+    function getRandomFillerPrize() {
+        if (!currentScratch) return { prize_type: 'stars', prize_amount: 0, prize_image: '/static/img/star.png' };
+        const drops = currentScratch.drops || [];
+        const d = drops[Math.floor(Math.random() * drops.length)];
+        if (!d) return { prize_type: 'stars', prize_amount: 0, prize_image: '/static/img/star.png' };
+        if (d.type === 'stars') {
+            return { prize_type: 'stars', prize_amount: d.amount, prize_image: '/static/img/star.png' };
+        } else {
+            const g = giftsMap[d.gift_id];
+            return {
+                prize_type: 'gift',
+                prize_name: g ? g.name : 'Gift',
+                prize_image: g ? (g.image || '/static/img/gift.png') : '/static/img/gift.png',
+                prize_slug: g ? (g.slug || '') : '',
+                prize_item_count: g ? (g.item_count || 1000) : 1000
+            };
+        }
+    }
+
+    function initCellCanvas(idx) {
+        const canvas = document.getElementById('cv' + idx);
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const cell = document.getElementById('sc' + idx);
+        const W = 184, H = 184;
+
+        // Cover gradient
+        const grad = ctx.createLinearGradient(0, 0, W, H);
+        grad.addColorStop(0, '#2D1F6E');
+        grad.addColorStop(1, '#1A1050');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, W, H, 18);
+        ctx.fill();
+
+        // Cover moon image
+        const coverImg = new Image();
+        coverImg.crossOrigin = 'anonymous';
+        coverImg.onload = function() {
+            ctx.drawImage(coverImg, (W-100)/2, (H-100)/2, 100, 100);
+        };
+        coverImg.onerror = function() {
+            // Draw a circle as fallback
+            ctx.fillStyle = 'rgba(138,92,246,0.3)';
+            ctx.beginPath();
+            ctx.arc(W/2, H/2, 40, 0, Math.PI*2);
+            ctx.fill();
+        };
+        coverImg.src = currentScratch.image || '/static/gifs/moon.gif';
+
+        // Scratch interaction
+        let isDown = false;
+        let started = false;
+        let lastPos = null;
+        let checkCounter = 0;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const sx = W / rect.width, sy = H / rect.height;
+            if (e.touches) {
+                return { x: (e.touches[0].clientX - rect.left) * sx, y: (e.touches[0].clientY - rect.top) * sy };
+            }
+            return { x: (e.clientX - rect.left) * sx, y: (e.clientY - rect.top) * sy };
+        }
+
+        function onStart(e) {
+            e.preventDefault();
+            // In multi-pick: allow scratching if this cell isn't done and we haven't started another cell
+            if (scratchingCell !== null && scratchingCell !== idx) return;
+            if (cell.classList.contains('done') || cell.classList.contains('locked')) return;
+            isDown = true;
+            if (!started) {
+                started = true;
+                scratchingCell = idx;
+                cell.classList.add('scratching');
+                // Immediately swap filler with real prize so user sees correct image while scratching
+                if (prizeQueue.length > 0) {
+                    const realPrize = prizeQueue.shift();
+                    cellPrizes[idx] = realPrize;
+                    const prizeEl = cell.querySelector('.scratch-cell-prize img');
+                    if (prizeEl && realPrize) {
+                        if (realPrize.prize_type === 'stars') {
+                            prizeEl.src = '/static/img/star.png';
+                            prizeEl.removeAttribute('style');
+                        } else if (realPrize.prize_slug) {
+                            const nftBg = getNftBg(realPrize.prize_slug, realPrize.prize_item_count || 1000);
+                            prizeEl.src = nftBg;
+                            prizeEl.style = 'width:100%;height:100%;object-fit:cover;border-radius:16px;opacity:0.7;';
+                        } else {
+                            prizeEl.src = realPrize.prize_image || '/static/img/gift.png';
+                            prizeEl.removeAttribute('style');
+                        }
+                    }
+                }
+                // Lock other cells that are not done (only while scratching this one)
+                document.querySelectorAll('.scratch-cell').forEach((c, i) => {
+                    if (i !== idx && !c.classList.contains('done')) c.classList.add('locked');
+                });
+                document.getElementById('gameSub').textContent = 'Стирайте...';
+                document.getElementById('scratchProgress').style.display = '';
+                try { if(tg) tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
+            }
+            lastPos = getPos(e);
+        }
+
+        function onMove(e) {
+            if (!isDown) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            // Draw line from lastPos to pos for smooth scratching
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.lineWidth = 44;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.beginPath();
+            if (lastPos) { ctx.moveTo(lastPos.x, lastPos.y); } else { ctx.moveTo(pos.x, pos.y); }
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            // Also fill a circle at current pos
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, 22, 0, Math.PI * 2);
+            ctx.fill();
+            lastPos = pos;
+
+            // Check percentage every few moves (performance)
+            checkCounter++;
+            if (checkCounter % 3 === 0) {
+                const pct = calcClearPercent(ctx, W, H);
+                scratchPercent = pct;
+                document.getElementById('scratchProgressBar').style.width = Math.min(pct / SCRATCH_THRESHOLD * 100, 100) + '%';
+                if (pct >= SCRATCH_THRESHOLD) {
+                    revealCell(idx);
+                }
+            }
+            if (Math.random() < 0.08) {
+                try { if(tg) tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
+            }
+        }
+
+        function onEnd() {
+            isDown = false;
+            lastPos = null;
+            // Final check on end
+            if (started && !cell.classList.contains('done')) {
+                const pct = calcClearPercent(ctx, W, H);
+                scratchPercent = pct;
+                document.getElementById('scratchProgressBar').style.width = Math.min(pct / SCRATCH_THRESHOLD * 100, 100) + '%';
+                if (pct >= SCRATCH_THRESHOLD) revealCell(idx);
+            }
+        }
+
+        canvas.addEventListener('mousedown', onStart);
+        canvas.addEventListener('mousemove', onMove);
+        canvas.addEventListener('mouseup', onEnd);
+        canvas.addEventListener('mouseleave', onEnd);
+        canvas.addEventListener('touchstart', onStart, { passive: false });
+        canvas.addEventListener('touchmove', onMove, { passive: false });
+        canvas.addEventListener('touchend', onEnd);
+    }
+
+    function calcClearPercent(ctx, w, h) {
+        const imgData = ctx.getImageData(0, 0, w, h);
+        let cleared = 0;
+        // sample every 4th pixel for performance
+        for (let p = 3; p < imgData.data.length; p += 16) {
+            if (imgData.data[p] === 0) cleared++;
+        }
+        return (cleared / (imgData.data.length / 16)) * 100;
+    }
+
+    function revealCell(idx) {
+        const cell = document.getElementById('sc' + idx);
+        const canvas = document.getElementById('cv' + idx);
+        if (cell.classList.contains('done')) return;
+
+        // Prize was already swapped in onStart — just mark done
+        cell.classList.remove('scratching');
+        cell.classList.add('done');
+
+        // Smooth fade canvas
+        canvas.style.transition = 'opacity 0.4s ease';
+        canvas.style.opacity = '0';
+        setTimeout(() => { canvas.style.display = 'none'; }, 400);
+
+        try { if(tg) tg.HapticFeedback.impactOccurred('heavy'); } catch(e) {}
+
+        revealedCount++;
+        scratchingCell = null;
+        scratchPercent = 0;
+
+        if (revealedCount >= totalPicks) {
+            // All picks revealed — reveal remaining cells then show result
+            setTimeout(() => { revealAllRemaining(); }, 500);
+        } else {
+            // Unlock remaining non-done cells for next pick
+            document.getElementById('gameSub').textContent = 'Осталось: ' + (totalPicks - revealedCount);
+            document.querySelectorAll('.scratch-cell').forEach(c => {
+                if (!c.classList.contains('done')) c.classList.remove('locked');
+            });
+        }
+    }
+
+    function revealAllRemaining() {
+        const cells = document.querySelectorAll('.scratch-cell:not(.done)');
+        cells.forEach((cell, i) => {
+            setTimeout(() => {
+                cell.classList.remove('locked');
+                cell.classList.add('done');
+                cell.style.opacity = '0.45';
+                const canvas = cell.querySelector('canvas');
+                if (canvas) {
+                    canvas.style.transition = 'opacity 0.3s ease';
+                    canvas.style.opacity = '0';
+                    setTimeout(() => { canvas.style.display = 'none'; }, 300);
+                }
+            }, i * 120);
+        });
+        // Show result after all cells revealed
+        const delay = cells.length * 120 + 600;
+        setTimeout(() => { showResultScreen(); }, delay);
+    }
+
+    function showResultScreen() {
+        document.getElementById('scratchGameOverlay').classList.remove('active');
+        const resultDiv = document.getElementById('scratchResult');
+        const picks = gameResult.picks || 1;
+
+        if (picks > 1 && gameResult.prizes) {
+            // Multi-pick result
+            const prizes = gameResult.prizes;
+            let rText = prizes.length + ' призов!';
+            let rSub = 'Все добавлены в инвентарь/баланс';
+            let rImg = '/static/img/star.png';
+            // Use first gift image if available
+            const firstGift = prizes.find(p => p.prize_type === 'gift');
+            if (firstGift) {
+                rImg = firstGift.prize_slug ? getNftBg(firstGift.prize_slug, firstGift.prize_item_count || 1000) : (firstGift.prize_image || '/static/img/gift.png');
+            }
+
+            const rImgEl = document.getElementById('resultImg');
+            rImgEl.src = rImg;
+            rImgEl.onerror = function() { this.src = '/static/img/gift.png'; this.onerror = null; };
+            rImgEl.style.borderRadius = firstGift && firstGift.prize_slug ? '20px' : '';
+            rImgEl.style.opacity = firstGift && firstGift.prize_slug ? '0.75' : '';
+            document.getElementById('resultText').textContent = rText;
+            document.getElementById('resultSub').textContent = rSub;
+
+            // Build multi-prize cards
+            let cardsHtml = '<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:340px;margin:12px auto 0;padding:0 4px;position:relative;z-index:1;">';
+            prizes.forEach(p => {
+                let img, name;
+                if (p.prize_type === 'stars') {
+                    img = '/static/img/star.png'; name = '+' + p.prize_amount + ' Stars';
+                } else {
+                    img = p.prize_slug ? getNftBg(p.prize_slug, p.prize_item_count || 1000) : (p.prize_image || '/static/img/gift.png');
+                    name = p.prize_name || 'Подарок';
+                }
+                const isNft = p.prize_type !== 'stars' && p.prize_slug;
+                cardsHtml += '<div style="flex:0 0 calc(50% - 5px);background:linear-gradient(160deg,rgba(28,43,58,0.95),rgba(20,30,43,0.95));border:1px solid rgba(138,92,246,0.2);border-radius:16px;padding:14px 10px 12px;text-align:center;">'
+                    + '<div style="width:54px;height:54px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;'
+                    + (isNft ? 'border-radius:14px;overflow:hidden;' : '') + '">'
+                    + '<img src="' + img + '" alt="" style="' + (isNft ? 'width:100%;height:100%;object-fit:cover;' : 'width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.3));') + '" onerror="this.src=\'/static/img/star.png\'">'
+                    + '</div>'
+                    + '<div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(name) + '</div>'
+                    + '</div>';
+            });
+            cardsHtml += '</div>';
+            document.getElementById('resultMultiCards').innerHTML = cardsHtml;
+        } else {
+            // Single pick result
+            let rImg, rText, rSub;
+            if (gameResult.prize_type === 'stars') {
+                rImg = '/static/img/star.png';
+                rText = '+' + gameResult.prize_amount + ' Stars';
+                rSub = 'Звёзды зачислены на баланс';
+            } else {
+                if (gameResult.prize_slug) {
+                    rImg = getNftBg(gameResult.prize_slug, gameResult.prize_item_count || 1000);
+                } else {
+                    rImg = gameResult.prize_image || '/static/img/gift.png';
+                }
+                rText = gameResult.prize_name || 'Подарок';
+                rSub = 'Добавлен в инвентарь';
+            }
+            const rImgEl = document.getElementById('resultImg');
+            rImgEl.src = rImg;
+            rImgEl.onerror = function() { this.src = gameResult.prize_image || '/static/img/gift.png'; this.onerror = null; };
+            if (gameResult.prize_slug) {
+                rImgEl.style.borderRadius = '20px';
+                rImgEl.style.opacity = '0.75';
+            } else {
+                rImgEl.style.borderRadius = '';
+                rImgEl.style.opacity = '';
+            }
+            document.getElementById('resultText').textContent = rText;
+            document.getElementById('resultSub').textContent = rSub;
+            document.getElementById('resultMultiCards').innerHTML = '';
+        }
+
+        document.getElementById('resultGreyDrops').innerHTML = '';
+
+        resultDiv.classList.add('active');
+        try { if(tg) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
+    }
+
+    function buildGreyOtherDrops() {
+        if (!currentScratch || !scratches.length) return '';
+        const otherScratches = scratches.filter(s => s.id !== currentScratch.id);
+        if (!otherScratches.length) return '';
+        // Collect unique drops from other scratches (gifts only, sorted by value desc)
+        let otherDrops = [];
+        const seenIds = new Set();
+        otherScratches.forEach(sc => {
+            (sc.drops || []).forEach(d => {
+                if (d.type === 'gift' && d.gift_id && !seenIds.has(d.gift_id)) {
+                    seenIds.add(d.gift_id);
+                    const g = giftsMap[d.gift_id];
+                    if (g) otherDrops.push({ name: g.name, image: g.image || '/static/img/gift.png', price: g.price || g.value || 0, slug: g.slug || '', item_count: g.item_count || 1000 });
+                }
+            });
+        });
+        otherDrops.sort((a, b) => b.price - a.price);
+        if (!otherDrops.length) return '';
+        // Take top 8 to keep it compact
+        otherDrops = otherDrops.slice(0, 8);
+        let html = '<div style="width:100%;max-width:340px;margin-top:20px;position:relative;z-index:1;">';
+        html += '<div style="font-size:12px;font-weight:700;color:#4A5568;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;text-align:center;">Дропы других скретчей</div>';
+        html += '<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;">';
+        otherDrops.forEach(d => {
+            const nftBg = getNftBg(d.slug, d.item_count);
+            const visualStyle = nftBg
+                ? 'background-image:url('+nftBg+');background-size:cover;background-position:center;border-radius:10px;'
+                : '';
+            const imgHtml = nftBg ? '' : '<img src="'+d.image+'" alt="" style="width:36px;height:36px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';
+            html += '<div style="flex:0 0 72px;text-align:center;opacity:0.4;filter:grayscale(70%);">'
+                + '<div style="width:56px;height:56px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.06);'+visualStyle+'">'
+                + imgHtml + '</div>'
+                + '<div style="font-size:10px;color:#6B7B8D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(d.name) + '</div>'
+                + '</div>';
+        });
+        html += '</div></div>';
+        return html;
+    }
+
+    function closeResult() {
+        document.getElementById('scratchResult').classList.remove('active');
+        gameResult = null;
+        scratchingCell = null;
+        scratchPercent = 0;
+        revealedCount = 0;
+        totalPicks = 1;
+        cellPrizes = {};
+        prizeQueue = [];
+        document.getElementById('resultMultiCards').innerHTML = '';
+        document.getElementById('resultGreyDrops').innerHTML = '';
+        document.getElementById('playBtn').disabled = false;
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        setLoadProgress(75, 'Загрузка скретчей...');
+        await loadScratches();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

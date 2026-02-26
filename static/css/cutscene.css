@@ -1,0 +1,576 @@
+/* ═══════ LUNA GIFTS — CUTSCENE v6 ═══════ */
+
+/* — Overlay — */
+#cutsceneOverlay {
+  position: fixed; inset: 0; z-index: 99999;
+  background: #0d1117;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; opacity: 1;
+  transition: opacity .8s cubic-bezier(.4,0,.2,1);
+}
+#cutsceneOverlay.fade-out { opacity: 0; pointer-events: none; }
+
+/* — Canvas — */
+#cutsceneCanvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* ═══════ LOADING SCREEN ═══════ */
+.cs-loading-screen {
+  position: absolute; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, #080b14 0%, #0d1117 40%, #0f1420 100%);
+  opacity: 0; pointer-events: none;
+  transition: opacity .4s ease;
+}
+.cs-loading-screen.visible { opacity: 1; pointer-events: auto; }
+.cs-loading-screen.fade-out { opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+
+.cs-load-inner {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16px; padding: 20px;
+}
+
+.cs-load-logo {
+  width: 72px; height: 72px; border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(107,138,255,.3), 0 0 0 1px rgba(107,138,255,.1);
+  animation: csLoadPulse 2s ease-in-out infinite;
+}
+@keyframes csLoadPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 32px rgba(107,138,255,.3); }
+  50% { transform: scale(1.05); box-shadow: 0 12px 40px rgba(107,138,255,.45); }
+}
+
+.cs-load-title {
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  font-size: 22px; font-weight: 800; color: #fff;
+  letter-spacing: .5px;
+}
+
+.cs-load-bar-wrap {
+  width: 200px; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,.06);
+  overflow: hidden; margin-top: 4px;
+}
+.cs-load-bar {
+  height: 100%; width: 0; border-radius: 4px;
+  background: linear-gradient(90deg, #6b8aff, #a78bfa, #6b8aff);
+  background-size: 200% 100%;
+  animation: csLoadShimmer 2s linear infinite;
+  transition: width .3s ease;
+}
+@keyframes csLoadShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.cs-load-status {
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 12px; color: rgba(255,255,255,.3);
+  font-weight: 500; letter-spacing: .3px;
+}
+
+/* — Tap-to-skip — */
+.cs-tap-skip {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 100002;
+  color: rgba(255,255,255,.2); font-size: 11px; font-weight: 500;
+  letter-spacing: .5px; cursor: pointer;
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  transition: color .2s;
+  padding: 10px 20px;
+  -webkit-tap-highlight-color: transparent;
+  text-transform: lowercase;
+}
+.cs-tap-skip:active { color: rgba(255,255,255,.45); }
+
+/* — Captions — */
+.cs-text-layer {
+  position: absolute; inset: 0; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  pointer-events: none; padding: 20px 20px 80px;
+}
+.cs-caption {
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  font-size: 28px; font-weight: 800; color: #fff; text-align: center;
+  opacity: 0; transform: translateY(24px) scale(.95);
+  transition: all .7s cubic-bezier(.16,1,.3,1);
+  text-shadow: 0 4px 30px rgba(0,0,0,.6), 0 0 60px rgba(107,138,255,.15);
+  line-height: 1.3; max-width: 320px;
+}
+.cs-caption.visible { opacity: 1; transform: translateY(0) scale(1); }
+.cs-caption.out { opacity: 0; transform: translateY(-24px) scale(.95); }
+.cs-caption-sub {
+  font-size: 12px; font-weight: 700; color: rgba(107,138,255,.6);
+  margin-top: 8px; letter-spacing: 2.5px;
+}
+
+/* — Vignette — */
+.cs-vignette {
+  position: absolute; inset: 0; z-index: 5;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(10,14,22,.7) 100%);
+  pointer-events: none;
+}
+
+/* — Letterbox — */
+.cs-letterbox {
+  position: absolute; left: 0; right: 0; z-index: 6;
+  background: #0d1117; height: 0;
+  transition: height .8s cubic-bezier(.4,0,.2,1);
+}
+.cs-letterbox-top { top: 0; }
+.cs-letterbox-bottom { bottom: 0; }
+.cs-letterbox.active { height: 36px; }
+
+/* — Particles (fallback) — */
+.cs-particles { position: absolute; inset: 0; z-index: 4; pointer-events: none; overflow: hidden; }
+.cs-particle {
+  position: absolute; border-radius: 50%;
+  background: rgba(107,138,255,.5);
+  animation: csFloat linear infinite;
+}
+.cs-particle.gold { background: rgba(255,215,74,.5); }
+.cs-particle.green { background: rgba(52,216,122,.4); }
+.cs-particle.purple { background: rgba(168,85,247,.4); }
+@keyframes csFloat {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: .8; }
+  90% { opacity: .4; }
+  100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+}
+
+/* ═══════ FPV PHONE ═══════ */
+.cs-fpv-screen {
+  position: absolute; inset: 0; z-index: 15;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .6s ease;
+}
+.cs-fpv-screen.visible { opacity: 1; }
+
+.cs-fpv-phone {
+  width: 220px; height: 440px;
+  background: #111827; border-radius: 32px;
+  border: 2px solid rgba(255,255,255,.06);
+  overflow: hidden; position: relative;
+  box-shadow:
+    0 0 80px rgba(107,138,255,.15),
+    0 25px 60px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  transform: scale(.8);
+  transition: transform 1.2s cubic-bezier(.16,1,.3,1);
+}
+.cs-fpv-screen.visible .cs-fpv-phone { transform: scale(1); }
+
+.cs-fpv-notch {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  width: 70px; height: 20px;
+  background: #080c14; border-radius: 0 0 12px 12px; z-index: 3;
+}
+
+.cs-fpv-inner {
+  position: absolute; inset: 2px; border-radius: 30px; overflow: hidden;
+  background: linear-gradient(180deg, #0a0e17, #070b14);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 36px 16px 16px;
+}
+
+.cs-fpv-loading, .cs-fpv-loaded {
+  display: flex; flex-direction: column; align-items: center;
+  animation: csFadeIn .5s ease;
+}
+.cs-fpv-logo {
+  width: 48px; height: 48px; border-radius: 14px; margin-bottom: 10px;
+  box-shadow: 0 6px 24px rgba(107,138,255,.25);
+  animation: csPulse 1.4s ease infinite;
+}
+.cs-fpv-logo.still { animation: none; }
+.cs-fpv-name {
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  font-size: 15px; font-weight: 700; color: #fff; letter-spacing: .3px;
+}
+.cs-fpv-spinner {
+  width: 24px; height: 24px; margin-top: 14px;
+  border: 2px solid rgba(255,255,255,.06);
+  border-top-color: #6b8aff; border-radius: 50%;
+  animation: spin .65s linear infinite;
+}
+.cs-fpv-welcome {
+  font-size: 10px; color: rgba(255,255,255,.35); margin-top: 4px;
+  font-family: -apple-system, system-ui, sans-serif;
+}
+.cs-fpv-icons { display: flex; gap: 8px; margin-top: 14px; }
+.cs-fpv-icon {
+  width: 52px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.cs-fpv-icon.blue { background: rgba(107,138,255,.12); }
+.cs-fpv-icon.green { background: rgba(52,216,122,.12); }
+.cs-fpv-icon.purple { background: rgba(168,85,247,.12); }
+.cs-fpv-icon img { width: 18px; height: 18px; }
+
+@keyframes csFadeIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+@keyframes csPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════ FLASH ═══════ */
+.cs-flash {
+  position: absolute; inset: 0; z-index: 25;
+  background: #fff; opacity: 0; pointer-events: none;
+  transition: opacity .15s;
+}
+.cs-flash.bang { opacity: .7; transition: none; }
+
+/* ═══════ PROGRESS BAR ═══════ */
+.cs-progress {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 3px;
+  z-index: 100001; background: rgba(255,255,255,.02);
+}
+.cs-progress-bar {
+  height: 100%; width: 0;
+  background: linear-gradient(90deg, #6b8aff, #a78bfa);
+  transition: width .4s ease;
+  box-shadow: 0 0 8px rgba(107,138,255,.3);
+}
+
+/* ═══════ TUTORIAL ═══════ */
+.cs-tutorial {
+  position: absolute; inset: 0; z-index: 30;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(160deg, rgba(8,11,20,.97) 0%, rgba(13,17,23,.98) 100%);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  opacity: 0; pointer-events: none; padding: 20px;
+  transition: opacity .5s;
+}
+.cs-tutorial.visible { opacity: 1; pointer-events: auto; }
+
+.cs-tut-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  width: 100%; max-width: min(400px, calc(100vw - 32px)); gap: 20px;
+}
+
+.cs-tut-card {
+  width: 100%; padding: 32px 24px 28px;
+  background: linear-gradient(160deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.015) 100%);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 24px; text-align: center;
+  opacity: 0; transform: translateY(30px) scale(.94);
+  transition: all .6s cubic-bezier(.16,1,.3,1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,.2);
+}
+.cs-tut-card.visible { opacity: 1; transform: translateY(0) scale(1); }
+
+.cs-tut-glow {
+  position: absolute; top: 50%; left: 50%;
+  width: 220px; height: 220px; border-radius: 50%;
+  transform: translate(-50%,-55%); pointer-events: none;
+  animation: csOrbPulse 3s ease-in-out infinite;
+}
+@keyframes csOrbPulse {
+  0%,100% { opacity: .5; transform: translate(-50%,-55%) scale(1); }
+  50% { opacity: .8; transform: translate(-50%,-55%) scale(1.15); }
+}
+
+.cs-tut-icon-wrap {
+  position: relative; z-index: 1;
+  margin-bottom: 20px;
+}
+.cs-tut-icon {
+  width: 56px; height: 56px;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,.4));
+  animation: csTutFloat 3s ease-in-out infinite;
+}
+.cs-tut-icon.big {
+  width: 72px; height: 72px; border-radius: 20px;
+  box-shadow: 0 12px 36px rgba(107,138,255,.25);
+}
+@keyframes csTutFloat {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.cs-tut-title {
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  font-size: 19px; font-weight: 800; margin-bottom: 8px;
+  background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,.7) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; position: relative; z-index: 1;
+  line-height: 1.3;
+}
+
+.cs-tut-text {
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  font-size: 13px; color: rgba(255,255,255,.45);
+  line-height: 1.6; position: relative; z-index: 1;
+  max-width: 300px; margin: 0 auto;
+}
+
+.cs-tut-dots { display: flex; gap: 8px; }
+.cs-tut-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(255,255,255,.1); transition: all .35s ease;
+}
+.cs-tut-dot.active { width: 24px; border-radius: 4px; }
+
+.cs-tut-actions {
+  display: flex; align-items: center; gap: 16px;
+  width: 100%;
+}
+.cs-tut-counter {
+  font-family: -apple-system, system-ui, sans-serif;
+  font-size: 12px; font-weight: 700; min-width: 42px;
+  letter-spacing: .5px;
+}
+.cs-tut-btn {
+  flex: 1; padding: 14px 20px; border-radius: 14px;
+  color: #fff; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .2s ease; border: none;
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  -webkit-tap-highlight-color: transparent;
+  position: relative; overflow: hidden;
+}
+.cs-tut-btn::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.12) 0%, transparent 50%);
+  border-radius: inherit; pointer-events: none;
+}
+.cs-tut-btn:active { transform: scale(.96); filter: brightness(1.1); }
+
+/* ═══════ GLITCH LAYER — heavy chromatic aberration ═══════ */
+.cs-glitch-layer {
+  position: absolute; inset: 0; z-index: 22;
+  pointer-events: none; opacity: 0;
+  background: #050810;
+  overflow: hidden;
+}
+.cs-glitch-layer.active { opacity: 1; animation: csGlitchShake .08s linear infinite; }
+.cs-glitch-layer.active::before,
+.cs-glitch-layer.active::after {
+  content: ''; position: absolute; inset: 0;
+}
+.cs-glitch-layer.active::before {
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(107,138,255,.08) 1px, rgba(107,138,255,.08) 3px),
+    repeating-linear-gradient(90deg, transparent, transparent 100px, rgba(255,40,40,.04) 100px, rgba(255,40,40,.04) 102px);
+  animation: csGlitchScan .06s linear infinite;
+}
+.cs-glitch-layer.active::after {
+  background:
+    linear-gradient(180deg,
+      transparent 10%,
+      rgba(255,30,30,.12) 10.3%, transparent 10.6%,
+      transparent 30%,
+      rgba(30,255,80,.08) 30.3%, transparent 30.6%,
+      transparent 55%,
+      rgba(30,80,255,.12) 55.3%, transparent 55.6%,
+      transparent 75%,
+      rgba(255,255,30,.06) 75.3%, transparent 75.6%,
+      transparent 90%,
+      rgba(255,30,255,.08) 90.3%, transparent 90.6%
+    );
+  animation: csGlitchRGB .06s steps(4) infinite;
+  mix-blend-mode: screen;
+}
+
+@keyframes csGlitchShake {
+  0%   { transform: translate(0, 0) skewX(0); }
+  15%  { transform: translate(-4px, 2px) skewX(-1deg); }
+  30%  { transform: translate(3px, -1px) skewX(0.5deg); }
+  50%  { transform: translate(-2px, 3px) skewX(-0.3deg); }
+  70%  { transform: translate(4px, -2px) skewX(0.8deg); }
+  85%  { transform: translate(-1px, 1px) skewX(-0.5deg); }
+  100% { transform: translate(0, 0) skewX(0); }
+}
+@keyframes csGlitchScan {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100%); }
+}
+@keyframes csGlitchRGB {
+  0%   { transform: translate(0, 0); clip-path: inset(0 0 80% 0); }
+  25%  { transform: translate(-5px, 2px); clip-path: inset(20% 0 50% 0); }
+  50%  { transform: translate(4px, -1px); clip-path: inset(50% 0 20% 0); }
+  75%  { transform: translate(-2px, 3px); clip-path: inset(70% 0 0 0); }
+  100% { transform: translate(0, 0); clip-path: inset(0 0 80% 0); }
+}
+
+/* ═══════ PHONE EXPAND — real site replica ═══════ */
+.cs-phone-expand {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,8,14,.96);
+  opacity: 0; transition: opacity .4s ease;
+}
+.cs-phone-expand.visible { opacity: 1; }
+
+.cs-pe-phone {
+  width: 220px; height: 440px;
+  background: #0a0e17; border-radius: 32px;
+  border: 2px solid rgba(255,255,255,.06);
+  overflow: hidden; position: relative;
+  box-shadow:
+    0 0 80px rgba(107,138,255,.2),
+    0 24px 60px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  transition: all .7s cubic-bezier(.16,1,.3,1);
+}
+.cs-pe-phone.expand {
+  width: 100vw; height: 100vh; border-radius: 0;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.cs-pe-notch {
+  position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
+  width: 65px; height: 20px;
+  background: #050810; border-radius: 0 0 12px 12px; z-index: 3;
+}
+.cs-pe-phone.expand .cs-pe-notch { display: none; }
+
+.cs-pe-screen {
+  position: absolute; inset: 2px; border-radius: 30px; overflow: hidden;
+  background: linear-gradient(180deg, #0a0e17, #070b14);
+  display: flex; flex-direction: column;
+  padding: 30px 12px 0;
+  font-family: -apple-system, 'SF Pro Display', system-ui, sans-serif;
+}
+.cs-pe-phone.expand .cs-pe-screen { border-radius: 0; inset: 0; padding: 16px 16px 0; }
+
+/* Header — matches index.html header */
+.cs-pe-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 0 10px;
+}
+.cs-pe-avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #6b8aff44, #a855f744);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.cs-pe-user-info { flex: 1; display: flex; flex-direction: column; gap: 1px; }
+.cs-pe-username { font-size: 12px; font-weight: 700; color: #f0f2f5; }
+.cs-pe-bal-row { display: flex; align-items: center; gap: 3px; }
+.cs-pe-bal-amount { font-size: 11px; font-weight: 700; color: #ffd74a; }
+.cs-pe-star { width: 11px; height: 11px; }
+.cs-pe-plus-btn {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: #6b8aff; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; line-height: 1;
+}
+
+/* Section header — "Задания" */
+.cs-pe-section { padding: 6px 0 8px; }
+.cs-pe-section-title {
+  font-size: 14px; font-weight: 800; color: #f0f2f5;
+  display: flex; align-items: center; gap: 5px;
+}
+.cs-pe-section-sub { font-size: 10px; color: #8b95a5; margin-top: 1px; }
+
+/* Task cards — matches real task-card */
+.cs-pe-tasks { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.cs-pe-task {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px; border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.06);
+}
+.cs-pe-task-icon {
+  width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.cs-pe-task-icon.blue   { background: rgba(107,138,255,.12); }
+.cs-pe-task-icon.green  { background: rgba(52,216,122,.1); }
+.cs-pe-task-icon.purple { background: rgba(168,85,247,.1); }
+.cs-pe-task-info { flex: 1; min-width: 0; }
+.cs-pe-task-title { font-size: 11px; font-weight: 700; color: #f0f2f5; }
+.cs-pe-task-desc  { font-size: 9px; color: #8b95a5; margin-top: 1px; }
+.cs-pe-task-reward {
+  font-size: 10px; font-weight: 700; color: #ffd74a;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* Bottom nav — matches site nav */
+.cs-pe-nav {
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 8px 0 10px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin-top: auto;
+}
+.cs-pe-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  font-size: 14px; opacity: .3;
+  transition: opacity .2s;
+}
+.cs-pe-nav-item span { font-size: 8px; font-weight: 600; }
+.cs-pe-nav-item.active { opacity: .9; color: #6b8aff; }
+
+/* ═══════ REAL PAGE OVERLAY — shows actual site content ═══════ */
+.cs-real-overlay {
+  position: absolute; inset: 0; z-index: 18;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,8,14,.92);
+  opacity: 0; transition: opacity .8s ease;
+  pointer-events: none;
+}
+.cs-real-overlay.visible { opacity: 1; }
+
+.cs-real-frame {
+  width: 240px; height: 480px;
+  background: #0a0e17; border-radius: 32px;
+  border: 2px solid rgba(107,138,255,.12);
+  overflow: hidden; position: relative;
+  box-shadow:
+    0 0 120px rgba(107,138,255,.2),
+    0 0 50px rgba(107,138,255,.08),
+    0 20px 60px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  transition: all .8s cubic-bezier(.16,1,.3,1);
+}
+.cs-real-frame.expand {
+  width: 100vw; height: 100vh;
+  border-radius: 0;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.cs-real-inner {
+  position: absolute; inset: 4px; border-radius: 28px;
+  overflow-y: auto; overflow-x: hidden;
+  background: var(--bg, #0a0e17);
+  -ms-overflow-style: none; scrollbar-width: none;
+}
+.cs-real-inner::-webkit-scrollbar { display: none; }
+.cs-real-frame.expand .cs-real-inner {
+  inset: 0; border-radius: 0;
+}
+
+/* ═══════ (Phone screen is now 3D texture — no HTML overlay needed) ═══════ */
+
+/* ═══════ LOADING TEXT — floating branding on loading screen ═══════ */
+.cs-load-text {
+  position: absolute;
+  bottom: 32px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 15;
+  display: flex; align-items: center; gap: 10px;
+  opacity: .85;
+  animation: csLoadTextFloat 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes csLoadTextFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-4px); }
+}
+.cs-lt-logo {
+  width: 28px; height: 28px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px rgba(107,138,255,.5));
+}
+.cs-lt-name {
+  font-size: 16px; font-weight: 700;
+  color: #c8d4ff;
+  letter-spacing: 1px;
+  text-shadow: 0 0 16px rgba(107,138,255,.35);
+}

@@ -1,0 +1,4373 @@
+﻿/* ================================================================
+   LUNA GIFTS — Design System (Pure Dark)
+   ================================================================
+   
+   Table of Contents:
+   1.  CSS Variables & Reset
+   2.  Typography & Base
+   3.  Loading Screen
+   4.  Container & Layout
+   5.  Header (Legacy)
+   6.  Header V2 (Modern)
+   7.  Balance Pill
+   8.  Online Badge
+   9.  Section Headers
+   10. Bottom Navigation
+   11. Grids
+   12. Gift Cards
+   13. Case Cards (Legacy)
+   14. Case Cards V2 (Modern Grid)
+   15. Case Detail (Legacy Page)
+   16. Case Drops
+   17. Popular Case Showcase
+   18. Filter Tabs
+   19. Recent Wins Carousel
+   20. Case Detail Bottom Sheet
+   21. 3-Card Opening Animation
+   22. Roulette (Horizontal)
+   23. Roulette (Vertical / Multi)
+   24. Case Roulette Area
+   25. Result Area
+   26. Multi Result Grid
+   27. Inventory
+   28. Referral Section
+   29. Promo Section
+   30. Tasks
+   31. Modal Overlay & Content
+   32. Gift / Buy Modal
+   33. Item Modal (Inventory)
+   34. Bottom Sheet (Generic)
+   35. Top-Up Methods & Amounts
+   36. Top-Up Rows (Modern)
+   37. Notifications
+   38. Empty State
+   39. Inventory Roulette Overlay
+   40. Admin Panel
+   41. Admin Stats
+   42. Admin Menu
+   43. Admin Forms & Inputs
+   44. Admin Tabs
+   45. Admin Gift Rows
+   46. Admin List Items
+   47. TG Gift Catalog (Admin)
+   48. Animations & Keyframes
+   49. Utility Classes
+   50. Responsive Breakpoints
+   ================================================================ */
+
+
+/* ================================================================
+   1. CSS VARIABLES & RESET
+   ================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Onest:wght@100..900&display=swap');
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    font-optical-sizing: auto;
+}
+
+::-webkit-scrollbar {
+    display: none;
+}
+
+:root {
+    /* ── Background ── */
+    --bg: #131313;
+    --bg-elevated: #191919;
+    --bg-card: #202020;
+    --bg-card-hover: #292929;
+    --bg-secondary: #333232;
+
+    /* ── Borders ── */
+    --border: #2E2E2E;
+    --border-light: #383838;
+    --border-glass: #252525;
+
+    /* ── Text ── */
+    --text: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.64);
+    --text-muted: rgba(255, 255, 255, 0.36);
+
+    /* ── Accent ── */
+    --accent: #1689FF;
+    --accent-dark: #1270D6;
+    --accent-glow: rgba(22, 137, 255, 0.20);
+
+    /* ── Gold / Stars ── */
+    --gold: #FFCC00;
+    --gold-dark: #D4A900;
+    --gold-glow: rgba(255, 204, 0, 0.15);
+
+    /* ── Semantic ── */
+    --green: #36C465;
+    --green-glow: rgba(54, 196, 101, 0.15);
+    --red: #E74B4B;
+    --purple: #a855f7;
+
+    /* ── Radius ── */
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+
+    /* ── Spacing ── */
+    --nav-h: 64px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --container-px: 16px;
+
+    /* ── Transitions ── */
+    --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    color-scheme: dark;
+}
+
+
+/* ================================================================
+   2. TYPOGRAPHY & BASE
+   ================================================================ */
+
+html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: 'Inter', -apple-system, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100%;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.4;
+    padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 20px);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+    touch-action: pan-x pan-y;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    outline: none;
+}
+
+input,
+textarea,
+select {
+    font-family: inherit;
+    outline: none;
+}
+
+
+/* ================================================================
+   3. LOADING SCREEN
+   ================================================================ */
+
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .5s, visibility .5s;
+}
+
+.loading-screen.fade-out {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loading-screen-gif {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+}
+
+.loading-screen-logo {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+    animation: pulseLogo 1.5s ease infinite;
+}
+
+.loading-text {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    color: var(--text);
+    margin-bottom: 24px;
+}
+
+.load-progress-wrap {
+    width: 200px;
+    height: 6px;
+    background: rgba(255,255,255,.08);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.load-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #6b8aff);
+    border-radius: 6px;
+    transition: width .4s ease;
+}
+
+.load-status {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.load-percent {
+    font-size: 12px;
+    color: rgba(255,255,255,.3);
+    font-weight: 600;
+}
+
+/* Inline Loading Spinner */
+.loading {
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+
+/* ================================================================
+   4. CONTAINER & LAYOUT
+   ================================================================ */
+
+.container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 var(--container-px);
+}
+
+
+/* ================================================================
+   5. HEADER (Legacy — used in inventory, market)
+   ================================================================ */
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.user-avatar,
+.inventory-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    object-fit: cover;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name,
+.inventory-name {
+    font-family: 'Onest', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.balance-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.balance-amount {
+    font-family: 'Onest', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gold);
+}
+
+.balance-icon {
+    width: 14px;
+    height: 14px;
+}
+
+.topup-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s;
+    flex-shrink: 0;
+}
+
+.topup-btn:active {
+    transform: scale(.92);
+}
+
+.topup-btn img {
+    width: 16px;
+    height: 16px;
+    filter: brightness(10);
+}
+
+
+/* ================================================================
+   6. HEADER V2 (Modern — used in index, cases)
+   ================================================================ */
+
+.header-v2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+}
+
+.header-avatar-wrap {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    cursor: pointer;
+    position: relative;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+    transition: border-color .2s;
+}
+
+.header-avatar-wrap:active {
+    border-color: var(--border-light);
+}
+
+.header-avatar-wrap .user-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.avatar-wallet-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 6.5px;
+    font-weight: 800;
+    color: #fff;
+    background: rgba(0, 0, 0, .55);
+    border-radius: 50%;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    letter-spacing: .3px;
+    text-align: center;
+    line-height: 1.3;
+    padding: 2px;
+    animation: fadeIn .4s ease;
+}
+
+
+/* ================================================================
+   7. BALANCE PILL
+   ================================================================ */
+
+.balance-pill {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 4px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.balance-section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: background .15s;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.balance-section:active {
+    background: var(--bg-card-hover);
+}
+
+.balance-section img {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.balance-val {
+    font-family: 'Onest', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.star-balance .balance-val {
+    color: var(--gold);
+}
+
+.balance-divider {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+    flex-shrink: 0;
+}
+
+.balance-plus-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    font-size: 18px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s, transform .1s;
+    line-height: 1;
+}
+
+.balance-plus-btn:active {
+    background: var(--bg-card-hover);
+    transform: scale(.92);
+}
+
+
+/* ================================================================
+   8. ONLINE BADGE
+   ================================================================ */
+
+.online-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px 10px;
+    flex-shrink: 0;
+}
+
+.online-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px rgba(54, 196, 101, .5);
+    animation: onlinePulse 2s ease-in-out infinite;
+}
+
+.online-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+
+/* ================================================================
+   9. SECTION HEADERS
+   ================================================================ */
+
+.section-header {
+    padding: 8px 0 12px;
+}
+
+.section-header h2 {
+    font-family: 'Onest', sans-serif;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header h3 {
+    font-family: 'Onest', sans-serif;
+    font-size: 20px;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.section-icon {
+    width: 22px;
+    height: 22px;
+}
+
+
+/* ================================================================
+   10. BOTTOM NAVIGATION
+   ================================================================ */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border);
+    padding-bottom: var(--safe-bottom);
+}
+
+.nav-inner {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    height: var(--nav-h);
+}
+
+.nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    color: var(--text-secondary);
+    font-family: 'Onest', sans-serif;
+    font-weight: 500;
+    transition: color .2s;
+    text-decoration: none;
+    padding-top: 11px;
+    padding-bottom: 11px;
+}
+
+.nav-item.active {
+    color: #ffffff;
+}
+
+.nav-icon img {
+    width: 22px;
+    height: 22px;
+    opacity: .64;
+    transition: opacity .2s;
+}
+
+.nav-item.active .nav-icon img {
+    opacity: 1;
+}
+
+.nav-label {
+    font-family: 'Onest', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+
+/* ================================================================
+   11. GRIDS
+   ================================================================ */
+
+.gifts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 10px;
+}
+
+.cases-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+
+/* ================================================================
+   12. GIFT CARDS (Market)
+   ================================================================ */
+
+.gift-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s, border-color .2s;
+    position: relative;
+}
+
+.gift-card:active {
+    transform: scale(.96);
+}
+
+.gift-card:hover {
+    border-color: var(--border-light);
+}
+
+.gift-visual {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #333232;
+}
+
+.gift-visual .gift-img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .5));
+}
+
+.gift-visual .gift-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .85;
+}
+
+.gift-color-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+}
+
+.gift-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 0;
+    font-family: 'Onest', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gold);
+}
+
+.gift-price img {
+    width: 13px;
+    height: 13px;
+}
+
+.gift-name {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 0 4px 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* ================================================================
+   13. CASE CARDS (Legacy)
+   ================================================================ */
+
+.case-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s, border-color .2s;
+    position: relative;
+}
+
+.case-card:active {
+    transform: scale(.97);
+}
+
+.case-card:hover {
+    border-color: var(--border-light);
+}
+
+.case-card .case-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+}
+
+.case-card .case-name {
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 12px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.case-card .case-price {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gold);
+    padding: 0 12px 12px;
+}
+
+.case-card .case-price img {
+    width: 14px;
+    height: 14px;
+}
+
+
+/* ================================================================
+   14. CASE CARDS V2 (Modern Grid)
+   ================================================================ */
+
+.cases-grid-v2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding-bottom: 20px;
+}
+
+.case-card-v2 {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s, border-color .2s;
+    padding: 14px 14px 12px;
+    position: relative;
+}
+
+.case-card-v2:active {
+    transform: scale(.96);
+}
+
+.case-card-v2:hover {
+    border-color: var(--border-light);
+}
+
+.case-card-v2-visual {
+    aspect-ratio: 1;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.case-card-v2-visual img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, .4));
+    transition: transform .2s;
+}
+
+.case-card-v2:active .case-card-v2-visual img {
+    transform: scale(.94);
+}
+
+.case-card-v2-name {
+    font-family: 'Onest', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+    padding: 0 2px;
+    color: var(--text);
+}
+
+.case-card-v2-price {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Onest', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    padding: 0 2px;
+}
+
+.case-card-v2-price img {
+    width: 13px;
+    height: 13px;
+}
+
+
+/* ================================================================
+   15. CASE DETAIL (Legacy Page)
+   ================================================================ */
+
+.case-detail-page {
+    display: none;
+    animation: fadeIn .35s ease;
+}
+
+.case-detail-page.active {
+    display: block;
+}
+
+.case-detail-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0;
+    margin-bottom: 10px;
+    background: none;
+    border: none;
+}
+
+.case-detail-back:active {
+    opacity: .6;
+}
+
+.case-hero {
+    text-align: center;
+    padding: 10px 0 6px;
+    position: relative;
+}
+
+.case-hero-name {
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0 0 10px;
+}
+
+.case-hero-img-wrap {
+    position: relative;
+    display: inline-block;
+    transition: all .5s var(--ease-out);
+    overflow: visible;
+}
+
+.case-hero-img-wrap.hidden {
+    opacity: 0;
+    transform: scale(.5);
+    height: 0;
+    margin: 0;
+    padding: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.case-hero-img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    filter: drop-shadow(0 16px 40px rgba(0, 0, 0, .6));
+    animation: caseFloat 3s ease-in-out infinite;
+}
+
+.case-hero-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-top: 8px;
+}
+
+.case-hero-price img {
+    width: 18px;
+    height: 18px;
+}
+
+.open-count-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin: 18px 0 14px;
+}
+
+.open-count-btn {
+    padding: 8px 18px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .25s;
+}
+
+.open-count-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.open-count-btn:active {
+    transform: scale(.95);
+}
+
+.case-open-btn {
+    width: 100%;
+    margin: 0 0 18px;
+    height: 60px;
+    border-radius: 12px;
+    background: #fff;
+    color: #131313;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform .15s;
+    border: none;
+}
+
+.case-open-btn:active {
+    transform: scale(.97);
+}
+
+.case-open-btn:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+.case-open-btn img {
+    width: 18px;
+    height: 18px;
+}
+
+
+/* ================================================================
+   16. CASE DROPS
+   ================================================================ */
+
+.case-drops-header {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.case-drops-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.case-drop-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px 12px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+}
+
+.case-drop-card:hover {
+    border-color: var(--border-light);
+}
+
+.drop-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 6px;
+}
+
+.drop-visual .gift-backdrop {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    object-fit: cover;
+    opacity: .55;
+    z-index: 0;
+    transition: opacity .8s;
+}
+
+.drop-visual .drop-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, .5));
+}
+
+.case-drop-card .drop-name {
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 3px;
+}
+
+.case-drop-card .drop-price {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.case-drop-card .drop-price img {
+    width: 11px;
+    height: 11px;
+}
+
+
+/* ================================================================
+   17. POPULAR CASE SHOWCASE
+   ================================================================ */
+
+.popular-case-card {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    margin-bottom: 18px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform .15s, border-color .2s;
+    min-height: 140px;
+}
+
+.popular-case-card:active {
+    transform: scale(.98);
+    border-color: var(--accent);
+}
+
+.popular-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ff8c42;
+    background: rgba(255, 140, 66, .1);
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.popular-badge img {
+    width: 12px;
+    height: 12px;
+}
+
+.popular-case-info {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.popular-case-name {
+    font-family: 'Onest', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+
+.popular-case-drops {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+.popular-drop-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    object-fit: contain;
+    background: var(--bg-secondary);
+    padding: 2px;
+    border: 1px solid var(--border);
+}
+
+.popular-drop-more {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.popular-case-price-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 7px 16px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Onest', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .1s;
+}
+
+.popular-case-price-btn:active {
+    transform: scale(.95);
+}
+
+.popular-case-price-btn img {
+    width: 13px;
+    height: 13px;
+}
+
+.popular-case-img {
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 8px 24px rgba(0, 0, 0, .4));
+    animation: caseFloat 3s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+
+/* ================================================================
+   18. FILTER TABS
+   ================================================================ */
+
+.case-filter-tabs {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 0;
+    margin-bottom: 14px;
+}
+
+.case-filter-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.case-filter-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 7px 14px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-family: 'Onest', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .2s;
+    flex-shrink: 0;
+}
+
+.case-filter-tab img {
+    width: 13px;
+    height: 13px;
+}
+
+.case-filter-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+.case-filter-tab:active {
+    transform: scale(.95);
+}
+
+
+/* ================================================================
+   19. RECENT WINS CAROUSEL
+   ================================================================ */
+
+.recent-wins-section {
+    margin-bottom: 12px;
+    overflow: hidden;
+}
+
+.recent-wins-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding: 4px 0;
+}
+
+.recent-wins-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.recent-win-card {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 70px;
+    cursor: pointer;
+    transition: transform .15s;
+}
+
+.recent-win-card:active {
+    transform: scale(.92);
+}
+
+.recent-win-avatar {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    margin: 0 auto 0;
+}
+
+.recent-win-avatar > img:first-child {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+}
+
+.recent-win-prize {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    padding: 2px;
+}
+
+.recent-win-name {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 66px;
+    text-align: center;
+    margin-top: 6px;
+}
+
+.recent-win-item {
+    display: none;
+}
+
+
+/* ================================================================
+   20. CASE DETAIL BOTTOM SHEET
+   ================================================================ */
+
+.case-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, .55);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.case-sheet-overlay.active {
+    display: flex;
+    animation: fadeIn .2s ease;
+}
+
+.case-sheet {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 0 20px calc(20px + var(--safe-bottom));
+    animation: slideUp .3s var(--ease-out);
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.case-sheet .sheet-handle {
+    margin: 8px auto 8px;
+}
+
+/* Case Sheet Header */
+.case-sheet-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 12px;
+}
+
+.case-sheet-header-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.case-sheet-name {
+    font-family: 'Onest', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    letter-spacing: -.3px;
+    margin-bottom: 4px;
+    color: var(--text);
+}
+
+.case-sheet-price {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Onest', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.case-sheet-price img {
+    width: 16px;
+    height: 16px;
+}
+
+/* Demo Toggle */
+.case-sheet-demo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.case-sheet-demo-toggle {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    background: var(--bg-secondary);
+    border-radius: 11px;
+    cursor: pointer;
+    transition: background .2s;
+    border: none;
+    padding: 0;
+}
+
+.case-sheet-demo-toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform .2s;
+}
+
+.case-sheet-demo-toggle.active {
+    background: var(--accent);
+}
+
+.case-sheet-demo-toggle.active::after {
+    transform: translateX(18px);
+}
+
+/* Case Header Image */
+.case-sheet-header-img {
+    width: 70px;
+    height: 70px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .4));
+}
+
+/* Case Sheet Items Grid */
+.case-sheet-items {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.case-sheet-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 6px 8px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .2s;
+}
+
+.case-sheet-item:hover {
+    border-color: var(--border-light);
+}
+
+.case-sheet-item-img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    margin-bottom: 6px;
+}
+
+/* Item visual - bg as full card image, or model directly */
+.case-sheet-item-visual {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.case-sheet-item-visual .csi-bg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.case-sheet-item-visual .csi-model {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .4));
+}
+
+.case-sheet-item-price {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.case-sheet-item-price img {
+    width: 11px;
+    height: 11px;
+}
+
+.case-sheet-item-random {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
+    text-transform: lowercase;
+}
+
+/* Open Button */
+.case-sheet-open-btn {
+    width: 100%;
+    height: 60px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform .1s;
+    position: relative;
+    overflow: hidden;
+}
+
+.case-sheet-open-btn:before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -100;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    transition: background .3s ease-in-out;
+}
+
+.case-sheet-open-btn:disabled:before {
+    cursor: not-allowed;
+    pointer-events: none;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.case-sheet-open-btn:active {
+    transform: scale(.97);
+}
+
+.case-sheet-open-btn:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Sub text under button */
+.case-sheet-sub {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 0 6px;
+}
+
+.case-sheet-sub img {
+    width: 12px;
+    height: 12px;
+}
+
+
+/* ================================================================
+   21. CASE HERO + HORIZONTAL ROULETTE (inside sheet)
+   ================================================================ */
+
+.card-opening-area {
+    display: block;
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: radial-gradient(136.32% 93.18% at 70.03% 11.93%, #001aaf, #000548 45.34%, #000548);
+    box-shadow: 4px 4px 28.3px rgba(255, 255, 255, 0.15) inset;
+    height: 200px;
+    min-height: 200px;
+}
+
+/* Red overlay for lose state */
+.card-opening-area::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(133.32% 100% at 70.03% 0%, #af0000, #a7003f 14.7%, #000548),
+                radial-gradient(117.11% 100% at 70.03% 0%, #001aaf, #160048 55.77%, #000548);
+    opacity: 0;
+    transition: opacity .3s ease-in-out;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.card-opening-area.is-lose::before {
+    opacity: 1;
+}
+
+/* ---- Big case PNG centered (before opening) ---- */
+.case-hero {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+}
+
+.case-hero-img {
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    filter: drop-shadow(0 8px 32px rgba(22, 137, 255, 0.35));
+    animation: caseHeroFloat 3s ease-in-out infinite;
+}
+
+@keyframes caseHeroFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+/* ---- Won item display (after roulette) ---- */
+.won-display {
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    gap: 6px;
+    padding: 12px 0;
+    box-sizing: border-box;
+}
+
+.won-display.active {
+    display: flex;
+}
+
+.won-display-visual {
+    width: 110px;
+    height: 110px;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: rgba(0, 0, 0, 0.25);
+    animation: wonPop 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.won-display-visual::after {
+    content: '';
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(22, 137, 255, 0.2) 0%, transparent 70%);
+    animation: resultGlow 2s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes wonPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.won-display-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+}
+
+.won-display-visual img.won-bg {
+    object-fit: cover;
+    border-radius: 16px;
+}
+
+.won-display-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ---- Roulette Wrapper (overlays blue box during animation) ---- */
+.roulette-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: none;
+    z-index: 3;
+}
+
+.roulette-wrapper.active {
+    display: block;
+}
+
+/* Fade edges */
+.roulette-wrapper::before,
+.roulette-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 40px;
+    height: 100%;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.roulette-wrapper::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(0, 5, 72, 0.95), transparent);
+}
+
+.roulette-wrapper::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(0, 5, 72, 0.95), transparent);
+}
+
+/* Center pointer - thin vertical line */
+.roulette-pointer {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 8;
+    width: 2px;
+    height: 100%;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(22, 137, 255, 0.6);
+}
+
+/* Scrolling track */
+.roulette-track {
+    display: flex;
+    gap: 8px;
+    padding: 10px 0;
+    height: 100%;
+    align-items: center;
+    box-sizing: border-box;
+    will-change: transform;
+}
+
+/* Individual roulette card */
+.roulette-card {
+    flex: 0 0 90px;
+    height: calc(100% - 20px);
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    border: 1.5px solid transparent;
+    transition: border-color .3s, box-shadow .3s;
+}
+
+.roulette-card.winner {
+    border-color: var(--accent);
+    box-shadow: 0 0 24px rgba(22, 137, 255, 0.4);
+}
+
+.roulette-card-visual {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-radius: 10px 10px 0 0;
+}
+
+.roulette-card-visual .rc-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.roulette-card-visual .rc-img {
+    width: 55%;
+    height: 55%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .5));
+}
+
+.roulette-card-price {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, .65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 3px 4px 5px;
+    width: 100%;
+}
+
+.roulette-card-price img {
+    width: 10px;
+    height: 10px;
+}
+
+/* Result Area (inside sheet) */
+.case-result-area {
+    display: none;
+    text-align: center;
+    padding: 10px 0;
+}
+
+
+/* ================================================================
+   22. ROULETTE (Horizontal)
+   ================================================================ */
+
+.roulette-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    height: 120px;
+    margin: 16px 0;
+}
+
+.roulette-pointer {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 100%;
+    background: var(--gold);
+    z-index: 5;
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.roulette-strip {
+    display: flex;
+    height: 100%;
+}
+
+.roulette-item {
+    min-width: 110px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+    padding: 10px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.roulette-item img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, .4));
+}
+
+.roulette-item-name {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+    text-align: center;
+}
+
+/* Win Flash Effect */
+.roulette-win-flash {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 204, 0, .12);
+    animation: flashOnce .6s ease-out forwards;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* Particles */
+.roulette-particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    z-index: 20;
+    animation: particleBurst .8s ease-out forwards;
+    pointer-events: none;
+}
+
+
+/* ================================================================
+   23. ROULETTE (Vertical / Multi)
+   ================================================================ */
+
+.multi-roulette-wrap {
+    display: flex;
+    gap: 6px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin: 16px 0;
+}
+
+.v-roulette-container {
+    position: relative;
+    flex: 1;
+    height: 160px;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+}
+
+.v-roulette-container:last-child {
+    border-right: none;
+}
+
+.v-roulette-container::before,
+.v-roulette-container::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 40px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.v-roulette-container::before {
+    top: 0;
+    background: linear-gradient(to bottom, var(--bg-card), transparent);
+}
+
+.v-roulette-container::after {
+    bottom: 0;
+    background: linear-gradient(to top, var(--bg-card), transparent);
+}
+
+.v-roulette-pointer {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 3px;
+    background: var(--gold);
+    z-index: 15;
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.v-roulette-strip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    will-change: transform;
+}
+
+.v-roulette-item {
+    flex-shrink: 0;
+    width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-bottom: 1px solid var(--border);
+    background-size: cover;
+    background-position: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.v-roulette-item img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5));
+}
+
+
+/* ================================================================
+   24. CASE ROULETTE AREA
+   ================================================================ */
+
+.case-roulette-area {
+    display: none;
+    animation: fadeIn .4s ease;
+}
+
+.case-roulette-area.active {
+    display: block;
+    margin-bottom: 16px;
+}
+
+
+/* ================================================================
+   25. RESULT AREA
+   ================================================================ */
+
+.case-result-area.active {
+    display: block;
+}
+
+.result-gift-visual {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 109px;
+    height: 109px;
+    margin: 0 auto 14px;
+    border-radius: 12px;
+    background: var(--bg-secondary);
+    box-shadow: 0 11px 8px rgba(0, 0, 0, .25);
+}
+
+.result-gift-visual .result-backdrop {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-xl);
+    object-fit: cover;
+    opacity: .55;
+}
+
+.result-gift-visual .result-img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    animation: resultBounce .6s cubic-bezier(.16, 1, .3, 1);
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .4));
+}
+
+.result-title {
+    font-family: 'Onest', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 100%;
+    letter-spacing: -0.04em;
+    margin-bottom: 15px;
+}
+
+.result-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 16px;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.result-btn {
+    flex: 1;
+    height: 60px;
+    padding: 14px;
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform .15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+}
+
+.result-btn:active {
+    transform: scale(.96);
+}
+
+.result-btn:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+.result-btn img {
+    width: 16px;
+    height: 16px;
+}
+
+.result-btn.sell {
+    background: var(--gold);
+    color: #131313;
+}
+
+.result-btn.next {
+    background: var(--accent);
+    color: #fff;
+}
+
+
+/* ================================================================
+   26. MULTI RESULT GRID
+   ================================================================ */
+
+.multi-result-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.multi-result-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 10px 12px;
+    text-align: center;
+    animation: resultBounce .5s cubic-bezier(.16, 1, .3, 1) backwards;
+}
+
+.multi-result-card .mr-visual {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 8px;
+}
+
+.multi-result-card .mr-visual .mr-backdrop {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    object-fit: cover;
+    opacity: .55;
+}
+
+.multi-result-card .mr-visual .mr-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .5));
+}
+
+.multi-result-card .mr-name {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.multi-result-card .mr-price {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 8px;
+}
+
+.multi-result-card .mr-sell-btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 10px;
+    background: var(--gold);
+    color: #131313;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .15s;
+    width: 100%;
+}
+
+.multi-result-card .mr-sell-btn:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+.multi-result-card .mr-sell-btn:active {
+    transform: scale(.95);
+}
+
+
+/* ================================================================
+   27. INVENTORY
+   ================================================================ */
+
+.inventory-header {
+    text-align: center;
+    padding: 24px 0 16px;
+}
+
+.inventory-header .inventory-avatar {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    margin: 0 auto;
+    border: 3px solid var(--border-light);
+}
+
+.inventory-header .inventory-name {
+    font-family: 'Onest', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.inventory-balance {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: var(--gold);
+    font-family: 'Onest', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.inventory-balance img {
+    width: 16px;
+    height: 16px;
+}
+
+.admin-panel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 6px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: background .2s;
+}
+
+.admin-panel-link img {
+    width: 14px;
+    height: 14px;
+}
+
+.admin-panel-link:hover {
+    background: var(--bg-card-hover);
+}
+
+/* Inventory Item */
+.inventory-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s, border-color .2s;
+    position: relative;
+}
+
+.inventory-item:active {
+    transform: scale(.96);
+}
+
+.inventory-item:hover {
+    border-color: var(--border-light);
+}
+
+.inventory-item .gift-visual {
+    aspect-ratio: 1;
+}
+
+.inventory-item-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    padding: 6px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inventory-item .case-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    z-index: 2;
+}
+
+.inventory-item.case-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 6px;
+}
+
+.inventory-item.case-item img {
+    width: 65%;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 4px;
+}
+
+/* Inventory Item Visual */
+.inv-item-visual {
+    position: relative;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--bg-secondary);
+}
+
+.inv-item-visual .gift-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: .85;
+}
+
+.inv-item-img {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .5));
+}
+
+.inv-item-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    padding: 6px 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.inv-item-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 0 8px;
+    font-family: 'Onest', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gold);
+}
+
+.inv-item-price img {
+    width: 13px;
+    height: 13px;
+}
+
+.inv-item-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    text-align: center;
+    padding: 2px 0 8px;
+}
+
+
+/* ================================================================
+   28. REFERRAL SECTION
+   ================================================================ */
+
+.referral-section {
+    margin-top: 20px;
+}
+
+.referral-header {
+    margin-bottom: 12px;
+}
+
+.referral-header h3 {
+    font-size: 17px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.referral-header h3 img {
+    width: 20px;
+    height: 20px;
+}
+
+.referral-header p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.referral-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.referral-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    text-align: center;
+}
+
+.referral-stat-value {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.referral-stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.referral-link-box {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.referral-link-text {
+    flex: 1;
+    padding: 11px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.referral-copy-btn {
+    padding: 11px 16px;
+    background: var(--accent);
+    border-radius: var(--radius);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: transform .1s;
+    border: none;
+}
+
+.referral-copy-btn:active {
+    transform: scale(.95);
+}
+
+.referral-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.referral-info-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.referral-info-item img {
+    width: 16px;
+    height: 16px;
+}
+
+.referral-info-item span {
+    font-weight: 700;
+    color: var(--gold);
+}
+
+/* Referral Aliases (used in inventory page) */
+.ref-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 8px;
+    text-align: center;
+}
+
+.ref-stat-val {
+    display: block;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.ref-stat-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.referral-desc {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+    margin-bottom: 12px;
+}
+
+.referral-link-wrap {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.referral-link-input {
+    flex: 1;
+    padding: 11px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* ================================================================
+   29. PROMO SECTION
+   ================================================================ */
+
+.promo-section {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.promo-input-row {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-input-row input {
+    flex: 1;
+    padding: 11px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.promo-input-row button {
+    padding: 11px 18px;
+    background: var(--green);
+    border-radius: var(--radius);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    transition: transform .1s;
+    border: none;
+}
+
+.promo-input-row button:active {
+    transform: scale(.95);
+}
+
+/* Promo aliases */
+.promo-row {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-input {
+    flex: 1;
+    padding: 11px 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.promo-btn {
+    padding: 11px 18px;
+    background: var(--green);
+    border-radius: var(--radius);
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+    transition: transform .1s;
+    border: none;
+    cursor: pointer;
+}
+
+.promo-btn:active {
+    transform: scale(.95);
+}
+
+
+/* ================================================================
+   30. TASKS
+   ================================================================ */
+
+.task-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+}
+
+.task-card:active {
+    transform: scale(.98);
+    background: var(--bg-card-hover);
+}
+
+.task-card.completed {
+    opacity: .5;
+    pointer-events: none;
+}
+
+.task-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+}
+
+.task-icon img {
+    width: 22px;
+    height: 22px;
+}
+
+.task-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.task-title {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.task-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.task-completed-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--green);
+    font-weight: 600;
+}
+
+.task-completed-label img {
+    width: 14px;
+    height: 14px;
+}
+
+.task-reward {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gold);
+    flex-shrink: 0;
+}
+
+.task-reward img {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* ================================================================
+   31. MODAL OVERLAY & CONTENT
+   ================================================================ */
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0, 0, 0, .65);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+    animation: fadeIn .2s ease;
+}
+
+.modal {
+    width: 100%;
+    max-width: 420px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 20px 20px calc(20px + var(--safe-bottom));
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp .3s var(--ease-out);
+    position: relative;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 20px 20px calc(20px + var(--safe-bottom));
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp .3s var(--ease-out);
+    position: relative;
+}
+
+.modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    transition: background .2s;
+    color: var(--text-secondary);
+    font-size: 18px;
+}
+
+.modal-close:hover {
+    background: var(--bg-card-hover);
+}
+
+.modal-close img {
+    width: 14px;
+    height: 14px;
+    opacity: .6;
+}
+
+
+/* ================================================================
+   32. GIFT / BUY MODAL
+   ================================================================ */
+
+.modal-gift-visual {
+    width: 140px;
+    height: 140px;
+    margin: 10px auto 0;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-gift-image {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 6px 18px rgba(0, 0, 0, .5));
+}
+
+.modal-gift-name {
+    font-family: 'Onest', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: center;
+    margin-top: 12px;
+}
+
+.modal-gift-type {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 4px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.modal-action-btn {
+    flex: 1;
+    height: 50px;
+    padding: 13px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    transition: transform .1s;
+    border: none;
+    cursor: pointer;
+}
+
+.modal-action-btn:active {
+    transform: scale(.96);
+}
+
+.modal-action-btn.sell {
+    background: rgba(231, 75, 75, .1);
+    color: var(--red);
+    border: 1px solid rgba(231, 75, 75, .2);
+}
+
+.modal-action-btn.withdraw {
+    background: rgba(54, 196, 101, .1);
+    color: var(--green);
+    border: 1px solid rgba(54, 196, 101, .2);
+}
+
+.modal-action-btn.open-case {
+    background: var(--accent);
+    color: #fff;
+}
+
+.modal-buy-btn {
+    width: 100%;
+    height: 60px;
+    background: var(--accent);
+    border-radius: 12px;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+    transition: transform .1s;
+    border: none;
+}
+
+.modal-buy-btn:active {
+    transform: scale(.97);
+}
+
+.modal-buy-btn img {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* ================================================================
+   33. ITEM MODAL (Inventory)
+   ================================================================ */
+
+.item-modal-visual {
+    width: 200px;
+    height: 200px;
+    margin: 10px auto 0;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.item-modal-visual img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.item-modal-name {
+    font-size: 18px;
+    font-weight: 800;
+    text-align: center;
+    margin-top: 12px;
+}
+
+.item-modal-price {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-top: 6px;
+}
+
+.item-modal-price img {
+    width: 16px;
+    height: 16px;
+}
+
+.item-modal-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+
+/* ================================================================
+   34. BOTTOM SHEET (Generic)
+   ================================================================ */
+
+.bottom-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    background: rgba(0, 0, 0, .55);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.bottom-sheet-overlay.active {
+    display: flex;
+    animation: fadeIn .2s ease;
+}
+
+.bottom-sheet {
+    width: 100%;
+    max-width: 480px;
+    background: var(--bg-elevated);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 0 20px calc(20px + var(--safe-bottom));
+    animation: slideUp .3s var(--ease-out);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.sheet-handle {
+    width: 48px;
+    height: 5px;
+    background: #383838;
+    border-radius: 2px;
+    margin: 8px auto 8px;
+}
+
+.sheet-title {
+    font-family: 'Onest', sans-serif;
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.sheet-input-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.sheet-input-wrap input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.sheet-input-wrap input::placeholder {
+    color: var(--text-muted);
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.sheet-min-hint {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    min-height: 16px;
+}
+
+.sheet-continue-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius);
+    border: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.sheet-continue-btn.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.sheet-continue-btn.inactive {
+    background: rgba(22, 137, 255, .12);
+    color: rgba(22, 137, 255, .4);
+    cursor: default;
+}
+
+.sheet-continue-btn:active:not(.inactive) {
+    transform: scale(.97);
+}
+
+
+/* ================================================================
+   35. TOP-UP METHODS & AMOUNTS
+   ================================================================ */
+
+.topup-methods {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.topup-method {
+    flex: 1;
+    padding: 18px 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: background .2s;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.topup-method:active {
+    background: var(--bg-card-hover);
+}
+
+.topup-method img {
+    width: 32px;
+    height: 32px;
+}
+
+.topup-amounts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.topup-amount-btn {
+    padding: 10px 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    transition: all .15s;
+}
+
+.topup-amount-btn img {
+    width: 14px;
+    height: 14px;
+}
+
+.topup-amount-btn.active {
+    border-color: var(--accent);
+    background: rgba(22, 137, 255, .12);
+    color: var(--accent);
+}
+
+.topup-confirm-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--accent);
+    border-radius: var(--radius);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    transition: transform .1s, opacity .2s;
+    border: none;
+}
+
+.topup-confirm-btn:active {
+    transform: scale(.97);
+}
+
+.topup-confirm-btn:disabled {
+    opacity: .5;
+}
+
+
+/* ================================================================
+   36. TOP-UP ROWS (Modern Style)
+   ================================================================ */
+
+.topup-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+}
+
+.topup-row:active {
+    background: var(--bg-card-hover);
+}
+
+.topup-row.selected {
+    background: rgba(22, 137, 255, .08);
+    border-color: rgba(22, 137, 255, .3);
+}
+
+.topup-row.disabled {
+    opacity: .35;
+    cursor: default;
+    pointer-events: none;
+}
+
+.topup-row-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.topup-row-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.topup-row-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.topup-row-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+}
+
+.topup-row-badge {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
+
+/* ================================================================
+   37. NOTIFICATIONS
+   ================================================================ */
+
+.notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9000;
+    padding: 12px 20px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 600;
+    animation: toastIn .3s ease;
+    max-width: 90%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+}
+
+.notification.success {
+    background: rgba(54, 196, 101, .12);
+    color: var(--green);
+    border: 1px solid rgba(54, 196, 101, .25);
+}
+
+.notification.error {
+    background: rgba(231, 75, 75, .12);
+    color: var(--red);
+    border: 1px solid rgba(231, 75, 75, .25);
+}
+
+.notification.info {
+    background: rgba(22, 137, 255, .12);
+    color: var(--accent);
+    border: 1px solid rgba(22, 137, 255, .25);
+}
+
+
+/* ================================================================
+   38. EMPTY STATE
+   ================================================================ */
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state .empty-icon {
+    margin-bottom: 12px;
+    opacity: .4;
+}
+
+.empty-state .empty-icon img {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto;
+    opacity: .4;
+}
+
+.empty-state p {
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* ================================================================
+   39. INVENTORY ROULETTE OVERLAY
+   ================================================================ */
+
+.inventory-roulette-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(0, 0, 0, .8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+.inventory-roulette-overlay.active {
+    display: flex;
+}
+
+.roulette-viewport {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    height: 120px;
+}
+
+.roulette-indicator {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 3px;
+    height: 100%;
+    background: var(--gold);
+    z-index: 5;
+    box-shadow: 0 0 12px var(--gold-glow);
+}
+
+
+/* ================================================================
+   40. ADMIN PANEL — Layout
+   ================================================================ */
+
+.admin-container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 16px 100px;
+}
+
+.admin-header-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 0;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+}
+
+.admin-back-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    transition: background .2s;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.admin-back-btn:hover {
+    background: var(--bg-card-hover);
+}
+
+.admin-header-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 17px;
+    font-weight: 800;
+    flex: 1;
+}
+
+
+/* ================================================================
+   41. ADMIN STATS
+   ================================================================ */
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.admin-stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    text-align: center;
+}
+
+.admin-stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--accent);
+}
+
+.admin-stat-label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+}
+
+
+/* ================================================================
+   42. ADMIN MENU
+   ================================================================ */
+
+.admin-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.admin-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background .2s, transform .15s;
+}
+
+.admin-menu-item:active {
+    transform: scale(.98);
+    background: var(--bg-card-hover);
+}
+
+.admin-menu-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--accent);
+}
+
+.admin-menu-icon.tasks-icon {
+    background: var(--green);
+}
+
+.admin-menu-icon.cases-icon {
+    background: var(--purple);
+}
+
+.admin-menu-icon.gifts-icon {
+    background: #db2777;
+}
+
+.admin-menu-icon.users-icon {
+    background: #0284c7;
+}
+
+.admin-menu-icon img {
+    width: 22px;
+    height: 22px;
+    filter: brightness(10);
+}
+
+.admin-menu-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-menu-title {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.admin-menu-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+}
+
+.admin-menu-arrow {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+
+/* ================================================================
+   43. ADMIN FORMS & INPUTS
+   ================================================================ */
+
+.admin-section-page {
+    animation: fadeIn .3s ease;
+}
+
+.admin-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0 14px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--bg);
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.admin-section-back {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .2s;
+}
+
+.admin-section-back:hover {
+    background: var(--bg-card-hover);
+}
+
+.admin-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.admin-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-form-group {
+    margin-bottom: 10px;
+}
+
+.admin-form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.admin-form-row {
+    display: flex;
+    gap: 10px;
+}
+
+.admin-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    transition: border-color .2s;
+}
+
+.admin-input:focus {
+    border-color: var(--accent);
+}
+
+.admin-input::placeholder {
+    color: var(--text-muted);
+}
+
+.admin-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 14px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+}
+
+.admin-select option {
+    background: var(--bg-elevated);
+    color: var(--text);
+}
+
+.admin-type-selector {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-type-btn {
+    padding: 7px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.admin-type-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* Admin Buttons */
+.admin-btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: transform .1s, opacity .2s;
+    color: var(--text);
+}
+
+.admin-btn:active {
+    transform: scale(.96);
+}
+
+.admin-btn.primary {
+    background: var(--accent);
+    color: #fff;
+}
+
+.admin-btn.danger {
+    background: var(--red);
+    color: #fff;
+}
+
+.admin-btn.small {
+    padding: 6px 12px;
+    font-size: 11px;
+}
+
+.admin-btn.full-w {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+}
+
+.admin-btn:disabled {
+    opacity: .5;
+    cursor: default;
+}
+
+/* Admin Item Rows */
+.admin-task-item,
+.admin-gift-item,
+.admin-case-item,
+.admin-user-item,
+.admin-promo-item,
+.admin-withdrawal-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 6px;
+}
+
+.admin-task-item .task-icon,
+.admin-gift-item img,
+.admin-case-item img {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.admin-item-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-item-info .admin-item-name {
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-item-info .admin-item-sub {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 1px;
+}
+
+.admin-item-actions {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.admin-item-actions button {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 13px;
+    transition: background .2s;
+}
+
+.admin-item-actions button:hover {
+    background: var(--bg-card-hover);
+}
+
+.admin-item-actions button.del {
+    color: var(--red);
+}
+
+
+/* ================================================================
+   44. ADMIN TABS
+   ================================================================ */
+
+.admin-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 3px;
+}
+
+.admin-tab {
+    flex: 1;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+}
+
+.admin-tab.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.admin-tab:not(.active):hover {
+    background: var(--bg-card-hover);
+}
+
+
+/* ================================================================
+   45. ADMIN GIFT ROWS
+   ================================================================ */
+
+.admin-gift-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.admin-gift-row:hover {
+    background: var(--bg-card-hover);
+}
+
+.admin-gift-row img {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--bg-secondary);
+}
+
+.admin-gift-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-gift-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.admin-gift-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.admin-icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(231, 75, 75, .25);
+    background: rgba(231, 75, 75, .08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s;
+}
+
+.admin-icon-btn:hover {
+    background: rgba(231, 75, 75, .18);
+}
+
+
+/* ================================================================
+   46. ADMIN LIST ITEMS
+   ================================================================ */
+
+.admin-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+}
+
+.admin-list-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.admin-list-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+}
+
+.admin-list-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 3px;
+}
+
+.admin-list-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+
+/* ================================================================
+   47. TG GIFT CATALOG (Admin)
+   ================================================================ */
+
+.tg-balance-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--radius);
+    background: rgba(255, 204, 0, .08);
+    border: 1px solid rgba(255, 204, 0, .2);
+    margin-bottom: 14px;
+}
+
+.tg-balance-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.tg-balance-info {
+    flex: 1;
+}
+
+.tg-balance-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: block;
+    margin-bottom: 2px;
+}
+
+.tg-balance-value {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--gold);
+    display: block;
+}
+
+.tg-catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.tg-gift-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    transition: border-color .2s;
+}
+
+.tg-gift-card:hover {
+    border-color: var(--accent);
+}
+
+.tg-gift-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tg-gift-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tg-gift-no-img {
+    font-size: 32px;
+    opacity: .4;
+}
+
+.tg-gift-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.tg-gift-stars {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--gold);
+}
+
+.tg-gift-id {
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-family: monospace;
+    word-break: break-all;
+}
+
+.tg-gift-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--gold);
+    background: rgba(255, 204, 0, .1);
+    border: 1px solid rgba(255, 204, 0, .2);
+    border-radius: 6px;
+    padding: 2px 7px;
+}
+
+.tg-gift-avail {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.tg-gift-imported {
+    font-size: 11px;
+    color: var(--green);
+    font-weight: 600;
+    padding: 4px 0;
+}
+
+.tg-gift-add-btn {
+    width: 100%;
+    margin-top: 4px;
+}
+
+
+/* ================================================================
+   48. ANIMATIONS & KEYFRAMES
+   ================================================================ */
+
+/* Loading Logo Pulse */
+@keyframes pulseLogo {
+    0%, 100% {
+        transform: scale(1);
+        opacity: .9;
+    }
+    50% {
+        transform: scale(1.06);
+        opacity: 1;
+    }
+}
+
+/* Spinner */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Fade In */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Slide Up (modals/sheets) */
+@keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+/* Case Float */
+@keyframes caseFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Online Pulse */
+@keyframes onlinePulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 8px rgba(54, 196, 101, .5);
+    }
+    50% {
+        opacity: .7;
+        box-shadow: 0 0 4px rgba(54, 196, 101, .3);
+    }
+}
+
+/* Win Flash */
+@keyframes flashOnce {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Roulette Particles */
+@keyframes particleBurst {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--px), var(--py)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* Result Bounce */
+@keyframes resultBounce {
+    0% {
+        transform: scale(0) translateY(30px);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.1) translateY(-5px);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Card Reveal */
+@keyframes cardReveal {
+    from {
+        transform: scale(.8) rotateY(180deg);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) rotateY(0deg);
+        opacity: 1;
+    }
+}
+
+/* Toast In */
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Button Shimmer */
+@keyframes btnShimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+
+/* ================================================================
+   49. UTILITY CLASSES
+   ================================================================ */
+
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-gold {
+    color: var(--gold);
+}
+
+.text-accent {
+    color: var(--accent);
+}
+
+.text-green {
+    color: var(--green);
+}
+
+.text-red {
+    color: var(--red);
+}
+
+.text-muted {
+    color: var(--text-muted);
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+}
+
+.fw-400 { font-weight: 400; }
+.fw-500 { font-weight: 500; }
+.fw-600 { font-weight: 600; }
+.fw-700 { font-weight: 700; }
+.fw-800 { font-weight: 800; }
+
+.mt-4  { margin-top: 4px; }
+.mt-8  { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+
+.mb-4  { margin-bottom: 4px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+
+.gap-4  { gap: 4px; }
+.gap-8  { gap: 8px; }
+.gap-12 { gap: 12px; }
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.flex-1 { flex: 1; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+.w-full { width: 100%; }
+.rounded-full { border-radius: 50%; }
+
+
+/* ================================================================
+   50. RESPONSIVE BREAKPOINTS
+   ================================================================ */
+
+@media (max-width: 360px) {
+    .gifts-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .topup-amounts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tg-catalog-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .case-sheet-items {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .popular-case-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .popular-case-img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .popular-case-drops {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 320px) {
+    :root {
+        --container-px: 12px;
+    }
+
+    .cases-grid-v2 {
+        gap: 8px;
+    }
+
+    .case-card-v2 {
+        padding: 10px 10px 8px;
+    }
+
+    .preview-card.left,
+    .preview-card.right {
+        width: 70px;
+        height: 100px;
+    }
+
+    .preview-card.center {
+        width: 90px;
+        height: 130px;
+    }
+
+    .roulette-item {
+        width: 100px;
+    }
+}
+
+@media (min-width: 481px) {
+    .container,
+    .admin-container {
+        padding: 0 20px;
+    }
+}
