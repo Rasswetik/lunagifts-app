@@ -12,7 +12,6 @@
 <body>
     <div class="loading-screen" id="loadingScreen">
         <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
-        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
         <div class="loading-text">Luna Gifts</div>
         <div class="load-progress-wrap">
             <div class="load-progress-bar" id="loadProgressBar"></div>
@@ -108,7 +107,7 @@
     <style>
     .tutorial-overlay{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;}
     .tutorial-overlay.active{display:flex;animation:fadeIn .4s ease;}
-    .tutorial-backdrop{position:absolute;inset:0;background:rgba(5,8,16,.92);backdrop-filter:blur(20px);}
+    .tutorial-backdrop{position:absolute;inset:0;background:rgba(5,8,16,.85);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);}
     .tutorial-content{position:relative;z-index:2;width:100%;max-width:340px;min-height:300px;display:flex;align-items:center;justify-content:center;}
     .tutorial-step{display:none;flex-direction:column;align-items:center;text-align:center;padding:20px;position:relative;animation:tutorialSlideIn .5s cubic-bezier(.16,1,.3,1);}
     .tutorial-step.active{display:flex;}
@@ -128,7 +127,7 @@
     .tutorial-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);transition:all .3s;}
     .tutorial-dot.active{background:var(--accent);width:24px;border-radius:4px;box-shadow:0 0 12px var(--accent-glow);}
     .tutorial-buttons{display:flex;gap:12px;margin-top:24px;width:100%;max-width:340px;position:relative;z-index:2;}
-    .tutorial-skip{flex:1;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text-secondary);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;}
+    .tutorial-skip{flex:1;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--text-secondary);font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
     .tutorial-skip:active{transform:scale(.96);background:rgba(255,255,255,.1);}
     .tutorial-next{flex:1;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#4a6bd4);color:#fff;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 20px var(--accent-glow);}
     .tutorial-next:active{transform:scale(.96);}

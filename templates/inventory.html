@@ -37,30 +37,32 @@
         /* Confirm modal */
         .confirm-overlay {
             position: fixed; inset: 0; z-index: 2000;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             display: none; align-items: center; justify-content: center;
             padding: 24px;
         }
         .confirm-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
         .confirm-box {
-            background: #191919; border-radius: 24px; padding: 28px 24px;
+            background: rgba(22, 22, 26, 0.88); border-radius: 24px; padding: 28px 24px;
             max-width: 360px; width: 100%; text-align: center;
-            border: 1px solid #2E2E2E;
+            border: 1px solid rgba(255,255,255,0.08);
+            backdrop-filter: blur(40px) saturate(1.6);
+            -webkit-backdrop-filter: blur(40px) saturate(1.6);
             animation: slideUp 0.3s cubic-bezier(.32,.72,0,1);
         }
         .confirm-box-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-        .confirm-box-text { font-size: 14px; color: rgba(255,255,255,0.64); margin-bottom: 20px; line-height: 1.5; }
+        .confirm-box-text { font-size: 14px; color: rgba(255,255,255,0.55); margin-bottom: 20px; line-height: 1.5; }
         .confirm-box-btns { display: flex; gap: 10px; }
         .confirm-box-btns button { flex: 1; padding: 13px; border-radius: 14px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s; }
         .confirm-box-btns button:active { transform: scale(0.96); }
-        .confirm-cancel { background: #202020; color: rgba(255,255,255,0.64); }
+        .confirm-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
         .confirm-action { background: #FFCC00; color: #131313; }
     </style>
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
         <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
-        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
         <div class="loading-text">Luna Gifts</div>
         <div class="load-progress-wrap">
             <div class="load-progress-bar" id="loadProgressBar"></div>

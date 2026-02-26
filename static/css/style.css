@@ -79,26 +79,33 @@
 
 :root {
     /* ── Background ── */
-    --bg: #131313;
-    --bg-elevated: #191919;
-    --bg-card: #202020;
-    --bg-card-hover: #292929;
-    --bg-secondary: #333232;
+    --bg: #0a0a0a;
+    --bg-elevated: rgba(20, 20, 22, 0.85);
+    --bg-card: rgba(255, 255, 255, 0.06);
+    --bg-card-hover: rgba(255, 255, 255, 0.10);
+    --bg-secondary: rgba(255, 255, 255, 0.04);
+
+    /* ── Glass ── */
+    --glass-blur: 24px;
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-bg-strong: rgba(255, 255, 255, 0.10);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
 
     /* ── Borders ── */
-    --border: #2E2E2E;
-    --border-light: #383838;
-    --border-glass: #252525;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.14);
+    --border-glass: rgba(255, 255, 255, 0.06);
 
     /* ── Text ── */
     --text: #ffffff;
-    --text-secondary: rgba(255, 255, 255, 0.64);
-    --text-muted: rgba(255, 255, 255, 0.36);
+    --text-secondary: rgba(255, 255, 255, 0.55);
+    --text-muted: rgba(255, 255, 255, 0.30);
 
     /* ── Accent ── */
     --accent: #1689FF;
     --accent-dark: #1270D6;
-    --accent-glow: rgba(22, 137, 255, 0.20);
+    --accent-glow: rgba(22, 137, 255, 0.25);
 
     /* ── Gold / Stars ── */
     --gold: #FFCC00;
@@ -106,15 +113,15 @@
     --gold-glow: rgba(255, 204, 0, 0.15);
 
     /* ── Semantic ── */
-    --green: #36C465;
-    --green-glow: rgba(54, 196, 101, 0.15);
-    --red: #E74B4B;
+    --green: #34D87A;
+    --green-glow: rgba(52, 216, 122, 0.15);
+    --red: #FF4B4B;
     --purple: #a855f7;
 
     /* ── Radius ── */
-    --radius: 12px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
+    --radius: 14px;
+    --radius-lg: 18px;
+    --radius-xl: 22px;
 
     /* ── Spacing ── */
     --nav-h: 64px;
@@ -203,42 +210,47 @@ select {
 }
 
 .loading-screen-gif {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 10px;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 16px;
+    border-radius: 24px;
+    filter: drop-shadow(0 8px 32px rgba(22, 137, 255, 0.2));
 }
 
 .loading-screen-logo {
-    width: 64px;
-    height: 64px;
-    border-radius: 20px;
-    margin-bottom: 12px;
-    animation: pulseLogo 1.5s ease infinite;
+    display: none;
 }
 
 .loading-text {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 800;
     letter-spacing: .5px;
     color: var(--text);
-    margin-bottom: 24px;
+    margin-bottom: 28px;
+    background: linear-gradient(135deg, #fff, rgba(255,255,255,.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .load-progress-wrap {
     width: 200px;
-    height: 6px;
-    background: rgba(255,255,255,.08);
-    border-radius: 6px;
+    height: 4px;
+    background: rgba(255,255,255,.06);
+    border-radius: 4px;
     overflow: hidden;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .load-progress-bar {
     width: 0%;
     height: 100%;
     background: linear-gradient(90deg, var(--accent), #6b8aff);
-    border-radius: 6px;
+    border-radius: 4px;
     transition: width .4s ease;
+    box-shadow: 0 0 12px var(--accent-glow);
 }
 
 .load-status {
@@ -249,7 +261,7 @@ select {
 
 .load-percent {
     font-size: 12px;
-    color: rgba(255,255,255,.3);
+    color: var(--text-muted);
     font-weight: 600;
 }
 
@@ -293,7 +305,12 @@ select {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--bg);
+    background: rgba(10, 10, 10, 0.75);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    margin: 0 calc(var(--container-px) * -1);
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
 }
 
 .header-left {
@@ -313,7 +330,7 @@ select {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--bg-card);
+    background: var(--glass-bg);
     object-fit: cover;
     flex-shrink: 0;
     cursor: pointer;
@@ -387,7 +404,12 @@ select {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--bg);
+    background: rgba(10, 10, 10, 0.75);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    margin: 0 calc(var(--container-px) * -1);
+    padding-left: var(--container-px);
+    padding-right: var(--container-px);
 }
 
 .header-avatar-wrap {
@@ -398,8 +420,8 @@ select {
     flex-shrink: 0;
     cursor: pointer;
     position: relative;
-    background: var(--bg-card);
-    border: 2px solid var(--border);
+    background: var(--glass-bg);
+    border: 2px solid var(--glass-border);
     transition: border-color .2s;
 }
 
@@ -442,13 +464,15 @@ select {
 .balance-pill {
     display: flex;
     align-items: center;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 999px;
     padding: 3px 4px;
     flex: 1;
     min-width: 0;
     overflow: hidden;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .balance-section {
@@ -463,7 +487,7 @@ select {
 }
 
 .balance-section:active {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .balance-section img {
@@ -494,8 +518,8 @@ select {
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     color: var(--text-secondary);
     font-size: 18px;
     font-weight: 500;
@@ -506,10 +530,12 @@ select {
     flex-shrink: 0;
     transition: background .15s, transform .1s;
     line-height: 1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .balance-plus-btn:active {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
     transform: scale(.92);
 }
 
@@ -522,11 +548,13 @@ select {
     display: flex;
     align-items: center;
     gap: 5px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 10px;
     padding: 5px 10px;
     flex-shrink: 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .online-dot {
@@ -595,8 +623,10 @@ select {
     left: 0;
     right: 0;
     z-index: 100;
-    background: var(--bg-elevated);
-    border-top: 1px solid var(--border);
+    background: rgba(15, 15, 17, 0.72);
+    backdrop-filter: blur(32px) saturate(1.5);
+    -webkit-backdrop-filter: blur(32px) saturate(1.5);
+    border-top: 1px solid var(--glass-border);
     padding-bottom: var(--safe-bottom);
 }
 
@@ -673,13 +703,15 @@ select {
    ================================================================ */
 
 .gift-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
-    transition: transform .15s, border-color .2s;
+    transition: transform .15s, border-color .2s, box-shadow .2s;
     position: relative;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .gift-card:active {
@@ -688,6 +720,7 @@ select {
 
 .gift-card:hover {
     border-color: var(--border-light);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .gift-visual {
@@ -757,13 +790,15 @@ select {
    ================================================================ */
 
 .case-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
     cursor: pointer;
-    transition: transform .15s, border-color .2s;
+    transition: transform .15s, border-color .2s, box-shadow .2s;
     position: relative;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .case-card:active {
@@ -772,6 +807,7 @@ select {
 
 .case-card:hover {
     border-color: var(--border-light);
+    box-shadow: var(--glass-shadow);
 }
 
 .case-card .case-img {
@@ -817,14 +853,16 @@ select {
 }
 
 .case-card-v2 {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     overflow: hidden;
     cursor: pointer;
-    transition: transform .15s, border-color .2s;
+    transition: transform .15s, border-color .2s, box-shadow .2s;
     padding: 14px 14px 12px;
     position: relative;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .case-card-v2:active {
@@ -833,6 +871,7 @@ select {
 
 .case-card-v2:hover {
     border-color: var(--border-light);
+    box-shadow: var(--glass-shadow);
 }
 
 .case-card-v2-visual {
@@ -980,13 +1019,15 @@ select {
 .open-count-btn {
     padding: 8px 18px;
     border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
     color: var(--text-secondary);
     font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     transition: all .25s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .open-count-btn.active {
@@ -1052,14 +1093,16 @@ select {
 }
 
 .case-drop-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 14px 10px 12px;
     text-align: center;
     position: relative;
     overflow: hidden;
     transition: border-color .2s;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .case-drop-card:hover {
@@ -1133,11 +1176,13 @@ select {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     cursor: pointer;
-    transition: transform .15s, border-color .2s;
+    transition: transform .15s, border-color .2s, box-shadow .2s;
     min-height: 140px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .popular-case-card:active {
@@ -1269,8 +1314,8 @@ select {
     gap: 4px;
     padding: 7px 14px;
     border-radius: var(--radius);
-    border: 1px solid var(--border);
-    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
     color: var(--text-secondary);
     font-family: 'Onest', sans-serif;
     font-size: 13px;
@@ -1279,6 +1324,8 @@ select {
     white-space: nowrap;
     transition: all .2s;
     flex-shrink: 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .case-filter-tab img {
@@ -1386,7 +1433,9 @@ select {
     position: fixed;
     inset: 0;
     z-index: 200;
-    background: rgba(0, 0, 0, .55);
+    background: rgba(0, 0, 0, .45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     align-items: flex-end;
     justify-content: center;
@@ -1400,8 +1449,11 @@ select {
 .case-sheet {
     width: 100%;
     max-width: 480px;
-    background: var(--bg-elevated);
+    background: rgba(22, 22, 26, 0.88);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-top: 1px solid var(--glass-border);
     padding: 0 20px calc(20px + var(--safe-bottom));
     animation: slideUp .3s var(--ease-out);
     max-height: 85vh;
@@ -1511,14 +1563,16 @@ select {
 }
 
 .case-sheet-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 10px 6px 8px;
     text-align: center;
     position: relative;
     overflow: hidden;
     transition: border-color .2s;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .case-sheet-item:hover {
@@ -1921,10 +1975,12 @@ select {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-lg);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     height: 120px;
     margin: 16px 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .roulette-pointer {
@@ -2008,9 +2064,11 @@ select {
     gap: 6px;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     margin: 16px 0;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .v-roulette-container {
@@ -2038,12 +2096,12 @@ select {
 
 .v-roulette-container::before {
     top: 0;
-    background: linear-gradient(to bottom, var(--bg-card), transparent);
+    background: linear-gradient(to bottom, rgba(10, 10, 10, 0.95), transparent);
 }
 
 .v-roulette-container::after {
     bottom: 0;
-    background: linear-gradient(to top, var(--bg-card), transparent);
+    background: linear-gradient(to top, rgba(10, 10, 10, 0.95), transparent);
 }
 
 .v-roulette-pointer {
@@ -2220,12 +2278,14 @@ select {
 }
 
 .multi-result-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 14px 10px 12px;
     text-align: center;
     animation: resultBounce .5s cubic-bezier(.16, 1, .3, 1) backwards;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .multi-result-card .mr-visual {
@@ -2342,8 +2402,8 @@ select {
     gap: 6px;
     margin-top: 8px;
     padding: 6px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 999px;
     font-size: 12px;
     color: var(--text-secondary);
@@ -2356,18 +2416,20 @@ select {
 }
 
 .admin-panel-link:hover {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 /* Inventory Item */
 .inventory-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
     transition: transform .15s, border-color .2s;
     position: relative;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .inventory-item:active {
@@ -2523,11 +2585,13 @@ select {
 }
 
 .referral-stat {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 12px 8px;
     text-align: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .referral-stat-value {
@@ -2552,8 +2616,8 @@ select {
 .referral-link-text {
     flex: 1;
     padding: 11px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 12px;
@@ -2604,8 +2668,8 @@ select {
 
 /* Referral Aliases (used in inventory page) */
 .ref-stat {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 12px 8px;
     text-align: center;
@@ -2642,8 +2706,8 @@ select {
 .referral-link-input {
     flex: 1;
     padding: 11px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 12px;
@@ -2670,8 +2734,8 @@ select {
 .promo-input-row input {
     flex: 1;
     padding: 11px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 14px;
@@ -2701,8 +2765,8 @@ select {
 .promo-input {
     flex: 1;
     padding: 11px 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 14px;
@@ -2734,17 +2798,19 @@ select {
     align-items: center;
     gap: 12px;
     padding: 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     margin-bottom: 8px;
     cursor: pointer;
     transition: background .2s, transform .15s;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
 }
 
 .task-card:active {
     transform: scale(.98);
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .task-card.completed {
@@ -2760,7 +2826,7 @@ select {
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    background: var(--bg-secondary);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .task-icon img {
@@ -2821,7 +2887,9 @@ select {
     position: fixed;
     inset: 0;
     z-index: 200;
-    background: rgba(0, 0, 0, .65);
+    background: rgba(0, 0, 0, .55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     align-items: flex-end;
     justify-content: center;
@@ -2835,8 +2903,11 @@ select {
 .modal {
     width: 100%;
     max-width: 420px;
-    background: var(--bg-elevated);
+    background: rgba(22, 22, 26, 0.88);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-top: 1px solid var(--glass-border);
     padding: 20px 20px calc(20px + var(--safe-bottom));
     max-height: 85vh;
     overflow-y: auto;
@@ -2847,8 +2918,11 @@ select {
 .modal-content {
     width: 100%;
     max-width: 480px;
-    background: var(--bg-elevated);
+    background: rgba(22, 22, 26, 0.88);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-top: 1px solid var(--glass-border);
     padding: 20px 20px calc(20px + var(--safe-bottom));
     max-height: 85vh;
     overflow-y: auto;
@@ -2863,7 +2937,7 @@ select {
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: var(--bg-card);
+    background: rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2871,10 +2945,12 @@ select {
     transition: background .2s;
     color: var(--text-secondary);
     font-size: 18px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .modal-close:hover {
-    background: var(--bg-card-hover);
+    background: rgba(255, 255, 255, 0.14);
 }
 
 .modal-close img {
@@ -3052,7 +3128,9 @@ select {
     position: fixed;
     inset: 0;
     z-index: 250;
-    background: rgba(0, 0, 0, .55);
+    background: rgba(0, 0, 0, .45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
     display: none;
     align-items: flex-end;
     justify-content: center;
@@ -3066,8 +3144,11 @@ select {
 .bottom-sheet {
     width: 100%;
     max-width: 480px;
-    background: var(--bg-elevated);
+    background: rgba(22, 22, 26, 0.88);
+    backdrop-filter: blur(40px) saturate(1.6);
+    -webkit-backdrop-filter: blur(40px) saturate(1.6);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-top: 1px solid var(--glass-border);
     padding: 0 20px calc(20px + var(--safe-bottom));
     animation: slideUp .3s var(--ease-out);
     max-height: 80vh;
@@ -3092,11 +3173,13 @@ select {
 }
 
 .sheet-input-wrap {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 16px;
     margin-bottom: 12px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .sheet-input-wrap input {
@@ -3163,8 +3246,8 @@ select {
 .topup-method {
     flex: 1;
     padding: 18px 12px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     display: flex;
     flex-direction: column;
@@ -3174,10 +3257,12 @@ select {
     transition: background .2s;
     font-size: 13px;
     font-weight: 600;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .topup-method:active {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .topup-method img {
@@ -3194,8 +3279,8 @@ select {
 
 .topup-amount-btn {
     padding: 10px 8px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     color: var(--text);
     font-size: 14px;
@@ -3205,6 +3290,8 @@ select {
     justify-content: center;
     gap: 4px;
     transition: all .15s;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .topup-amount-btn img {
@@ -3248,16 +3335,18 @@ select {
     align-items: center;
     gap: 12px;
     padding: 14px 16px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     margin-bottom: 8px;
     cursor: pointer;
     transition: background .2s, border-color .2s;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .topup-row:active {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .topup-row.selected {
@@ -3322,8 +3411,11 @@ select {
     font-weight: 600;
     animation: toastIn .3s ease;
     max-width: 90%;
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
+    background: rgba(22, 22, 26, 0.75);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(24px) saturate(1.5);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .notification.success {
@@ -3397,8 +3489,8 @@ select {
     position: relative;
     overflow: hidden;
     border-radius: var(--radius-lg);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     height: 120px;
 }
 
@@ -3433,15 +3525,20 @@ select {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--bg);
+    background: rgba(10, 10, 10, 0.75);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    margin: 0 -16px;
+    padding-left: 16px;
+    padding-right: 16px;
 }
 
 .admin-back-btn {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3449,10 +3546,12 @@ select {
     transition: background .2s;
     flex-shrink: 0;
     text-decoration: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
 .admin-back-btn:hover {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .admin-header-title {
@@ -3477,11 +3576,13 @@ select {
 }
 
 .admin-stat-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 14px 12px;
     text-align: center;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .admin-stat-value {
@@ -3513,16 +3614,18 @@ select {
     align-items: center;
     gap: 12px;
     padding: 14px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     cursor: pointer;
     transition: background .2s, transform .15s;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .admin-menu-item:active {
     transform: scale(.98);
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .admin-menu-icon {
@@ -3596,7 +3699,9 @@ select {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: var(--bg);
+    background: rgba(10, 10, 10, 0.75);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
     font-size: 17px;
     font-weight: 800;
 }
@@ -3605,8 +3710,8 @@ select {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3617,15 +3722,17 @@ select {
 }
 
 .admin-section-back:hover {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .admin-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 16px;
     margin-bottom: 12px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .admin-card h3 {
@@ -3657,8 +3764,8 @@ select {
 .admin-input {
     width: 100%;
     padding: 10px 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
     border-radius: 10px;
     color: var(--text);
     font-size: 14px;
@@ -3667,6 +3774,7 @@ select {
 
 .admin-input:focus {
     border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .admin-input::placeholder {
@@ -3676,8 +3784,8 @@ select {
 .admin-select {
     width: 100%;
     padding: 10px 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
     border-radius: 10px;
     color: var(--text);
     font-size: 14px;
@@ -3687,7 +3795,7 @@ select {
 }
 
 .admin-select option {
-    background: var(--bg-elevated);
+    background: #1a1a1e;
     color: var(--text);
 }
 
@@ -3700,8 +3808,8 @@ select {
 .admin-type-btn {
     padding: 7px 14px;
     border-radius: 10px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
     color: var(--text-secondary);
     font-size: 12px;
     font-weight: 600;
@@ -3771,8 +3879,8 @@ select {
     align-items: center;
     gap: 10px;
     padding: 10px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 10px;
     margin-bottom: 6px;
 }
@@ -3816,8 +3924,8 @@ select {
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg-card);
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.04);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3828,7 +3936,7 @@ select {
 }
 
 .admin-item-actions button:hover {
-    background: var(--bg-card-hover);
+    background: rgba(255, 255, 255, 0.08);
 }
 
 .admin-item-actions button.del {
@@ -3844,9 +3952,11 @@ select {
     display: flex;
     gap: 4px;
     margin-bottom: 14px;
-    background: var(--bg-card);
+    background: var(--glass-bg);
     border-radius: var(--radius);
     padding: 3px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .admin-tab {
@@ -3869,7 +3979,7 @@ select {
 }
 
 .admin-tab:not(.active):hover {
-    background: var(--bg-card-hover);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 
@@ -3883,15 +3993,15 @@ select {
     gap: 12px;
     padding: 12px;
     border-radius: var(--radius);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     margin-bottom: 8px;
     cursor: pointer;
     transition: background .2s;
 }
 
 .admin-gift-row:hover {
-    background: var(--bg-card-hover);
+    background: var(--glass-bg-strong);
 }
 
 .admin-gift-row img {
@@ -3950,8 +4060,8 @@ select {
     gap: 10px;
     padding: 12px;
     border-radius: var(--radius);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     margin-bottom: 8px;
 }
 
@@ -4024,8 +4134,8 @@ select {
 }
 
 .tg-gift-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     padding: 14px 12px;
     display: flex;
@@ -4034,6 +4144,8 @@ select {
     text-align: center;
     gap: 6px;
     transition: border-color .2s;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
 }
 
 .tg-gift-card:hover {
