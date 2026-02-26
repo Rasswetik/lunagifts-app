@@ -135,7 +135,8 @@ def _create_tables(db, flavour):
             total_topup DOUBLE PRECISION DEFAULT 0,
             total_earned DOUBLE PRECISION DEFAULT 0,
             free_scratch_used INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active DOUBLE PRECISION DEFAULT 0
         )''')
         db.execute('''CREATE TABLE IF NOT EXISTS inventory (
             id SERIAL PRIMARY KEY,
@@ -207,7 +208,8 @@ def _create_tables(db, flavour):
             status TEXT NOT NULL DEFAULT 'pending',
             error_msg TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            processed_at TIMESTAMP DEFAULT NULL
+            processed_at TIMESTAMP DEFAULT NULL,
+            retry_count INTEGER DEFAULT 0
         )''')
         db.execute('''CREATE TABLE IF NOT EXISTS star_transactions (
             id SERIAL PRIMARY KEY,
@@ -324,6 +326,8 @@ def _run_migrations(db, flavour):
         ('promo_codes', 'gift_id', 'INTEGER DEFAULT 0'),
         ('promo_codes', 'scratch_id', 'INTEGER DEFAULT 0'),
         ('promo_uses', 'discount_applied', 'INTEGER DEFAULT 0'),
+        ('users', 'last_active', 'REAL DEFAULT 0' if flavour == 'sqlite' else 'DOUBLE PRECISION DEFAULT 0'),
+        ('withdrawals', 'retry_count', 'INTEGER DEFAULT 0'),
     ]
 
     if flavour == 'postgres':

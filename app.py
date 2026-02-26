@@ -3582,6 +3582,36 @@ def admin():
     return render_template('admin.html')
 
 
+# ============ DATA MIGRATION (one-time) ============
+
+@app.route('/api/admin/migrate-seed', methods=['POST'])
+def migrate_seed():
+    """Run seed_data.sql to populate DB from SQLite dump. One-time use."""
+    import os as _os
+    seed_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'seed_data.sql')
+    if not _os.path.exists(seed_path):
+        return jsonify({'error': 'seed_data.sql not found'}), 404
+    
+    with open(seed_path, 'r', encoding='utf-8') as f:
+        sql_text = f.read()
+    
+    db = connect_db()
+    errors = []
+    ok = 0
+    for line in sql_text.strip().split('\n'):
+        line = line.strip()
+        if not line or line.startswith('--'):
+            continue
+        try:
+            db.execute(line)
+            ok += 1
+        except Exception as e:
+            errors.append(f"{str(e)[:100]}: {line[:80]}")
+    db.commit()
+    db.close()
+    return jsonify({'ok': ok, 'errors': errors})
+
+
 # ============ INIT & RUN ============
 
 if __name__ == '__main__':
