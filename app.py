@@ -3586,30 +3586,70 @@ def admin():
 
 @app.route('/api/admin/migrate-seed', methods=['POST'])
 def migrate_seed():
-    """Run seed_data.sql to populate DB from SQLite dump. One-time use."""
+    """Run seed_data.json to populate DB from SQLite dump. One-time use."""
     import os as _os
-    seed_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'seed_data.sql')
+    seed_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), 'seed_data.json')
     if not _os.path.exists(seed_path):
-        return jsonify({'error': 'seed_data.sql not found'}), 404
+        return jsonify({'error': 'seed_data.json not found'}), 404
     
+    import json as _json
     with open(seed_path, 'r', encoding='utf-8') as f:
-        sql_text = f.read()
+        seed = _json.load(f)
+    
+    # Conflict columns for ON CONFLICT DO NOTHING
+    conflict_map = {
+        "users": "telegram_id",
+        "completed_tasks": "user_id, task_id",
+        "referrals": "referred_id",
+        "promo_codes": "code",
+        "promo_uses": "user_id, promo_id",
+    }
     
     db = connect_db()
-    errors = []
-    ok = 0
-    for line in sql_text.strip().split('\n'):
-        line = line.strip()
-        if not line or line.startswith('--'):
+    results = {}
+    for table, info in seed.items():
+        cols = info.get("cols", [])
+        rows = info.get("rows", [])
+        if not rows or not cols:
+            results[table] = {"ok": 0, "total": 0}
             continue
+        
+        col_str = ", ".join(cols)
+        placeholders = ", ".join(["%s"] * len(cols))
+        conflict = conflict_map.get(table)
+        if conflict:
+            sql = f"INSERT INTO {table} ({col_str}) VALUES ({placeholders}) ON CONFLICT ({conflict}) DO NOTHING"
+        else:
+            sql = f"INSERT INTO {table} ({col_str}) VALUES ({placeholders})"
+        
+        ok = 0
+        errors = []
+        for row in rows:
+            try:
+                db.execute(sql, row)
+                db.commit()
+                ok += 1
+            except Exception as e:
+                try:
+                    db.rollback()
+                except:
+                    pass
+                errors.append(str(e)[:120])
+        
+        # Reset sequence
         try:
-            db.execute(line)
-            ok += 1
-        except Exception as e:
-            errors.append(f"{str(e)[:100]}: {line[:80]}")
-    db.commit()
+            db.execute(f"SELECT setval(pg_get_serial_sequence('{table}', 'id'), COALESCE((SELECT MAX(id) FROM {table}), 1))")
+            db.commit()
+        except:
+            try:
+                db.rollback()
+            except:
+                pass
+        
+        results[table] = {"ok": ok, "total": len(rows), "errors": errors[:3] if errors else []}
+    
     db.close()
-    return jsonify({'ok': ok, 'errors': errors})
+    return jsonify(results)
 
 
 # ============ INIT & RUN ============
