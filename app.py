@@ -69,6 +69,12 @@ def add_cache_headers(response):
 _settings_path_maint = None  # will use load_settings
 
 @app.before_request
+def ensure_background_threads():
+    """Ensure background threads are running (called once)."""
+    start_background_threads()
+
+
+@app.before_request
 def check_maintenance():
     """Block non-admin users when maintenance mode is enabled."""
     # Skip for static files and admin/maintenance endpoints
@@ -4566,17 +4572,21 @@ def migrate_seed():
 # Start background game loops at module level so they run when gunicorn workers start
 
 _threads_started = False
+_threads_lock = threading.Lock()
 
 def start_background_threads():
     global _threads_started
-    if _threads_started:
-        return
-    _threads_started = True
+    with _threads_lock:
+        if _threads_started:
+            return
+        _threads_started = True
+    
+    logging.info("Starting background threads...")
     
     # Start PVP game loop
     pvp_thread = threading.Thread(target=start_pvp_loop, daemon=True)
     pvp_thread.start()
-    logging.info("PVP game loop thread started (gunicorn)")
+    logging.info("PVP game loop thread started")
     
     # Start crash game loop
     crash_thread = threading.Thread(target=start_crash_loop, daemon=True)
