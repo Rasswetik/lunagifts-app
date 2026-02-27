@@ -572,7 +572,20 @@
         const centerTimer = document.getElementById('pvpCenterTimer');
         const centerTimerLabel = document.getElementById('pvpCenterTimerLabel');
 
-        if(status === 'waiting' || (status === 'betting' && players.length < 2)){
+        if(status === 'loading'){
+            centerText.textContent = 'LOADING';
+            centerText.className = 'pvp-center-text';
+            centerText.style.display = '';
+            centerTimer.style.display = 'none';
+            centerTimerLabel.style.display = 'none';
+            ring.classList.remove('countdown-active');
+            pointer.classList.remove('active');
+            progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE;
+            startWaitingAnim();
+            // Disable bets during loading
+            document.querySelectorAll('.pvp-bet-btn').forEach(b => b.disabled = true);
+            return;
+        } else if(status === 'waiting' || (status === 'betting' && players.length < 2)){
             centerText.textContent = 'WAITING';
             centerText.className = 'pvp-center-text';
             centerText.style.display = '';

@@ -2707,6 +2707,19 @@ def api_crash_bets():
 def api_pvp_state():
     """Polled by clients to get current PVP game state."""
     c = get_pvp_cache()
+    # If no game created yet (cold start), indicate loading state
+    if c['game_id'] == 0:
+        return jsonify({
+            'success': True,
+            'game_id': 0,
+            'status': 'loading',
+            'players': [],
+            'total_pot': 0,
+            'countdown': 0,
+            'winner': None,
+            'spin_angle': 0,
+            'hash': '',
+        })
     return jsonify({
         'success': True,
         'game_id': c['game_id'],
@@ -2728,9 +2741,14 @@ def api_pvp_bet():
     if not telegram_id or not amount or amount < 1:
         return jsonify({'error': 'Invalid bet'}), 400
 
-    c = get_pvp_cache()
-    game_id = c['game_id']
-    status = c['status']
+    # Get state atomically with the lock to prevent race conditions
+    with _pvp_lock:
+        game_id = _pvp_cache['game_id']
+        status = _pvp_cache['status']
+
+    # No game running yet (cold start)
+    if game_id == 0:
+        return jsonify({'error': 'Игра загружается, подождите...'}), 503
 
     # Allow bets during waiting, betting, or countdown
     if status not in ('waiting', 'betting', 'countdown'):
@@ -2747,7 +2765,13 @@ def api_pvp_bet():
     db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (amount, telegram_id))
 
     # Check if player already in this game — add to their bet
+    # Re-acquire lock and verify game_id hasn't changed
     with _pvp_lock:
+        # Double-check game hasn't changed while we were fetching user data
+        if _pvp_cache['game_id'] != game_id:
+            db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (amount, telegram_id))
+            db.commit()
+            return jsonify({'error': 'Игра изменилась, повторите ставку'}), 409
         existing_idx = None
         for i, p in enumerate(_pvp_cache['players']):
             if p['telegram_id'] == telegram_id:
