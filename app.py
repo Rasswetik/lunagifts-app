@@ -2266,6 +2266,29 @@ def api_admin_pvp_debug():
     })
 
 
+@app.route('/api/admin/pvp/create-game')
+def api_admin_pvp_create_game():
+    """Manually create a PVP game for testing."""
+    try:
+        db = connect_db()
+        game_id = _pvp_create_game(db)
+        db.close()
+        with _pvp_lock:
+            cache_copy = dict(_pvp_cache)
+        return jsonify({
+            'success': True,
+            'game_id': game_id,
+            'cache': cache_copy
+        })
+    except Exception as e:
+        import traceback
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }), 500
+
+
 @app.route('/api/admin/maintenance', methods=['GET', 'POST'])
 def api_admin_maintenance():
     """Toggle maintenance mode on/off."""
