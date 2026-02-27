@@ -10,7 +10,7 @@ import logging
 import time as _time
 import math
 import requests as http_requests
-from flask import Flask, render_template, request, jsonify, g
+from flask import Flask, render_template, request, jsonify, g, redirect
 from db_compat import connect_db, init_db as _init_database, DB_TYPE
 
 # aiogram — optional (not available on PythonAnywhere WSGI)
@@ -4107,12 +4107,17 @@ def games():
 
 @app.route('/crash')
 def crash():
-    return render_template('crash.html')
+    return redirect('/games')
 
 
 @app.route('/scratch')
 def scratch():
     return render_template('scratch.html')
+
+
+@app.route('/topup')
+def topup():
+    return render_template('topup.html')
 
 
 @app.route('/inventory')

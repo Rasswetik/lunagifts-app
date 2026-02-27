@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Пополнение</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body {
+            background: var(--bg);
+            overflow-x: hidden;
+        }
+
+        .topup-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 0 16px 140px;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        .topup-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0 8px;
+        }
+
+        .topup-back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .topup-back-btn:active {
+            background: var(--bg-card-hover);
+        }
+
+        .topup-back-btn svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text);
+        }
+
+        .topup-page-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            font-family: 'Onest', sans-serif;
+        }
+
+        /* ── Filter Tabs ── */
+        .topup-filters {
+            display: flex;
+            gap: 8px;
+            padding: 14px 0;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .topup-filters::-webkit-scrollbar {
+            display: none;
+        }
+
+        .topup-filter-tab {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-filter-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .topup-filter-tab:active {
+            transform: scale(0.96);
+        }
+
+        /* ── Payment Grid ── */
+        .topup-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 4px 0 20px;
+        }
+
+        .topup-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .topup-card:active {
+            transform: scale(0.97);
+            background: var(--bg-card-hover);
+        }
+
+        .topup-card.highlighted {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(22, 137, 255, 0.15);
+        }
+
+        .topup-card.disabled {
+            opacity: 0.35;
+            pointer-events: none;
+            filter: grayscale(0.3);
+        }
+
+        .topup-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .topup-card-icon img {
+            width: 36px;
+            height: 36px;
+            object-fit: contain;
+        }
+
+        .topup-card-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .topup-card-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            text-align: center;
+            line-height: 1.2;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-card-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .topup-card-badge.soon {
+            background: rgba(255,204,0,0.12);
+            color: var(--gold);
+        }
+
+        /* ── Info Box ── */
+        .topup-info-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .topup-info-box p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-info-box p + p {
+            margin-top: 8px;
+        }
+
+        /* ── NFT Section ── */
+        .topup-nft-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 16px;
+            margin-bottom: 16px;
+        }
+
+        .topup-nft-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 16px;
+            font-family: 'Onest', sans-serif;
+        }
+
+        .topup-nft-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .topup-nft-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .topup-nft-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            background: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: #fff;
+            flex-shrink: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-nft-text {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            padding-top: 4px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-nft-text a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .topup-nft-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 13px;
+            border-radius: 14px;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-nft-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .topup-nft-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ── Amount Sheet ── */
+        .topup-amount-sheet {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            display: none;
+            align-items: flex-end;
+            justify-content: center;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .topup-amount-sheet.active {
+            display: flex;
+        }
+
+        .topup-amount-panel {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-elevated);
+            border-radius: 24px 24px 0 0;
+            padding: 16px 20px 32px;
+            border-top: 1px solid var(--border);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .topup-sheet-handle {
+            width: 36px;
+            height: 4px;
+            border-radius: 4px;
+            background: rgba(255,255,255,0.2);
+            margin: 0 auto 16px;
+        }
+
+        .topup-sheet-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 6px;
+            font-family: 'Onest', sans-serif;
+        }
+
+        .topup-sheet-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-sheet-input-wrap {
+            position: relative;
+            margin-bottom: 10px;
+        }
+
+        .topup-sheet-input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-sheet-input:focus {
+            border-color: var(--accent);
+        }
+
+        .topup-sheet-input::placeholder {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .topup-sheet-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 16px;
+            font-family: 'Inter', sans-serif;
+            transition: color 0.2s;
+        }
+
+        .topup-sheet-amounts {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .topup-preset-btn {
+            padding: 10px 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-preset-btn:active {
+            transform: scale(0.96);
+        }
+
+        .topup-preset-btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .topup-pay-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 14px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .topup-pay-btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .topup-pay-btn:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        /* ── Section Title ── */
+        .topup-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 12px;
+            font-family: 'Onest', sans-serif;
+        }
+
+        @media (max-width: 360px) {
+            .topup-card { padding: 12px 10px; }
+            .topup-card-icon img, .topup-card-icon svg { width: 30px; height: 30px; }
+            .topup-card-name { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="topup-container">
+        <!-- Header -->
+        <div class="topup-header">
+            <div class="topup-back-btn" onclick="history.back()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </div>
+            <div class="topup-page-title">Пополнение баланса</div>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="topup-filters">
+            <div class="topup-filter-tab active" onclick="filterTopup('all', this)">Все методы</div>
+            <div class="topup-filter-tab" onclick="filterTopup('crypto', this)">Криптовалюта</div>
+            <div class="topup-filter-tab" onclick="filterTopup('gifts', this)">Пополнение гифтами</div>
+        </div>
+
+        <!-- Payment Methods Grid -->
+        <div class="topup-section-title" id="topupMethodsTitle">Способы оплаты</div>
+        <div class="topup-grid" id="topupGrid">
+            <!-- Stars -->
+            <div class="topup-card highlighted" data-method="stars" data-category="fiat" onclick="openTopupMethod('stars')">
+                <div class="topup-card-icon">
+                    <img src="/static/img/star.png" alt="Stars">
+                </div>
+                <div class="topup-card-name">Stars</div>
+            </div>
+
+            <!-- TON -->
+            <div class="topup-card" data-method="ton" data-category="crypto" onclick="openTopupMethod('ton')">
+                <div class="topup-card-icon">
+                    <img src="/static/img/ton.png" alt="TON">
+                </div>
+                <div class="topup-card-name">TON</div>
+            </div>
+
+            <!-- SBP -->
+            <div class="topup-card disabled" data-method="sbp" data-category="fiat">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <img src="/static/img/sbp.png" alt="SBP">
+                </div>
+                <div class="topup-card-name">СБП</div>
+            </div>
+
+            <!-- Gifts -->
+            <div class="topup-card" data-method="gifts" data-category="gifts" onclick="openTopupMethod('gifts')">
+                <div class="topup-card-icon">
+                    <img src="/static/img/gift.png" alt="Gifts">
+                </div>
+                <div class="topup-card-name">Gifts</div>
+            </div>
+
+            <!-- Visa/MC/MIR -->
+            <div class="topup-card disabled" data-method="visa" data-category="fiat">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="8" fill="#1A1F71"/><path d="M19.5 30.5L22 17.5h3.5l-2.5 13h-3.5z" fill="#fff"/><path d="M32 17.5l-3.2 9-0.4-1.8-.1-.5C27.5 22 25.8 20 23.5 19l3 11.5h3.7l5.5-13H32z" fill="#fff"/><path d="M16 17.5l-3.5 9-.4-1.5C11 22.5 9 20.5 7 19.5l3.2 11h3.7l5.8-13H16z" fill="#fff"/><path d="M12.1 25l-.4-1.5C10.5 21 8.5 19.5 6 18.5l3 12h3.6" fill="#EC982A"/></svg>
+                </div>
+                <div class="topup-card-name">VISA / MC / МИР</div>
+            </div>
+
+            <!-- USDT TRC-20 -->
+            <div class="topup-card disabled" data-method="usdt-trc" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#26A17B"/><path d="M27 22.5v-4h5.5V14H15.5v4.5H21v4c-4.2.2-7.3 1.2-7.3 2.4s3.1 2.2 7.3 2.4v8.2h6v-8.2c4.2-.2 7.2-1.2 7.2-2.4s-3-2.2-7.2-2.4zm0 3.8v0c-.2 0-1.1.1-3 .1s-2.6-.1-3-.1v0c-3.7-.2-6.5-.9-6.5-1.8s2.8-1.6 6.5-1.8v2.9c.4 0 1.2.1 3 .1 2.2 0 2.8-.1 3-.1v-2.9c3.7.2 6.5.9 6.5 1.8s-2.7 1.6-6.5 1.8z" fill="#fff"/></svg>
+                </div>
+                <div class="topup-card-name">USDT (TRC-20)</div>
+            </div>
+
+            <!-- USDT BEP-20 -->
+            <div class="topup-card disabled" data-method="usdt-bep" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#26A17B"/><path d="M27 22.5v-4h5.5V14H15.5v4.5H21v4c-4.2.2-7.3 1.2-7.3 2.4s3.1 2.2 7.3 2.4v8.2h6v-8.2c4.2-.2 7.2-1.2 7.2-2.4s-3-2.2-7.2-2.4zm0 3.8v0c-.2 0-1.1.1-3 .1s-2.6-.1-3-.1v0c-3.7-.2-6.5-.9-6.5-1.8s2.8-1.6 6.5-1.8v2.9c.4 0 1.2.1 3 .1 2.2 0 2.8-.1 3-.1v-2.9c3.7.2 6.5.9 6.5 1.8s-2.7 1.6-6.5 1.8z" fill="#fff"/></svg>
+                </div>
+                <div class="topup-card-name">USDT (BEP20)</div>
+            </div>
+
+            <!-- USDT ERC-20 -->
+            <div class="topup-card disabled" data-method="usdt-erc" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#26A17B"/><path d="M27 22.5v-4h5.5V14H15.5v4.5H21v4c-4.2.2-7.3 1.2-7.3 2.4s3.1 2.2 7.3 2.4v8.2h6v-8.2c4.2-.2 7.2-1.2 7.2-2.4s-3-2.2-7.2-2.4zm0 3.8v0c-.2 0-1.1.1-3 .1s-2.6-.1-3-.1v0c-3.7-.2-6.5-.9-6.5-1.8s2.8-1.6 6.5-1.8v2.9c.4 0 1.2.1 3 .1 2.2 0 2.8-.1 3-.1v-2.9c3.7.2 6.5.9 6.5 1.8s-2.7 1.6-6.5 1.8z" fill="#fff"/></svg>
+                </div>
+                <div class="topup-card-name">USDT (ERC-20)</div>
+            </div>
+
+            <!-- Bitcoin -->
+            <div class="topup-card disabled" data-method="btc" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#F7931A"/><path d="M33 21.5c.4-2.8-1.7-4.3-4.6-5.3l.9-3.8-2.3-.6-.9 3.7c-.6-.15-1.2-.3-1.8-.44l.9-3.7-2.3-.57-.9 3.8c-.5-.12-1-.24-1.5-.36l-3.2-.8-.6 2.5s1.7.4 1.67.42c.93.23 1.1.85 1.07 1.34l-1.07 4.3c.06.02.15.04.24.08l-.25-.06-1.5 6c-.11.28-.4.7-1.05.54.02.03-1.67-.42-1.67-.42L13 29.5l3 .75c.56.14 1.1.29 1.64.43L16.73 34.5l2.3.57.94-3.8c.63.17 1.24.33 1.84.48l-.94 3.75 2.3.57.93-3.78c3.87.73 6.78.44 8-3.06.98-2.82-.05-4.45-2.08-5.5 1.48-.34 2.6-1.32 2.9-3.34zm-5.17 7.25c-.7 2.82-5.4 1.3-6.93.91l1.24-4.96c1.53.38 6.43 1.14 5.7 4.05zm.7-7.28c-.64 2.56-4.56 1.26-5.83.94l1.12-4.5c1.27.32 5.38.91 4.7 3.56z" fill="#fff"/></svg>
+                </div>
+                <div class="topup-card-name">Bitcoin</div>
+            </div>
+
+            <!-- Ethereum -->
+            <div class="topup-card disabled" data-method="eth" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#627EEA"/><path d="M24 8v12l10 4.5L24 8z" fill="#fff" fill-opacity=".6"/><path d="M24 8L14 24.5l10-4.5V8z" fill="#fff"/><path d="M24 32.5v7.5l10-14L24 32.5z" fill="#fff" fill-opacity=".6"/><path d="M24 40v-7.5L14 26l10 14z" fill="#fff"/><path d="M24 30.5l10-6L24 20v10.5z" fill="#fff" fill-opacity=".2"/><path d="M14 24.5l10 6V20l-10 4.5z" fill="#fff" fill-opacity=".6"/></svg>
+                </div>
+                <div class="topup-card-name">Ethereum</div>
+            </div>
+
+            <!-- Litecoin -->
+            <div class="topup-card disabled" data-method="ltc" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#345D9D"/><path d="M24 12l-7 16h5l-2 8 11-14h-6l3-10h-4z" fill="#fff"/></svg>
+                </div>
+                <div class="topup-card-name">Litecoin</div>
+            </div>
+
+            <!-- BNB -->
+            <div class="topup-card disabled" data-method="bnb" data-category="crypto">
+                <div class="topup-card-badge soon">СКОРО</div>
+                <div class="topup-card-icon">
+                    <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" fill="#F3BA2F"/><path d="M24 14l3.5 3.5-6 6L18 20l6-6zm8.5 8.5L36 26l-3.5 3.5-3.5-3.5 3.5-3.5zM18 22.5L21.5 26 18 29.5 14.5 26 18 22.5zM24 31l3.5-3.5 3.5 3.5L24 38l-7-7 3.5-3.5L24 31zm0-5l3.5-3.5L31 26l-3.5 3.5L24 26z" fill="#fff"/></svg>
+                </div>
+                <div class="topup-card-name">BNB</div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="topup-info-box">
+            <p>Зачисление средств через Stars и TON происходит автоматически. Средства будут зачислены на ваш баланс в течение нескольких секунд.</p>
+            <p>1 TON = 100 Stars. Минимальная сумма пополнения через TON — 0.2 TON.</p>
+        </div>
+
+        <!-- NFT Deposit Section -->
+        <div class="topup-nft-section" id="topupNftSection">
+            <div class="topup-nft-title">Пополнение гифтами</div>
+            <div class="topup-nft-steps">
+                <div class="topup-nft-step">
+                    <div class="topup-nft-num">1</div>
+                    <div class="topup-nft-text">Напишите боту <a href="https://t.me/lunagifts_robot" target="_blank">@lunagifts_robot</a> и отправьте подарок</div>
+                </div>
+                <div class="topup-nft-step">
+                    <div class="topup-nft-num">2</div>
+                    <div class="topup-nft-text">Бот автоматически оценит подарок по текущему курсу и зачислит Stars на баланс</div>
+                </div>
+                <div class="topup-nft-step">
+                    <div class="topup-nft-num">3</div>
+                    <div class="topup-nft-text">По вопросам обращайтесь в поддержку <a href="https://t.me/lunagifts_support" target="_blank">@lunagifts_support</a></div>
+                </div>
+            </div>
+            <button class="topup-nft-btn" onclick="openBot()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Написать в бот
+            </button>
+        </div>
+    </div>
+
+    <!-- Amount Sheet -->
+    <div class="topup-amount-sheet" id="topupAmountSheet" onclick="if(event.target===this)closeAmountSheet()">
+        <div class="topup-amount-panel">
+            <div class="topup-sheet-handle"></div>
+            <div class="topup-sheet-title" id="amountSheetTitle">Пополнение Stars</div>
+            <div class="topup-sheet-subtitle" id="amountSheetSubtitle">Введите сумму пополнения</div>
+
+            <div class="topup-sheet-input-wrap">
+                <input type="number" class="topup-sheet-input" id="topupAmountInput" placeholder="0" inputmode="decimal" oninput="onAmountInput()">
+            </div>
+            <div class="topup-sheet-hint" id="amountHint">Минимум 1 Star</div>
+
+            <div class="topup-sheet-amounts" id="presetAmounts">
+                <!-- Filled by JS -->
+            </div>
+
+            <button class="topup-pay-btn" id="topupPayBtn" disabled onclick="processPayment()">Пополнить</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    // ── State ──
+    let _selectedMethod = null;
+    let _topupAmount = 0;
+
+    const STAR_PRESETS = [50, 100, 250, 500, 1000, 2500, 5000, 10000];
+    const TON_PRESETS = [0.5, 1, 2, 5, 10, 25, 50, 100];
+
+    // ── Filter ──
+    function filterTopup(category, el) {
+        document.querySelectorAll('.topup-filter-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+
+        const cards = document.querySelectorAll('.topup-card');
+        const nftSection = document.getElementById('topupNftSection');
+        const infoBox = document.querySelector('.topup-info-box');
+        const title = document.getElementById('topupMethodsTitle');
+        const grid = document.getElementById('topupGrid');
+
+        if (category === 'gifts') {
+            grid.style.display = 'none';
+            if (infoBox) infoBox.style.display = 'none';
+            if (title) title.style.display = 'none';
+            nftSection.style.display = 'block';
+            return;
+        }
+
+        grid.style.display = 'grid';
+        if (infoBox) infoBox.style.display = 'block';
+        if (title) title.style.display = 'block';
+        nftSection.style.display = (category === 'all') ? 'block' : 'none';
+
+        cards.forEach(card => {
+            const cat = card.dataset.category;
+            if (category === 'all') {
+                card.style.display = 'flex';
+            } else if (category === 'crypto') {
+                card.style.display = (cat === 'crypto') ? 'flex' : 'none';
+            }
+        });
+    }
+
+    // ── Open Method ──
+    function openTopupMethod(method) {
+        _selectedMethod = method;
+        _topupAmount = 0;
+
+        const sheet = document.getElementById('topupAmountSheet');
+        const title = document.getElementById('amountSheetTitle');
+        const subtitle = document.getElementById('amountSheetSubtitle');
+        const input = document.getElementById('topupAmountInput');
+        const hint = document.getElementById('amountHint');
+        const btn = document.getElementById('topupPayBtn');
+        const presetsDiv = document.getElementById('presetAmounts');
+
+        if (method === 'stars') {
+            title.textContent = 'Пополнение Stars';
+            subtitle.textContent = 'Оплата через Telegram Stars';
+            input.placeholder = '0';
+            input.step = '1';
+            input.min = '1';
+            hint.textContent = 'Минимум 1 Star';
+            hint.style.color = 'var(--text-muted)';
+            presetsDiv.innerHTML = STAR_PRESETS.map(a =>
+                `<div class="topup-preset-btn" onclick="selectPreset(${a}, this)">${a}</div>`
+            ).join('');
+        } else if (method === 'ton') {
+            title.textContent = 'Пополнение TON';
+            subtitle.textContent = '1 TON = 100 Stars';
+            input.placeholder = '0.00';
+            input.step = '0.1';
+            input.min = '0.2';
+            hint.textContent = 'Минимум 0.2 TON';
+            hint.style.color = 'var(--text-muted)';
+            presetsDiv.innerHTML = TON_PRESETS.map(a =>
+                `<div class="topup-preset-btn" onclick="selectPreset(${a}, this)">${a}</div>`
+            ).join('');
+        } else if (method === 'gifts') {
+            // Just show notification and open bot
+            openBot();
+            return;
+        }
+
+        input.value = '';
+        btn.disabled = true;
+        btn.textContent = 'Пополнить';
+        sheet.classList.add('active');
+        setTimeout(() => input.focus(), 300);
+    }
+
+    function closeAmountSheet() {
+        document.getElementById('topupAmountSheet').classList.remove('active');
+        _selectedMethod = null;
+        _topupAmount = 0;
+    }
+
+    function selectPreset(amount, el) {
+        const input = document.getElementById('topupAmountInput');
+        input.value = amount;
+
+        document.querySelectorAll('.topup-preset-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+
+        onAmountInput();
+    }
+
+    function onAmountInput() {
+        const input = document.getElementById('topupAmountInput');
+        const btn = document.getElementById('topupPayBtn');
+        const hint = document.getElementById('amountHint');
+        const val = parseFloat(input.value);
+
+        // Reset preset active states
+        const numVal = parseFloat(input.value);
+        document.querySelectorAll('.topup-preset-btn').forEach(b => {
+            const presetVal = parseFloat(b.textContent);
+            b.classList.toggle('active', presetVal === numVal);
+        });
+
+        if (_selectedMethod === 'stars') {
+            const ok = val >= 1 && Number.isFinite(val);
+            const amount = Math.floor(val);
+            btn.disabled = !ok;
+            btn.textContent = ok ? `Пополнить ${amount} Stars` : 'Пополнить';
+            hint.textContent = ok ? '' : 'Минимум 1 Star';
+            hint.style.color = 'var(--text-muted)';
+            _topupAmount = ok ? amount : 0;
+        } else if (_selectedMethod === 'ton') {
+            const ok = val >= 0.2 && Number.isFinite(val);
+            const stars = Math.floor(val * 100);
+            btn.disabled = !ok;
+            btn.textContent = ok ? `Пополнить ${stars} Stars` : 'Пополнить';
+            hint.textContent = ok ? `Вы получите ${stars} Stars` : 'Минимум 0.2 TON';
+            hint.style.color = ok ? 'var(--gold)' : 'var(--text-muted)';
+            _topupAmount = ok ? val : 0;
+        }
+    }
+
+    // ── Process Payment ──
+    async function processPayment() {
+        if (!_topupAmount || !_selectedMethod) return;
+        if (!currentUser) { showNotification('Авторизуйтесь', 'error'); return; }
+
+        if (_selectedMethod === 'stars') {
+            await payWithStars(_topupAmount);
+        } else if (_selectedMethod === 'ton') {
+            await payWithTon(_topupAmount);
+        }
+    }
+
+    async function payWithStars(amount) {
+        if (!tg || !tg.initDataUnsafe || !tg.initDataUnsafe.user) {
+            showNotification('Оплата Stars доступна только в Telegram', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('topupPayBtn');
+        btn.disabled = true;
+        btn.textContent = 'Создаём счёт...';
+
+        try {
+            const res = await fetch('/api/topup/create-invoice', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: currentUser.telegram_id, amount: amount })
+            });
+            const data = await res.json();
+            if (!data.success || !data.invoice_url) {
+                showNotification(data.error || 'Ошибка', 'error');
+                btn.disabled = false;
+                btn.textContent = `Пополнить ${amount} Stars`;
+                return;
+            }
+
+            tg.openInvoice(data.invoice_url, function(status) {
+                if (status === 'paid') {
+                    closeAmountSheet();
+                    setTimeout(async () => {
+                        await refreshBalance();
+                        showNotification('+' + amount + ' Stars зачислено!', 'success');
+                    }, 1000);
+                } else if (status === 'cancelled') {
+                    showNotification('Оплата отменена', 'error');
+                    btn.disabled = false;
+                    btn.textContent = `Пополнить ${amount} Stars`;
+                }
+            });
+        } catch (e) {
+            showNotification('Ошибка соединения', 'error');
+            btn.disabled = false;
+            btn.textContent = `Пополнить ${amount} Stars`;
+        }
+    }
+
+    async function payWithTon(tonAmount) {
+        if (!tonConnectUI) {
+            initTonConnect();
+            await new Promise(r => setTimeout(r, 800));
+        }
+        if (!tonConnectUI) {
+            showNotification('TON Connect не загружен', 'error');
+            return;
+        }
+
+        if (!tonConnectUI.connected) {
+            closeAmountSheet();
+            try {
+                await tonConnectUI.openModal();
+            } catch (e) {
+                showNotification('Ошибка подключения', 'error');
+            }
+            return;
+        }
+
+        const starsAmount = Math.floor(tonAmount * 100);
+        const nanotons = Math.floor(tonAmount * 1e9).toString();
+        const btn = document.getElementById('topupPayBtn');
+        btn.disabled = true;
+        btn.textContent = 'Отправка...';
+
+        try {
+            await tonConnectUI.sendTransaction({
+                validUntil: Math.floor(Date.now() / 1000) + 600,
+                messages: [{
+                    address: 'UQCHqlS8KSD3ZOF-OwV5efg2ST60u2JTnGEXeViQLU9g5v3i',
+                    amount: nanotons,
+                    payload: ''
+                }]
+            });
+
+            showNotification('Транзакция отправлена', 'success');
+
+            const res = await fetch('/api/topup/confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: currentUser.telegram_id, amount: starsAmount })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentUser.balance = data.new_balance;
+                localStorage.setItem('luna_user', JSON.stringify(currentUser));
+                updateUI();
+                closeAmountSheet();
+                showNotification('+' + starsAmount + ' Stars зачислено!', 'success');
+            }
+        } catch (e) {
+            if (e.message && (e.message.includes('User rejected') || e.message.includes('Interrupted'))) {
+                showNotification('Транзакция отменена', 'error');
+            } else {
+                showNotification('Ошибка транзакции', 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = `Пополнить ${starsAmount} Stars`;
+        }
+    }
+
+    function openBot() {
+        try {
+            if (tg && tg.openTelegramLink) tg.openTelegramLink('https://t.me/lunagifts_robot');
+            else window.open('https://t.me/lunagifts_robot', '_blank');
+        } catch (e) {
+            window.open('https://t.me/lunagifts_robot', '_blank');
+        }
+    }
+
+    async function refreshBalance() {
+        if (!currentUser) return;
+        try {
+            const res = await fetch('/api/user/' + currentUser.telegram_id);
+            const data = await res.json();
+            if (data.telegram_id) {
+                currentUser.balance = data.balance;
+                localStorage.setItem('luna_user', JSON.stringify(currentUser));
+                updateUI();
+            }
+        } catch (e) {}
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

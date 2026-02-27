@@ -236,7 +236,7 @@
                 </div>
             </div>
 
-            <div class="game-card game-card-mini" onclick="window.location.href='/crash'">
+            <div class="game-card game-card-mini game-card-disabled" style="filter:grayscale(1);opacity:0.45;pointer-events:none;position:relative;">
                 <div class="game-card-content">
                     <div class="game-card-info">
                         <span class="game-card-text">Краш</span>
@@ -247,6 +247,7 @@
                     </div>
                     <img src="/static/gifs/boom.gif" alt="Crash" class="game-card-gif" loading="lazy">
                 </div>
+                <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.5px;z-index:5;">СКОРО</div>
             </div>
         </div>
     </div>
