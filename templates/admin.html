@@ -145,6 +145,14 @@
                     </div>
                     <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                 </div>
+                <div class="admin-menu-item" onclick="switchSection('maintenance')">
+                    <div class="admin-menu-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+                    <div class="admin-menu-text">
+                        <div class="admin-menu-title">Тех. работы</div>
+                        <div class="admin-menu-desc">Режим обслуживания</div>
+                    </div>
+                    <svg class="admin-menu-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
             </div>
 
             <!-- ====== SECTIONS (hidden by default) ====== -->
@@ -664,6 +672,33 @@
                 </div>
             </div>
 
+            <!-- Maintenance Section -->
+            <div class="admin-section-page" id="section-maintenance" style="display:none;">
+                <div class="admin-section-header">
+                    <button class="admin-section-back" onclick="showMenu()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <span>Тех. работы</span>
+                </div>
+                <div class="admin-card">
+                    <h3>🔧 Режим обслуживания</h3>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">При включении все пользователи видят страницу «Тех. работы». Админы имеют полный доступ.</p>
+                    <div class="admin-form-group">
+                        <label>Статус</label>
+                        <div style="display:flex;gap:10px;align-items:center;">
+                            <button class="admin-btn" id="maintToggleBtn" onclick="toggleMaintenance()" style="flex:1;">Загрузка...</button>
+                            <span id="maintStatusBadge" style="font-size:13px;font-weight:700;padding:6px 12px;border-radius:8px;"></span>
+                        </div>
+                    </div>
+                    <div class="admin-form-group">
+                        <label>Примерное время окончания (необязательно)</label>
+                        <input class="admin-input" id="maintEndTime" type="text" placeholder="напр. 18:00 или ~2 часа">
+                    </div>
+                    <button class="admin-btn primary" onclick="saveMaintenance()">Сохранить настройки</button>
+                    <div id="maintStatus" style="margin-top:10px;font-size:13px;display:none;"></div>
+                </div>
+            </div>
+
             <div class="admin-section-page" id="section-withdrawals" style="display:none;">
                 <div class="admin-section-header">
                     <button class="admin-section-back" onclick="showMenu()">
@@ -907,6 +942,7 @@ with TelegramClient(StringSession(), api_id, api_hash) as c:
             if (name === 'statistics') loadDetailedStats();
             if (name === 'withdrawals') loadWithdrawalsAdmin();
             if (name === 'onlineboost') loadOnlineBoost();
+            if (name === 'maintenance') loadMaintenance();
         }
 
         function showMenu() {
@@ -2076,6 +2112,67 @@ with TelegramClient(StringSession(), api_id, api_hash) as c:
                     st.textContent = 'Сохранено! Текущий буст: +' + boost;
                     st.style.display = 'block';
                     showNotification('Онлайн буст: +' + boost, 'success');
+                } else {
+                    showNotification(d.error || 'Ошибка', 'error');
+                }
+            } catch(e) { showNotification('Ошибка соединения', 'error'); }
+        }
+
+        /* ─── Maintenance mode ─── */
+        let _maintEnabled = false;
+
+        async function loadMaintenance() {
+            try {
+                const res = await fetch('/api/admin/maintenance');
+                const d = await res.json();
+                _maintEnabled = d.enabled;
+                document.getElementById('maintEndTime').value = d.end_time || '';
+                updateMaintUI();
+            } catch(e) {}
+        }
+
+        function updateMaintUI() {
+            const btn = document.getElementById('maintToggleBtn');
+            const badge = document.getElementById('maintStatusBadge');
+            if (_maintEnabled) {
+                btn.textContent = 'Выключить';
+                btn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
+                btn.style.color = '#fff';
+                badge.textContent = 'ВКЛ';
+                badge.style.background = 'rgba(239,68,68,0.15)';
+                badge.style.color = '#ef4444';
+            } else {
+                btn.textContent = 'Включить';
+                btn.style.background = 'linear-gradient(135deg,#34D87A,#2BA866)';
+                btn.style.color = '#fff';
+                badge.textContent = 'ВЫКЛ';
+                badge.style.background = 'rgba(52,216,122,0.15)';
+                badge.style.color = '#34D87A';
+            }
+        }
+
+        async function toggleMaintenance() {
+            _maintEnabled = !_maintEnabled;
+            await saveMaintenance();
+        }
+
+        async function saveMaintenance() {
+            const endTime = document.getElementById('maintEndTime').value.trim();
+            try {
+                const res = await fetch('/api/admin/maintenance', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({admin_id: adminId, enabled: _maintEnabled, end_time: endTime})
+                });
+                const d = await res.json();
+                if (d.success) {
+                    _maintEnabled = d.enabled;
+                    updateMaintUI();
+                    const st = document.getElementById('maintStatus');
+                    st.textContent = d.enabled ? 'Тех. работы ВКЛЮЧЕНЫ' : 'Тех. работы выключены';
+                    st.style.color = d.enabled ? '#ef4444' : '#34D87A';
+                    st.style.display = 'block';
+                    showNotification(d.enabled ? 'Режим тех. работ включён' : 'Режим тех. работ выключен', 'success');
                 } else {
                     showNotification(d.error || 'Ошибка', 'error');
                 }

@@ -7,6 +7,8 @@ import string
 import threading
 import asyncio
 import logging
+import time as _time
+import math
 import requests as http_requests
 from flask import Flask, render_template, request, jsonify, g
 from db_compat import connect_db, init_db as _init_database, DB_TYPE
@@ -60,6 +62,230 @@ def add_cache_headers(response):
         elif request.path.endswith(('.css', '.js')):
             response.headers['Cache-Control'] = 'public, max-age=86400'
     return response
+
+
+# ============ MAINTENANCE MODE ============
+
+_settings_path_maint = None  # will use load_settings
+
+@app.before_request
+def check_maintenance():
+    """Block non-admin users when maintenance mode is enabled."""
+    # Skip for static files and admin/maintenance endpoints
+    if request.path.startswith('/static/') or request.path == '/api/admin/maintenance':
+        return None
+    if request.path.startswith('/api/admin/') or request.path == '/admin':
+        return None
+    # Lazy import — load_settings may not be defined yet at decoration time, but it will be at call time
+    settings = load_settings()
+    if not settings.get('maintenance_enabled', False):
+        return None
+    # Allow admins through: check query/json param
+    try:
+        admin_id = request.args.get('admin_id', type=int)
+        if not admin_id and request.is_json and request.json:
+            admin_id = request.json.get('admin_id')
+        if admin_id and is_admin(admin_id):
+            return None
+    except Exception:
+        pass
+    # Check Telegram initData for admin
+    try:
+        init_data = request.args.get('initData', '') or request.headers.get('X-Init-Data', '')
+        if init_data:
+            from urllib.parse import parse_qs
+            params = parse_qs(init_data)
+            user_str = params.get('user', [''])[0]
+            if user_str:
+                user_data = json.loads(user_str)
+                if is_admin(user_data.get('id', 0)):
+                    return None
+    except Exception:
+        pass
+    # If API — JSON error
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'maintenance', 'message': 'Ведутся технические работы'}), 503
+    # Otherwise show maintenance page
+    end_time = settings.get('maintenance_end_time', '')
+    return _render_maintenance_page(end_time), 503
+
+
+def _render_maintenance_page(end_time=''):
+    """Return a simple maintenance HTML page."""
+    time_msg = ''
+    if end_time:
+        time_msg = f'<p style="font-size:14px;color:rgba(255,255,255,0.5);margin-top:12px;">Примерное время окончания: <b style="color:#FFD74A;">{end_time}</b></p>'
+    return f'''<!DOCTYPE html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Luna Gifts — Тех. работы</title>
+<link rel="icon" href="/static/img/logo.png" type="image/png">
+<style>
+*{{box-sizing:border-box;}}body{{margin:0;padding:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0e0e1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#fff;text-align:center;padding:24px;}}
+.maint-box{{max-width:400px;padding:40px 32px;border-radius:24px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(20px);}}
+.maint-icon{{font-size:64px;margin-bottom:16px;}}
+h1{{font-size:24px;font-weight:900;margin:0 0 8px;}}
+p{{margin:0;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.5;}}
+</style></head><body>
+<div class="maint-box">
+<div class="maint-icon">🔧</div>
+<h1>Технические работы</h1>
+<p>Мы проводим обновление сервиса.<br>Пожалуйста, зайдите позже.</p>
+{time_msg}
+</div></body></html>'''
+
+
+# ============ CRASH GAME ENGINE (server-side multiplayer) ============
+
+_crash_cache = {
+    'game_id': 0,
+    'status': 'waiting',       # waiting | counting | flying | crashed
+    'multiplier': 1.00,
+    'target_multiplier': 1.00,
+    'countdown': 0,
+    'start_time': 0,
+    'crash_profit_balance': 0,  # running site profit for multiplier generation
+}
+_crash_lock = threading.Lock()
+
+
+def get_crash_cache():
+    with _crash_lock:
+        return dict(_crash_cache)
+
+
+def update_crash_cache(**kwargs):
+    with _crash_lock:
+        _crash_cache.update(kwargs)
+
+
+def generate_crash_multiplier():
+    """Generate a crash multiplier with ~5% house edge, considering profit balance."""
+    profit = _crash_cache.get('crash_profit_balance', 0)
+
+    r = random.random()
+
+    # Adjust probabilities based on site profit
+    if profit < -500:
+        # Site is losing — more low crashes
+        if r < 0.15:
+            return 1.00
+        if r < 0.40:
+            return round(random.uniform(1.01, 1.5), 2)
+        return round(max(1.01, 0.99 / r), 2)
+    elif profit > 500:
+        # Site is profiting — allow bigger multipliers
+        if r < 0.03:
+            return 1.00
+        return round(max(1.01, 0.97 / r), 2)
+    else:
+        # Normal
+        if r < 0.05:
+            return 1.00
+        return round(max(1.01, 0.95 / r), 2)
+
+
+def start_crash_loop():
+    """Background thread running the crash game loop."""
+    logging.info("Crash game loop started")
+
+    while True:
+        try:
+            db = connect_db()
+
+            # --- Create new game ---
+            target = generate_crash_multiplier()
+            now = _time.time()
+            db.execute(
+                "INSERT INTO crash_games (status, target_multiplier, current_multiplier, start_time) "
+                "VALUES (?, ?, ?, ?)",
+                ('waiting', target, 1.00, now)
+            )
+            db.commit()
+            game = db.execute("SELECT * FROM crash_games ORDER BY id DESC LIMIT 1").fetchone()
+            game_id = game['id']
+
+            update_crash_cache(
+                game_id=game_id, status='waiting', multiplier=1.00,
+                target_multiplier=target, countdown=0, start_time=now
+            )
+            logging.info(f"Crash game #{game_id} created, target={target}")
+
+            # --- Waiting phase (3s) ---
+            _time.sleep(3.0)
+
+            # --- Counting phase (3s countdown) ---
+            db.execute("UPDATE crash_games SET status='counting' WHERE id=?", (game_id,))
+            db.commit()
+            update_crash_cache(status='counting', countdown=3.0)
+
+            for i in range(6):
+                remaining = 3.0 - i * 0.5
+                update_crash_cache(countdown=max(0, remaining))
+                _time.sleep(0.5)
+
+            # --- Flying phase ---
+            db.execute("UPDATE crash_games SET status='flying', start_time=? WHERE id=?", (_time.time(), game_id))
+            db.commit()
+            update_crash_cache(status='flying', multiplier=1.00, start_time=_time.time())
+
+            current = 1.00
+            while current < target:
+                _time.sleep(0.08)
+
+                # Increment speed depends on current multiplier
+                if current < 1.5:
+                    inc = random.uniform(0.01, 0.03)
+                elif current < 3.0:
+                    inc = random.uniform(0.02, 0.06)
+                elif current < 10.0:
+                    inc = random.uniform(0.04, 0.15)
+                else:
+                    inc = random.uniform(0.10, 0.40)
+
+                current = round(current + inc, 2)
+                if current >= target:
+                    current = target
+                    break
+
+                db.execute("UPDATE crash_games SET current_multiplier=? WHERE id=?", (current, game_id))
+                db.commit()
+                update_crash_cache(multiplier=current)
+
+            # --- Crashed ---
+            db.execute(
+                "UPDATE crash_games SET status='crashed', current_multiplier=? WHERE id=?",
+                (target, game_id)
+            )
+
+            # Mark all playing bets as lost
+            playing_bets = db.execute(
+                "SELECT id, bet_amount FROM crash_bets WHERE game_id=? AND status='playing'",
+                (game_id,)
+            ).fetchall()
+            for bet in playing_bets:
+                db.execute("UPDATE crash_bets SET status='lost' WHERE id=?", (bet['id'],))
+                update_crash_cache(
+                    crash_profit_balance=_crash_cache.get('crash_profit_balance', 0) + bet['bet_amount']
+                )
+
+            # Add to history
+            db.execute(
+                "INSERT INTO crash_history (game_id, final_multiplier) VALUES (?, ?)",
+                (game_id, target)
+            )
+            db.commit()
+
+            update_crash_cache(status='crashed', multiplier=target)
+            logging.info(f"Crash game #{game_id} crashed at {target}x")
+
+            db.close()
+
+            # Show crashed state for 3s
+            _time.sleep(3.0)
+
+        except Exception as e:
+            logging.error(f"Crash loop error: {e}")
+            _time.sleep(2)
 
 
 # ============ BOT SETUP ============
@@ -1697,6 +1923,33 @@ def api_admin_online_boost():
     return jsonify({'success': True, 'online_boost': boost})
 
 
+@app.route('/api/admin/maintenance', methods=['GET', 'POST'])
+def api_admin_maintenance():
+    """Toggle maintenance mode on/off."""
+    if request.method == 'GET':
+        settings = load_settings()
+        return jsonify({
+            'enabled': settings.get('maintenance_enabled', False),
+            'end_time': settings.get('maintenance_end_time', ''),
+        })
+
+    data = request.json or {}
+    admin_id = data.get('admin_id')
+    if not admin_id or not is_admin(admin_id):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    settings = load_settings()
+    settings['maintenance_enabled'] = bool(data.get('enabled', False))
+    settings['maintenance_end_time'] = data.get('end_time', '')
+    save_settings(settings)
+    logging.info(f"Maintenance mode {'ENABLED' if settings['maintenance_enabled'] else 'DISABLED'} by admin {admin_id}")
+    return jsonify({
+        'success': True,
+        'enabled': settings['maintenance_enabled'],
+        'end_time': settings['maintenance_end_time'],
+    })
+
+
 # ---------- Telegram catalog cache ----------
 _tg_catalog_cache = {'gifts': [], 'balance': None, 'ts': 0}
 _TG_CATALOG_TTL = 300  # 5 min cache
@@ -2050,7 +2303,20 @@ def api_gifts():
     return jsonify(gifts)
 
 
-# ============ CRASH GAME API ============
+# ============ CRASH GAME API (server-side multiplayer) ============
+
+@app.route('/api/crash/status')
+def api_crash_status():
+    """Polled every 800ms by clients to get current game state."""
+    c = get_crash_cache()
+    return jsonify({
+        'success': True,
+        'game_id': c['game_id'],
+        'status': c['status'],
+        'multiplier': c['multiplier'],
+        'countdown': c.get('countdown', 0),
+    })
+
 
 @app.route('/api/crash/bet', methods=['POST'])
 def api_crash_bet():
@@ -2059,36 +2325,126 @@ def api_crash_bet():
     bet = data.get('bet', 0)
     if not telegram_id or not bet or bet < 1:
         return jsonify({'error': 'Invalid bet'}), 400
+
+    c = get_crash_cache()
+    game_id = c['game_id']
+    status = c['status']
+
+    # Allow bets during waiting or counting phase
+    if status not in ('waiting', 'counting'):
+        return jsonify({'error': 'Ставки закрыты'}), 400
+
     db = get_db()
     user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     if not user:
         return jsonify({'error': 'User not found'}), 404
     if user['balance'] < bet:
         return jsonify({'error': 'Недостаточно средств'}), 400
+
+    # Check if already bet this game
+    existing = db.execute(
+        'SELECT id FROM crash_bets WHERE game_id = ? AND user_id = ?',
+        (game_id, telegram_id)
+    ).fetchone()
+    if existing:
+        return jsonify({'error': 'Вы уже сделали ставку'}), 400
+
     db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (bet, telegram_id))
+    db.execute(
+        'INSERT INTO crash_bets (game_id, user_id, bet_amount, status, first_name, photo_url) '
+        'VALUES (?, ?, ?, ?, ?, ?)',
+        (game_id, telegram_id, bet, 'playing',
+         user['first_name'] or user['username'] or '',
+         user['photo_url'] or '')
+    )
     db.commit()
+
     user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
-    return jsonify({'success': True, 'new_balance': user['balance']})
+    return jsonify({'success': True, 'new_balance': user['balance'], 'game_id': game_id})
 
 
 @app.route('/api/crash/cashout', methods=['POST'])
 def api_crash_cashout():
     data = request.json
     telegram_id = data.get('telegram_id')
-    winnings = data.get('winnings', 0)
-    if not telegram_id or winnings < 0:
+    game_id = data.get('game_id')
+    if not telegram_id or not game_id:
         return jsonify({'error': 'Invalid data'}), 400
-    # Cap winnings to prevent abuse (max 50x any bet)
-    if winnings > 500000:
-        winnings = 500000
+
+    c = get_crash_cache()
+    if c['status'] != 'flying' or c['game_id'] != game_id:
+        return jsonify({'error': 'Невозможно забрать'}), 400
+
+    # Use the max of DB multiplier and cache multiplier for fairness
+    mult = c['multiplier']
+    if mult < 1.01:
+        mult = 1.01
+
     db = get_db()
-    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
-    if not user:
-        return jsonify({'error': 'User not found'}), 404
+    bet = db.execute(
+        "SELECT * FROM crash_bets WHERE game_id = ? AND user_id = ? AND status = 'playing'",
+        (game_id, telegram_id)
+    ).fetchone()
+    if not bet:
+        return jsonify({'error': 'Ставка не найдена'}), 404
+
+    winnings = round(bet['bet_amount'] * mult)
+    profit = bet['bet_amount'] - winnings
+    update_crash_cache(
+        crash_profit_balance=_crash_cache.get('crash_profit_balance', 0) + profit
+    )
+
+    db.execute(
+        "UPDATE crash_bets SET status='won', cashout_multiplier=?, win_amount=? WHERE id=?",
+        (mult, winnings, bet['id'])
+    )
     db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (winnings, telegram_id))
     db.commit()
+
     user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
-    return jsonify({'success': True, 'new_balance': user['balance']})
+    return jsonify({
+        'success': True,
+        'new_balance': user['balance'],
+        'winnings': winnings,
+        'multiplier': mult
+    })
+
+
+@app.route('/api/crash/history')
+def api_crash_history():
+    db = get_db()
+    rows = db.execute(
+        "SELECT final_multiplier FROM crash_history ORDER BY id DESC LIMIT 20"
+    ).fetchall()
+    return jsonify({
+        'success': True,
+        'history': [{'multiplier': r['final_multiplier']} for r in rows]
+    })
+
+
+@app.route('/api/crash/bets')
+def api_crash_bets():
+    c = get_crash_cache()
+    game_id = c['game_id']
+    if not game_id:
+        return jsonify({'success': True, 'bets': []})
+    db = get_db()
+    rows = db.execute(
+        "SELECT * FROM crash_bets WHERE game_id = ? ORDER BY id DESC LIMIT 50",
+        (game_id,)
+    ).fetchall()
+    bets = []
+    for r in rows:
+        bets.append({
+            'user_id': r['user_id'],
+            'first_name': r['first_name'] or 'Игрок',
+            'photo_url': r['photo_url'] or '',
+            'bet_amount': r['bet_amount'],
+            'status': r['status'],
+            'cashout_mult': r['cashout_multiplier'] or 0,
+            'win_amount': r['win_amount'] or 0,
+        })
+    return jsonify({'success': True, 'bets': bets})
 
 
 @app.route('/api/buy', methods=['POST'])
@@ -3847,6 +4203,11 @@ def migrate_seed():
 # ============ INIT & RUN ============
 
 if __name__ == '__main__':
+    # Start crash game loop
+    crash_thread = threading.Thread(target=start_crash_loop, daemon=True)
+    crash_thread.start()
+    logging.info("Crash game loop thread started")
+
     # Запуск бота в отдельном потоке
     if HAS_AIOGRAM:
         bot_thread = threading.Thread(target=run_bot, daemon=True)

@@ -222,6 +222,32 @@ def _create_tables(db, flavour):
             refunded INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS crash_games (
+            id SERIAL PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'waiting',
+            target_multiplier DOUBLE PRECISION DEFAULT 1.00,
+            current_multiplier DOUBLE PRECISION DEFAULT 1.00,
+            start_time DOUBLE PRECISION DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS crash_bets (
+            id SERIAL PRIMARY KEY,
+            game_id INTEGER NOT NULL,
+            user_id BIGINT NOT NULL,
+            bet_amount DOUBLE PRECISION NOT NULL,
+            status TEXT NOT NULL DEFAULT 'playing',
+            cashout_multiplier DOUBLE PRECISION DEFAULT 0,
+            win_amount DOUBLE PRECISION DEFAULT 0,
+            first_name TEXT DEFAULT '',
+            photo_url TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS crash_history (
+            id SERIAL PRIMARY KEY,
+            game_id INTEGER NOT NULL,
+            final_multiplier DOUBLE PRECISION NOT NULL,
+            finished_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
     else:
         # SQLite DDL (original)
         db.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -308,6 +334,32 @@ def _create_tables(db, flavour):
             amount REAL NOT NULL,
             refunded INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS crash_games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            status TEXT NOT NULL DEFAULT 'waiting',
+            target_multiplier REAL DEFAULT 1.00,
+            current_multiplier REAL DEFAULT 1.00,
+            start_time REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS crash_bets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            bet_amount REAL NOT NULL,
+            status TEXT NOT NULL DEFAULT 'playing',
+            cashout_multiplier REAL DEFAULT 0,
+            win_amount REAL DEFAULT 0,
+            first_name TEXT DEFAULT '',
+            photo_url TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS crash_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id INTEGER NOT NULL,
+            final_multiplier REAL NOT NULL,
+            finished_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
 
 
