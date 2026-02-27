@@ -261,11 +261,11 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.svg" alt=""></span><span class="nav-label">Market</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/task.svg" alt=""></span><span class="nav-label">Tasks</span></a>
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/pvp.svg" alt=""></span><span class="nav-label">Games</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/reward.svg" alt=""></span><span class="nav-label">Referrals</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/crown.svg" alt=""></span><span class="nav-label">Profile</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
         </div>
     </nav>
 
@@ -500,6 +500,13 @@
     // ── Update UI from state ──
     let prevStatus = '';
     let prevGameId = 0;
+    let prevPlayerCount = 0;
+    let prevTotalPot = 0;
+    let lastPlayerHash = '';
+
+    function getPlayerHash(players){
+        return players.map(p => p.telegram_id + ':' + p.amount).join('|');
+    }
 
     function updatePvpUI(state){
         if(!state) return;
@@ -508,6 +515,8 @@
         const players = state.players || [];
         const status = state.status;
         const total = state.total_pot || 0;
+        const currentPlayerHash = getPlayerHash(players);
+        const playersChanged = currentPlayerHash !== lastPlayerHash;
         const countdown = state.countdown || 0;
 
         // Total
@@ -583,17 +592,27 @@
         // Load avatars
         loadAvatarImages(players);
 
-        // Draw wheel (only if not currently spinning)
+        // Draw wheel (only if not currently spinning and players actually changed)
         if(!isSpinning){
             if(status === 'spinning' && prevStatus !== 'spinning'){
                 spinWheel(state.spin_angle, players);
             } else if(status !== 'spinning'){
-                wheelRotation = 0;
-                if(players.length > 0){
-                    drawWheel(players, 0);
+                // Only redraw if players changed or game reset
+                if(playersChanged || state.game_id !== prevGameId){
+                    wheelRotation = 0;
+                    if(players.length > 0){
+                        drawWheel(players, 0);
+                    } else {
+                        drawWaitingWheel();
+                    }
                 }
             }
         }
+
+        // Update tracking variables
+        lastPlayerHash = currentPlayerHash;
+        prevPlayerCount = players.length;
+        prevTotalPot = total;
 
         // Result modal
         if(status === 'result' && !resultShown && state.winner){
