@@ -2326,6 +2326,18 @@ def api_admin_pvp_reset():
 def api_admin_pvp_debug():
     """Debug endpoint to view PVP cache and recent games."""
     db = get_db()
+    
+    # Test: Check for active games directly
+    active_row = db.execute(
+        "SELECT id, status, total_pot, hash FROM pvp_games "
+        "WHERE status IN ('waiting', 'betting', 'countdown', 'spinning') "
+        "ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    active_game = dict(active_row) if active_row else None
+    
+    # Try to sync
+    _pvp_sync_from_db(db)
+    
     games = db.execute(
         "SELECT id, status, total_pot, hash, winner_id, created_at FROM pvp_games ORDER BY id DESC LIMIT 5"
     ).fetchall()
@@ -2335,6 +2347,7 @@ def api_admin_pvp_debug():
     
     return jsonify({
         'cache': cache_copy,
+        'active_game_in_db': active_game,
         'recent_games': [dict(g) for g in games]
     })
 
