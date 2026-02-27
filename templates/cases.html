@@ -37,7 +37,7 @@
                     <img src="/static/img/star.png" alt="⭐">
                 </div>
             </div>
-            <button class="balance-plus-btn" onclick="injectTopupModals();openModal('topupModal')">+</button>
+            <button class="balance-plus-btn" onclick="window.location.href='/topup'">+</button>
             <div class="online-badge" id="onlineBadge">
                 <span class="online-dot"></span>
                 <span class="online-count" id="onlineCount">...</span>
@@ -117,6 +117,7 @@
 
                 <!-- Items grid -->
                 <div id="caseSheetContent">
+                    <div class="case-sheet-section-title">Что в кейсе?</div>
                     <div class="case-sheet-items" id="caseSheetItems">
                         <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:24px;height:24px;"></div>
                     </div>
@@ -196,15 +197,21 @@
         if(!filtered.length){c.innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/cases.png" alt=""></div><p>Кейсов нет</p></div>';return;}
         c.innerHTML=filtered.map(cs=>{
             const dp=getDiscountedPrice(cs);
-            const isTon=cs.currency==='ton';
-            const icon=isTon?'/static/img/ton.png':'/static/img/star.png';
             let priceHtml;
             if(dp!==null){
-                priceHtml='<span style="text-decoration:line-through;opacity:.4;font-size:11px;margin-right:3px;">'+cs.price+'</span><span style="color:var(--green);">'+dp+'</span> <img src="'+icon+'" alt="">';
+                const dTon=(dp/100).toFixed(2);
+                priceHtml='<div class="case-card-v2-prices">'
+                    +'<span class="case-price-row"><img src="/static/img/ton.png" alt=""> '+dTon+'</span>'
+                    +'<span class="case-price-row stars"><img src="/static/img/star.png" alt=""> '+dp+'</span>'
+                    +'</div>';
             }else if(cs.price===0){
                 priceHtml='<span style="color:var(--green);">Бесплатно</span>';
             }else{
-                priceHtml='<img src="'+icon+'" alt=""> <span>'+cs.price+'</span>';
+                const tonPrice=(cs.price/100).toFixed(2);
+                priceHtml='<div class="case-card-v2-prices">'
+                    +'<span class="case-price-row"><img src="/static/img/ton.png" alt=""> '+tonPrice+'</span>'
+                    +'<span class="case-price-row stars"><img src="/static/img/star.png" alt=""> '+cs.price+'</span>'
+                    +'</div>';
             }
             return '<div class="case-card-v2" onclick="openCaseDetail('+cs.id+')">'
                 +'<div class="case-card-v2-visual"><img src="'+imgSrc(cs.image)+'" alt="'+cs.name+'" onerror="this.src=\'/static/img/star.png\'"></div>'
@@ -310,7 +317,6 @@
         const g=document.getElementById('caseSheetItems');
         if(!drops.length){g.innerHTML='<p style="color:var(--text-secondary);grid-column:1/-1;text-align:center;">Пусто</p>';return;}
         const cs=casesData.find(c=>c.id===currentCaseId);
-        const currIcon=cs&&cs.currency==='ton'?'/static/img/ton.png':'/static/img/star.png';
         g.innerHTML=drops.map(d=>{
             const bg=getNftBg(d.slug,d.item_count);
             let visualHtml;
@@ -323,10 +329,14 @@
                     +'<img class="csi-model" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.png\'">'
                     +'</div>';
             }
+            const starsPrice=d.price||0;
+            const tonPrice=(starsPrice/100).toFixed(2);
             return '<div class="case-sheet-item">'
                 +visualHtml
-                +'<div class="case-sheet-item-price"><img src="'+currIcon+'" alt=""> '+d.price+'</div>'
-                +'<div class="case-sheet-item-random">random</div>'
+                +'<div class="case-sheet-item-prices">'
+                +'<div class="case-sheet-item-price"><img src="/static/img/ton.png" alt=""> '+tonPrice+'</div>'
+                +'<div class="case-sheet-item-price stars"><img src="/static/img/star.png" alt=""> '+starsPrice+'</div>'
+                +'</div>'
                 +'</div>';
         }).join('');
     }

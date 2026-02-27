@@ -41,6 +41,7 @@ async function initApp(){
         tg.ready(); tg.expand();
         tg.setHeaderColor('#0a0e17');
         tg.setBackgroundColor('#0a0e17');
+        document.body.classList.add('is-tg-miniapp');
         setLoadProgress(20, 'Telegram OK');
         const init = tg.initDataUnsafe;
         if (init && init.user){
@@ -609,8 +610,47 @@ async function confirmWithdraw(){
 }
 
 // ============ INIT ============
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();});}
-else{startNftRotation();}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();injectDesktopNav();});}
+else{startNftRotation();injectDesktopNav();}
+
+// ============ DESKTOP NAVIGATION ============
+function injectDesktopNav(){
+    if(document.getElementById('desktopNav'))return;
+    // Detect current page for active state
+    const path=window.location.pathname;
+    function navActive(p){
+        if(p==='/cases'&&(path==='/'||path==='/cases'))return' active';
+        if(p==='/games'&&path==='/games')return' active';
+        if(p==='/scratch'&&path==='/scratch')return' active';
+        if(p==='/market'&&path==='/market')return' active';
+        if(p==='/referral'&&path==='/referral')return' active';
+        if(p==='/inventory'&&path==='/inventory')return' active';
+        if(p==='/topup'&&path==='/topup')return' active';
+        return'';
+    }
+    const nav=document.createElement('nav');
+    nav.className='desktop-nav';
+    nav.id='desktopNav';
+    nav.innerHTML='<div class="desktop-nav-inner">'
+        +'<a class="desktop-nav-logo" href="/cases">'
+        +'<img src="/static/img/logo.png" alt="Luna Gifts">'
+        +'<span>Luna Gifts</span></a>'
+        +'<div class="desktop-nav-links">'
+        +'<a class="desktop-nav-link'+navActive('/cases')+'" href="/cases"><img src="/static/img/cases.png" alt="">КЕЙСЫ</a>'
+        +'<a class="desktop-nav-link'+navActive('/games')+'" href="/games"><img src="/static/img/games.png" alt="">ИГРЫ</a>'
+        +'<a class="desktop-nav-link'+navActive('/scratch')+'" href="/scratch"><img src="/static/img/moon.png" alt="">СКРЕТЧИ</a>'
+        +'<a class="desktop-nav-link'+navActive('/referral')+'" href="/referral"><img src="/static/img/ref.png" alt="">ДРУЗЬЯ</a>'
+        +'</div>'
+        +'<div class="desktop-nav-right">'
+        +'<div class="desktop-nav-balance ton-bal" onclick="showTonTopup()">'
+        +'<img src="/static/img/ton.png" alt="TON"><span class="desktop-ton-val" id="desktopTonVal">0.00</span></div>'
+        +'<div class="desktop-nav-balance star-bal" onclick="window.location.href=\'/topup\'">'
+        +'<img src="/static/img/star.png" alt="Stars"><span class="balance-amount desktop-star-val" id="desktopStarVal">0</span></div>'
+        +'<button class="desktop-nav-plus" onclick="window.location.href=\'/topup\'">+</button>'
+        +'<img class="desktop-nav-avatar user-avatar" id="desktopAvatar" src="" alt="" onclick="window.location.href=\'/inventory\'">'
+        +'</div></div>';
+    document.body.insertBefore(nav,document.body.firstChild);
+}
 
 // ============ AVATAR WALLET OVERLAY ============
 function updateAvatarWallet(){

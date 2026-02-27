@@ -1000,6 +1000,34 @@ select {
     height: 13px;
 }
 
+.case-card-v2-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 0 2px;
+}
+
+.case-price-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'Onest', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.case-price-row img {
+    width: 12px;
+    height: 12px;
+}
+
+.case-price-row.stars {
+    color: var(--gold);
+    opacity: 0.75;
+    font-size: 11px;
+}
+
 
 /* ================================================================
    15. CASE DETAIL (Legacy Page)
@@ -1630,6 +1658,14 @@ select {
 }
 
 /* Case Sheet Items Grid */
+.case-sheet-section-title {
+    font-family: 'Onest', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+}
+
 .case-sheet-items {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -1697,6 +1733,21 @@ select {
     align-items: center;
     justify-content: center;
     gap: 3px;
+}
+
+.case-sheet-item-prices {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.case-sheet-item-prices .case-sheet-item-price {
+    font-size: 10px;
+}
+
+.case-sheet-item-prices .case-sheet-item-price.stars {
+    color: var(--gold);
+    opacity: 0.8;
 }
 
 .case-sheet-item-price img {
@@ -4559,4 +4610,293 @@ select {
     .admin-container {
         padding: 0 20px;
     }
+}
+
+
+/* ================================================================
+   DESKTOP NAVIGATION BAR (GiftsBattle-style)
+   ================================================================ */
+
+.desktop-nav {
+    display: none;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    background: rgba(10, 14, 23, 0.92);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 0 32px;
+    height: 64px;
+}
+
+.desktop-nav-inner {
+    max-width: 1320px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    gap: 0;
+}
+
+.desktop-nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-right: 32px;
+    cursor: pointer;
+    flex-shrink: 0;
+    text-decoration: none;
+}
+
+.desktop-nav-logo img {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+.desktop-nav-logo span {
+    font-family: 'Onest', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+}
+
+.desktop-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.desktop-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.5);
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.desktop-nav-link:hover {
+    color: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.05);
+}
+
+.desktop-nav-link.active {
+    color: #fff;
+    background: rgba(255,255,255,0.08);
+}
+
+.desktop-nav-link img {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+}
+
+.desktop-nav-link.active img {
+    opacity: 1;
+}
+
+.desktop-nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.desktop-nav-balance {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.desktop-nav-balance:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.desktop-nav-balance img {
+    width: 16px;
+    height: 16px;
+}
+
+.desktop-nav-balance.ton-bal {
+    color: #3EAAFF;
+}
+
+.desktop-nav-balance.star-bal {
+    color: var(--gold);
+}
+
+.desktop-nav-plus {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.2s;
+    line-height: 1;
+}
+
+.desktop-nav-plus:hover {
+    background: #2bb865;
+    transform: scale(1.05);
+}
+
+.desktop-nav-plus:active {
+    transform: scale(0.95);
+}
+
+.desktop-nav-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.1);
+    transition: border-color 0.2s;
+}
+
+.desktop-nav-avatar:hover {
+    border-color: rgba(255,255,255,0.25);
+}
+
+/* ================================================================
+   RESPONSIVE BREAKPOINTS
+   ================================================================ */
+
+/* Desktop: wide layout */
+@media (min-width: 769px) {
+    body:not(.is-tg-miniapp) .desktop-nav {
+        display: flex;
+    }
+
+    body:not(.is-tg-miniapp) .bottom-nav {
+        display: none !important;
+    }
+
+    body:not(.is-tg-miniapp) .header-v2 {
+        display: none !important;
+    }
+
+    body:not(.is-tg-miniapp) .header {
+        display: none !important;
+    }
+
+    body:not(.is-tg-miniapp) .container {
+        max-width: 1320px;
+        padding: 0 32px;
+    }
+
+    body:not(.is-tg-miniapp) .games-container {
+        max-width: 1320px;
+    }
+
+    body:not(.is-tg-miniapp) .topup-container {
+        max-width: 1320px;
+    }
+
+    body:not(.is-tg-miniapp) .cases-grid-v2 {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+    }
+
+    body:not(.is-tg-miniapp) .case-card-v2 {
+        padding: 16px 16px 14px;
+    }
+
+    body:not(.is-tg-miniapp) .case-card-v2-name {
+        font-size: 15px;
+    }
+
+    body:not(.is-tg-miniapp) .games-menu {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    body:not(.is-tg-miniapp) .game-card {
+        min-height: 200px;
+    }
+
+    /* Gift grid wider */
+    body:not(.is-tg-miniapp) .gift-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+
+    /* Topup page 2-col layout with sidebar */
+    body:not(.is-tg-miniapp) .topup-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    /* Case sheet items - 5 cols on desktop */
+    body:not(.is-tg-miniapp) .case-sheet-items {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+
+    /* Case sheet wider on desktop */
+    body:not(.is-tg-miniapp) .case-sheet {
+        max-width: 900px;
+        margin: 0 auto;
+        border-radius: 24px 24px 0 0;
+    }
+
+    body:not(.is-tg-miniapp) .case-sheet-overlay {
+        align-items: flex-end;
+        justify-content: center;
+    }
+
+    /* Popular case wider */
+    body:not(.is-tg-miniapp) .popular-case-card {
+        max-width: 600px;
+    }
+
+    /* Container padding top for desktop nav */
+    body:not(.is-tg-miniapp) .container {
+        padding-top: 24px;
+    }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+    body:not(.is-tg-miniapp) .cases-grid-v2 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    body:not(.is-tg-miniapp) .topup-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* TG Mini App always mobile */
+body.is-tg-miniapp .desktop-nav {
+    display: none !important;
 }
