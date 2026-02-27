@@ -2196,6 +2196,26 @@ def api_admin_pvp_reset():
     return jsonify({'success': True, 'message': 'PVP games reset'})
 
 
+@app.route('/api/admin/pvp/test-cache')
+def api_admin_pvp_test_cache():
+    """Test manually updating the PVP cache to verify it works."""
+    import random
+    test_id = random.randint(1000, 9999)
+    test_hash = f"test_{test_id}"
+    
+    # Update cache
+    update_pvp_cache(game_id=test_id, hash=test_hash)
+    
+    # Read back
+    c = get_pvp_cache()
+    
+    return jsonify({
+        'wrote': {'game_id': test_id, 'hash': test_hash},
+        'read_back': {'game_id': c['game_id'], 'hash': c['hash']},
+        'match': c['game_id'] == test_id and c['hash'] == test_hash
+    })
+
+
 @app.route('/api/admin/pvp/debug')
 def api_admin_pvp_debug():
     """Debug endpoint to view PVP cache and recent games."""
