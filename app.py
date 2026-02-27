@@ -389,13 +389,17 @@ def start_pvp_loop():
                 with _pvp_lock:
                     player_count = len(_pvp_cache['players'])
                     status = _pvp_cache['status']
+                # api_pvp_bet may have already flipped status to 'countdown'
+                if status == 'countdown':
+                    break
                 if player_count >= 2 and status == 'betting':
                     break
-                if status == 'betting' and player_count < 2:
-                    continue
 
-            # Start countdown
-            update_pvp_cache(status='countdown', countdown=30)
+            # Start countdown (only if not already started by api_pvp_bet)
+            with _pvp_lock:
+                if _pvp_cache['status'] != 'countdown':
+                    _pvp_cache['status'] = 'countdown'
+                    _pvp_cache['countdown'] = 30
             db.execute("UPDATE pvp_games SET status='countdown' WHERE id=?", (game_id,))
             db.commit()
             logging.info(f"PVP game #{game_id} countdown started")
@@ -2883,8 +2887,8 @@ def api_open_case():
         if gift:
             price = gift.get('price', 0)
             db.execute(
-                'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price) VALUES (?, ?, ?, ?, ?)',
-                (telegram_id, gift['id'], gift['name'], gift.get('image', ''), price)
+                'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, ?)',
+                (telegram_id, gift['id'], gift['name'], gift.get('image', ''), price, 'gift')
             )
             # Add Fragment assets + ensure slug/item_count
             slug = gift.get('slug', '')

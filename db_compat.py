@@ -281,7 +281,12 @@ def _create_tables(db, flavour):
             balance REAL DEFAULT 0,
             referral_code TEXT DEFAULT '',
             referred_by INTEGER DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            deposited_balance REAL DEFAULT 0,
+            total_topup REAL DEFAULT 0,
+            total_earned REAL DEFAULT 0,
+            free_scratch_used INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            last_active REAL DEFAULT 0
         )''')
         db.execute('''CREATE TABLE IF NOT EXISTS inventory (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -290,6 +295,8 @@ def _create_tables(db, flavour):
             gift_name TEXT NOT NULL,
             gift_image TEXT NOT NULL,
             gift_price REAL NOT NULL,
+            item_type TEXT DEFAULT 'gift',
+            case_id INTEGER DEFAULT 0,
             acquired_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(telegram_id)
         )''')
@@ -302,6 +309,10 @@ def _create_tables(db, flavour):
             link TEXT DEFAULT '',
             channel_id TEXT DEFAULT '',
             is_active INTEGER DEFAULT 1,
+            reward_type TEXT DEFAULT 'stars',
+            reward_gift_id REAL DEFAULT 0,
+            goal_type TEXT DEFAULT '',
+            goal_amount REAL DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
         db.execute('''CREATE TABLE IF NOT EXISTS completed_tasks (
@@ -328,12 +339,15 @@ def _create_tables(db, flavour):
             max_uses INTEGER DEFAULT 1,
             used_count INTEGER DEFAULT 0,
             is_active INTEGER DEFAULT 1,
+            gift_id INTEGER DEFAULT 0,
+            scratch_id INTEGER DEFAULT 0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
         db.execute('''CREATE TABLE IF NOT EXISTS promo_uses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id INTEGER NOT NULL,
             promo_id INTEGER NOT NULL,
+            discount_applied INTEGER DEFAULT 0,
             used_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(user_id, promo_id)
         )''')
@@ -346,6 +360,7 @@ def _create_tables(db, flavour):
             error_msg TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             processed_at TIMESTAMP DEFAULT NULL,
+            retry_count INTEGER DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users(telegram_id)
         )''')
         db.execute('''CREATE TABLE IF NOT EXISTS star_transactions (
