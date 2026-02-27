@@ -329,6 +329,80 @@ def update_pvp_cache(**kwargs):
         _pvp_cache.update(kwargs)
 
 
+def _pvp_sync_from_db(db):
+    """Sync cache from DB if cache is out of sync (game_id=0 but active game exists)."""
+    with _pvp_lock:
+        if _pvp_cache['game_id'] != 0:
+            return  # Cache has a game, no need to sync
+    
+    # Find latest active game
+    row = db.execute(
+        "SELECT id, status, total_pot, hash FROM pvp_games "
+        "WHERE status IN ('waiting', 'betting', 'countdown', 'spinning') "
+        "ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    
+    if not row:
+        return  # No active game in DB
+    
+    try:
+        game_id = row['id']
+        status = row['status']
+        total_pot = row['total_pot']
+        game_hash = row['hash']
+    except (TypeError, KeyError):
+        game_id = row[0]
+        status = row[1]
+        total_pot = row[2]
+        game_hash = row[3]
+    
+    # Load players
+    bets = db.execute(
+        "SELECT user_id, username, first_name, photo_url, amount, color FROM pvp_bets WHERE game_id = ?",
+        (game_id,)
+    ).fetchall()
+    
+    players = []
+    for b in bets:
+        try:
+            player = {
+                'telegram_id': b['user_id'],
+                'username': b['username'] or '',
+                'first_name': b['first_name'] or 'Player',
+                'photo_url': b['photo_url'] or '',
+                'amount': b['amount'],
+                'color': b['color'],
+                'chance': 0,
+            }
+        except (TypeError, KeyError):
+            player = {
+                'telegram_id': b[0],
+                'username': b[1] or '',
+                'first_name': b[2] or 'Player',
+                'photo_url': b[3] or '',
+                'amount': b[4],
+                'color': b[5],
+                'chance': 0,
+            }
+        players.append(player)
+    
+    players = _pvp_compute_chances(players)
+    
+    with _pvp_lock:
+        _pvp_cache['game_id'] = game_id
+        _pvp_cache['status'] = status if status in ['waiting', 'countdown', 'spinning'] else 'waiting'
+        _pvp_cache['players'] = players
+        _pvp_cache['total_pot'] = total_pot
+        _pvp_cache['hash'] = game_hash
+        # Timestamps will be 0 - may cause issues but better than no game
+        if status == 'countdown' and len(players) > 0:
+            # Estimate countdown started recently
+            _pvp_cache['countdown_started_at'] = _time.time() - 5  # Assume 5 seconds ago
+            _pvp_cache['countdown'] = 25
+    
+    logging.info(f"PVP cache synced from DB: game_id={game_id}, status={status}, players={len(players)}")
+
+
 def _pvp_compute_chances(players):
     """Compute chance percentages for all players based on their bets."""
     total = sum(p['amount'] for p in players)
@@ -2817,6 +2891,11 @@ def api_crash_bets():
 @app.route('/api/pvp/state')
 def api_pvp_state():
     """Polled by clients to get current PVP game state."""
+    db = get_db()
+    
+    # Sync cache from DB if needed (handles worker isolation)
+    _pvp_sync_from_db(db)
+    
     # Tick the game state
     _pvp_tick()
     
@@ -2844,6 +2923,11 @@ def api_pvp_bet():
     if not telegram_id or not amount or amount < 1:
         return jsonify({'error': 'Invalid bet'}), 400
 
+    db = get_db()
+    
+    # Sync cache from DB if needed (handles worker isolation)
+    _pvp_sync_from_db(db)
+
     # Get state atomically with the lock to prevent race conditions
     with _pvp_lock:
         game_id = _pvp_cache['game_id']
@@ -2857,7 +2941,6 @@ def api_pvp_bet():
     if status not in ('waiting', 'betting', 'countdown'):
         return jsonify({'error': 'Ставки закрыты'}), 400
 
-    db = get_db()
     user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     if not user:
         return jsonify({'error': 'User not found'}), 404
