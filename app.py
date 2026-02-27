@@ -348,7 +348,10 @@ def _pvp_pick_winner(players):
     slice_size_angle = (winner['amount'] / total) * 360
     # Random angle within the winner's slice (avoid edges)
     margin = min(slice_size_angle * 0.15, 10)
-    target_angle = slice_start_angle + margin + random.random() * max(1, slice_size_angle - 2 * margin)
+    angle_in_slice = slice_start_angle + margin + random.random() * max(1, slice_size_angle - 2 * margin)
+    # Invert angle so wheel rotation brings this position under the pointer (top)
+    # Wheel starts drawing from top, rotates clockwise
+    target_angle = 360 - angle_in_slice
     return winner, target_angle
 
 
