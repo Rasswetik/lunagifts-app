@@ -37,12 +37,17 @@
         @keyframes countPulse{0%{transform:scale(1);}100%{transform:scale(1.08);}}
         @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
 
-        /* Rocket animation */
-        .rocket-wrap{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);transition:bottom 0.6s ease-out,opacity 0.3s;}
-        .rocket-wrap.flying{bottom:60%;animation:rocketShake 0.12s infinite alternate;}
-        .rocket-wrap.boom{opacity:0;}
-        .rocket-emoji{font-size:40px;display:block;}
-        @keyframes rocketShake{0%{transform:translateX(-50%) rotate(-2deg);}100%{transform:translateX(-50%) rotate(2deg);}}
+        /* Rocket */
+        .rocket-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;transition:opacity 0.3s ease;opacity:1;}
+        .rocket-wrap img{width:140px;height:140px;object-fit:contain;transition:transform 0.2s ease,filter 0.3s ease;}
+        .rocket-wrap.hide{opacity:0;pointer-events:none;}
+        .rocket-wrap.flying{animation:rocketGlow 1s ease-in-out infinite alternate;}
+        @keyframes rocketGlow{0%{filter:drop-shadow(0 0 8px rgba(255,100,50,.3));}100%{filter:drop-shadow(0 0 20px rgba(255,100,50,.6));}}
+        /* Boom explosion */
+        .boom-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;z-index:10;pointer-events:none;display:flex;align-items:center;justify-content:center;}
+        .boom-wrap img{width:160px;height:160px;object-fit:contain;}
+        .boom-wrap.show{opacity:1;animation:boomPop .4s ease-out forwards;}
+        @keyframes boomPop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0;}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1;}100%{transform:translate(-50%,-50%) scale(1);opacity:1;}}
 
         /* ─── History bar ─── */
         .history-bar{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;-ms-overflow-style:none;}
@@ -133,7 +138,12 @@
         <div class="game-field" id="gameField">
             <div class="game-field-status" id="gameStatus">Ожидание...</div>
             <div class="game-field-mult waiting" id="gameMult">Ожидание раунда</div>
-            <div class="rocket-wrap" id="rocketWrap"><span class="rocket-emoji">🚀</span></div>
+            <div class="rocket-wrap hide" id="rocketWrap">
+                <img src="/static/gifs/rocket1.gif" alt="Rocket">
+            </div>
+            <div class="boom-wrap" id="boomWrap">
+                <img src="/static/gifs/boom.gif" alt="Boom">
+            </div>
         </div>
 
         <!-- History -->
@@ -247,32 +257,52 @@
         } catch(e) {}
     }
 
+    let crashDone = false;
+    let boomUntil = 0;
+
     function updateGameUI() {
         const st = gameState.status;
         const statusEl = document.getElementById('gameStatus');
         const multEl = document.getElementById('gameMult');
         const rocket = document.getElementById('rocketWrap');
+        const boom = document.getElementById('boomWrap');
         const btn = document.getElementById('betBtn');
 
-        if (st === 'waiting') {
-            statusEl.textContent = 'Ожидание...';
-            multEl.className = 'game-field-mult waiting';
-            multEl.textContent = 'Новый раунд скоро';
-            rocket.className = 'rocket-wrap';
+        if (st === 'waiting' || st === 'counting') {
+            if (st === 'waiting') {
+                statusEl.textContent = 'Ожидание...';
+                multEl.className = 'game-field-mult waiting';
+                multEl.textContent = 'Новый раунд скоро';
+            } else {
+                const sec = gameState.countdown || 0;
+                statusEl.textContent = 'Раунд начинается';
+                multEl.className = 'game-field-mult counting';
+                multEl.textContent = sec > 0 ? sec.toFixed(1) + 's' : 'GO!';
+            }
+            rocket.classList.add('hide');
+            rocket.classList.remove('flying');
+            if (Date.now() >= boomUntil) boom.classList.remove('show');
+
+            // Reset on new round
+            if (prevState && prevState.game_id !== gameState.game_id) {
+                crashDone = false;
+                smoothMult = 1; targetMult = 1;
+                // Restart rocket GIF
+                const rImg = rocket.querySelector('img');
+                if (rImg) { rImg.src = ''; rImg.src = '/static/gifs/rocket1.gif'; }
+                if (!myBet) myBet = null;
+            }
+
             if (!myBet) { btn.textContent = 'Ставка'; btn.className = 'bet-btn play'; btn.disabled = false; }
             else { btn.textContent = 'Ожидание...'; btn.className = 'bet-btn wait'; btn.disabled = true; }
-        } else if (st === 'counting') {
-            const sec = gameState.countdown || 0;
-            statusEl.textContent = 'Раунд начинается';
-            multEl.className = 'game-field-mult counting';
-            multEl.textContent = sec > 0 ? sec.toFixed(1) + 's' : 'GO!';
-            rocket.className = 'rocket-wrap';
-            if (!myBet) { btn.textContent = 'Ставка'; btn.className = 'bet-btn play'; btn.disabled = false; }
-            else { btn.textContent = 'Ожидание...'; btn.className = 'bet-btn wait'; btn.disabled = true; }
+
         } else if (st === 'flying') {
             statusEl.textContent = 'Летим!';
             multEl.className = 'game-field-mult';
-            rocket.className = 'rocket-wrap flying';
+            rocket.classList.remove('hide');
+            rocket.classList.add('flying');
+            boom.classList.remove('show');
+            crashDone = false;
             if (myBet && myBet.game_id === gameState.game_id) {
                 btn.textContent = 'Забрать';
                 btn.className = 'bet-btn cashout';
@@ -282,24 +312,31 @@
                 btn.className = 'bet-btn wait';
                 btn.disabled = true;
             }
+
         } else if (st === 'crashed') {
             statusEl.textContent = 'Краш!';
             multEl.className = 'game-field-mult crashed';
             multEl.textContent = (gameState.multiplier || 1).toFixed(2) + 'x';
-            rocket.className = 'rocket-wrap boom';
+            rocket.classList.add('hide');
+            rocket.classList.remove('flying');
             smoothMult = gameState.multiplier || 1;
-            if (myBet && myBet.game_id === gameState.game_id) {
-                myBet = null;
+
+            if (!crashDone) {
+                // Show boom explosion — restart GIF
+                boom.classList.remove('show');
+                const boomImg = boom.querySelector('img');
+                if (boomImg) { boomImg.src = ''; boomImg.src = '/static/gifs/boom.gif'; }
+                void boom.offsetWidth;
+                boom.classList.add('show');
+                boomUntil = Date.now() + 2500;
+                crashDone = true;
                 try { tg.HapticFeedback.impactOccurred('heavy'); } catch(e){}
             }
-            btn.textContent = 'Ставка'; btn.className = 'bet-btn play'; btn.disabled = false;
-        }
 
-        // Reset smooth mult on new game
-        if (prevState && prevState.game_id !== gameState.game_id) {
-            smoothMult = 1.00;
-            targetMult = 1.00;
-            myBet = null;
+            if (myBet && myBet.game_id === gameState.game_id) {
+                myBet = null;
+            }
+            btn.textContent = 'Ставка'; btn.className = 'bet-btn play'; btn.disabled = false;
         }
     }
 
