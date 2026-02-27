@@ -20,26 +20,21 @@
         <div class="load-percent" id="loadPercent">0%</div>
     </div>
 
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <img class="user-avatar" src="" alt="" onclick="window.location.href='/inventory'">
-                <div class="user-info">
-                    <span class="user-name">Загрузка...</span>
-                    <div class="balance-row" onclick="openBalanceAction()">
-                        <span class="balance-amount">0</span>
-                        <img class="balance-icon" src="/static/img/star.png" alt="⭐">
-                    </div>
-                </div>
+    <div class="container" style="padding-top:14px;">
+        <!-- Market Tabs -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;">
+            <div style="display:flex;gap:8px;">
+                <button class="market-tab active" id="tabGifts" onclick="switchMarketTab('gifts')">Подарки</button>
+                <button class="market-tab" id="tabCollections" onclick="switchMarketTab('collections')">Коллекции</button>
             </div>
-            <div class="header-right">
-                <button class="topup-btn" onclick="injectTopupModals();openModal('topupModal')"><img src="/static/img/plus.png" alt="+"></button>
-            </div>
+            <button style="width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="toggleSort()">
+                <svg width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><path d="M3 6h12M5 10h8M7 14h4"/></svg>
+            </button>
         </div>
 
-        <div class="section-header">
-            <h2><img class="section-icon" src="/static/img/gift.png" alt=""> Магазин подарков</h2>
-            <p>Тратьте звёзды на NFT подарки</p>
+        <!-- Sort -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;padding:0 4px;">
+            <span id="sortLabel" style="font-size:13px;color:rgba(255,255,255,0.5);cursor:pointer;" onclick="toggleSort()">Сначала дорогие ▾</span>
         </div>
 
         <div class="gifts-grid" id="giftsGrid">
@@ -57,15 +52,32 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
             <a href="/market" class="nav-item active"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
         </div>
     </nav>
 
     <script src="/static/js/app.js"></script>
     <script>
     let giftsData=[];
+    let sortDir='desc';
+    let marketTab='gifts';
+
+    function switchMarketTab(tab){
+        marketTab=tab;
+        document.getElementById('tabGifts').classList.toggle('active',tab==='gifts');
+        document.getElementById('tabCollections').classList.toggle('active',tab==='collections');
+        renderGifts();
+    }
+
+    function toggleSort(){
+        sortDir=sortDir==='desc'?'asc':'desc';
+        document.getElementById('sortLabel').textContent=sortDir==='desc'?'Сначала дорогие ▾':'Сначала дешёвые ▴';
+        renderGifts();
+    }
 
     async function loadGifts(){
         try{
@@ -79,8 +91,12 @@
 
     function renderGifts(){
         const c=document.getElementById('giftsGrid');
-        if(!giftsData.length){c.innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Подарков пока нет</p></div>';return;}
-        c.innerHTML=giftsData.filter(g=>g.price<=2500).map(g=>{
+        let items=giftsData.filter(g=>g.price<=2500);
+        if(marketTab==='collections') items=items.filter(g=>g.slug);
+        else items=items.filter(g=>!g.slug||true);
+        items.sort((a,b)=>sortDir==='desc'?b.price-a.price:a.price-b.price);
+        if(!items.length){c.innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Подарков пока нет</p></div>';return;}
+        c.innerHTML=items.map(g=>{
             const hasBg=g.bg_color&&!g.slug;
             const bg=g.slug?getNftBg(g.slug,g.item_count):'';
             return '<div class="gift-card" onclick="openBuyModal('+g.id+')">'
@@ -88,7 +104,9 @@
             +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'50 0%,'+g.bg_color+'20 60%,transparent 80%);"></div>':'')
             +(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+g.slug+'" data-count="'+(g.item_count||1000)+'" alt="">':'<img class="gift-img" src="'+imgSrc(g.image)+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.png\'">')
             +'</div>'
-            +'<div class="gift-price"><span>'+g.price+'</span><img src="/static/img/star.png" alt=""></div>'
+            +'<div class="gift-name" style="font-size:13px;font-weight:600;color:#fff;margin-top:6px;">'+g.name+'</div>'
+            +'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">random</div>'
+            +'<div class="gift-price-btn"><span>'+g.price+'</span><img src="/static/img/star.png" alt=""></div>'
             +'</div>';
         }).join('');
     }

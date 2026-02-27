@@ -658,8 +658,8 @@ select {
 }
 
 .nav-icon img {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     opacity: .64;
     transition: opacity .2s;
 }
@@ -670,7 +670,7 @@ select {
 
 .nav-label {
     font-family: 'Onest', sans-serif;
-    font-size: 14px;
+    font-size: 10px;
     font-weight: 500;
 }
 
@@ -681,8 +681,8 @@ select {
 
 .gifts-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px 10px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px 10px;
 }
 
 .cases-grid {
@@ -782,6 +782,51 @@ select {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Market Tabs */
+.market-tab {
+    padding: 8px 18px;
+    border-radius: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.market-tab.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+
+/* Gift Price Button (blue pill) */
+.gift-price-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin: 6px auto 8px;
+    padding: 6px 16px;
+    border-radius: 10px;
+    background: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.gift-price-btn:active {
+    transform: scale(0.95);
+}
+
+.gift-price-btn img {
+    width: 13px;
+    height: 13px;
 }
 
 

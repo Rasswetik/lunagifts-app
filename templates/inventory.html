@@ -71,38 +71,52 @@
         <div class="load-percent" id="loadPercent">0%</div>
     </div>
 
-    <div class="container">
-        <div class="header">
-            <div class="header-left">
-                <img class="user-avatar" src="" alt="">
-                <div class="user-info">
-                    <span class="user-name">Загрузка...</span>
-                    <div class="balance-row" onclick="openBalanceAction()">
-                        <span class="balance-amount">0</span>
-                        <img class="balance-icon" src="/static/img/star.png" alt="⭐">
+    <div class="container" style="padding-top:14px;">
+        <!-- Profile Balance Section -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <img class="user-avatar" src="" alt="" style="width:40px;height:40px;border-radius:50%;">
+                <span class="user-name" style="font-size:16px;font-weight:700;color:#fff;">Загрузка...</span>
+            </div>
+            <button style="width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="window.location.href='/admin'" id="settingsBtn">
+                <img src="/static/img/settings.png" alt="" style="width:18px;height:18px;opacity:0.6;">
+            </button>
+        </div>
+
+        <!-- Balances -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <img src="/static/img/star.png" alt="" style="width:28px;height:28px;">
+                    <div>
+                        <div style="font-size:12px;color:rgba(255,255,255,0.4);">Telegram Stars</div>
+                        <div style="font-size:18px;font-weight:700;color:#fff;" class="balance-amount">0</div>
                     </div>
                 </div>
             </div>
-            <div class="header-right">
-                <button class="topup-btn" onclick="injectTopupModals();openModal('topupModal')"><img src="/static/img/plus.png" alt="+"></button>
-            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex;gap:10px;margin-bottom:18px;">
+            <button style="flex:1;padding:13px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="injectTopupModals();openModal('topupModal')">
+                <span style="font-size:18px;">+</span> Пополнить
+            </button>
+            <button style="flex:1;padding:13px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="window.location.href='/market'">
+                <span style="font-size:18px;">+</span> Купить подарок
+            </button>
         </div>
 
         <!-- Inventory Header -->
-        <div class="inventory-header">
-            <h2>Мой инвентарь</h2>
-            <p id="inventoryCount">0 предметов</p>
-        </div>
-
-        <!-- Sell All / Withdraw All Buttons -->
-        <div class="inv-action-row" id="invActionRow" style="display:none;">
-            <button class="inv-action-btn sell-all-btn" id="sellAllBtn" onclick="sellAllItems()">
-                <img src="/static/img/star.png" alt=""> Продать всё
-            </button>
-            <button class="inv-action-btn withdraw-all-btn" id="withdrawAllBtn" onclick="withdrawAllItems()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Вывести NFT
-            </button>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <h2 style="font-size:18px;font-weight:800;color:#fff;margin:0;">Инвентарь <span id="inventoryCount" style="color:rgba(255,255,255,0.4);">0</span></h2>
+            <div style="display:flex;gap:8px;">
+                <button class="inv-action-btn sell-all-btn" id="sellAllBtn" style="display:none;flex:initial;padding:8px 14px;font-size:12px;border-radius:10px;" onclick="sellAllItems()">
+                    <img src="/static/img/star.png" alt="" style="width:12px;height:12px;"> Продать всё
+                </button>
+                <button class="inv-action-btn withdraw-all-btn" id="withdrawAllBtn" style="display:none;flex:initial;padding:8px 14px;font-size:12px;border-radius:10px;" onclick="withdrawAllItems()">
+                    Вывести NFT
+                </button>
+            </div>
         </div>
 
         <div class="inventory-grid" id="inventoryGrid">
@@ -162,9 +176,11 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
             <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item active"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
         </div>
     </nav>
 
@@ -209,11 +225,14 @@
     function renderInventory(){
         const g=document.getElementById('inventoryGrid');
         const cnt=document.getElementById('inventoryCount');
-        cnt.textContent=inventoryData.length+' предмет'+(inventoryData.length===1?'':'ов');
+        cnt.textContent=inventoryData.length;
         // Show/hide action buttons based on non-case items
         const nonCaseItems=inventoryData.filter(i=>i.type!=='case');
-        const actionRow=document.getElementById('invActionRow');
-        if(nonCaseItems.length>0){actionRow.style.display='flex';}else{actionRow.style.display='none';}
+        const sellBtn=document.getElementById('sellAllBtn');
+        const withdrawBtn=document.getElementById('withdrawAllBtn');
+        if(nonCaseItems.length>0){sellBtn.style.display='flex';withdrawBtn.style.display='flex';}else{sellBtn.style.display='none';withdrawBtn.style.display='none';}
+        // Hide settings button for non-admins
+        try{if(!currentUser||!currentUser.is_admin)document.getElementById('settingsBtn').style.display='none';}catch(e){}
         if(!inventoryData.length){g.innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Инвентарь пуст.<br>Откройте кейсы или купите подарки!</p></div>';return;}
         g.innerHTML=inventoryData.map(item=>{
             const isCase=item.type==='case';
@@ -226,7 +245,7 @@
 
     function openItemModal(invId,name,image,price,slug,itemCount,giftId){
         const invItem = inventoryData.find(it => it.id === invId);
-        const canWithdraw = invItem && invItem.withdrawable && invItem.telegram_gift_id;
+        const canWithdraw = invItem && invItem.withdrawable;
         const isNft = !!slug;
         const bg=getNftBg(slug,itemCount);
         document.getElementById('itemModalVisual').innerHTML=bg?'<img class="item-modal-backdrop" src="'+bg+'" alt="" style="width:200px;height:200px;object-fit:cover;border-radius:20px;">':'<img class="item-modal-img" src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';

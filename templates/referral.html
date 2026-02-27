@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Рефералы</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .ref-hero {
+            text-align: center;
+            padding: 30px 20px 20px;
+        }
+        .ref-hero-icon {
+            width: 80px; height: 80px;
+            margin: 0 auto 14px;
+        }
+        .ref-hero-title {
+            font-size: 22px; font-weight: 800; color: #fff;
+            margin-bottom: 6px;
+        }
+        .ref-hero-desc {
+            font-size: 14px; color: rgba(255,255,255,0.5);
+            line-height: 1.5;
+        }
+        .ref-stats-row {
+            display: flex; gap: 10px; margin-bottom: 16px;
+        }
+        .ref-stat-card {
+            flex: 1;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+        .ref-stat-val {
+            font-size: 24px; font-weight: 800; color: #fff;
+        }
+        .ref-stat-lbl {
+            font-size: 12px; color: rgba(255,255,255,0.4);
+            margin-top: 4px;
+        }
+        .ref-link-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .ref-link-title {
+            font-size: 14px; font-weight: 700; color: #fff;
+            margin-bottom: 10px;
+        }
+        .ref-link-row {
+            display: flex; gap: 8px;
+        }
+        .ref-link-input {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-size: 12px;
+            font-family: monospace;
+            outline: none;
+        }
+        .ref-copy-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: var(--accent);
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .ref-share-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2AABEE, #229ED9);
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .ref-info-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+        }
+        .ref-info-title {
+            font-size: 15px; font-weight: 700; color: #fff;
+            margin-bottom: 10px;
+        }
+        .ref-info-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            margin-bottom: 12px;
+        }
+        .ref-info-num {
+            width: 28px; height: 28px;
+            border-radius: 8px;
+            background: var(--accent);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: #fff;
+            flex-shrink: 0;
+        }
+        .ref-info-text {
+            font-size: 13px; color: rgba(255,255,255,0.6);
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="container" style="padding-top:10px;">
+        <div class="ref-hero">
+            <img class="ref-hero-icon" src="/static/img/ref.png" alt="">
+            <div class="ref-hero-title">Приглашай друзей</div>
+            <div class="ref-hero-desc">Получай бонусы за каждого приглашённого друга!</div>
+        </div>
+
+        <div class="ref-stats-row">
+            <div class="ref-stat-card">
+                <div class="ref-stat-val" id="refCount">0</div>
+                <div class="ref-stat-lbl">Приглашено</div>
+            </div>
+            <div class="ref-stat-card">
+                <div class="ref-stat-val" id="refEarnings">0 ⭐</div>
+                <div class="ref-stat-lbl">Заработано</div>
+            </div>
+        </div>
+
+        <div class="ref-link-card">
+            <div class="ref-link-title">Ваша ссылка</div>
+            <div class="ref-link-row">
+                <input type="text" readonly class="ref-link-input" id="refLinkInput" value="">
+                <button class="ref-copy-btn" onclick="copyRefLink()">Копировать</button>
+            </div>
+        </div>
+
+        <button class="ref-share-btn" onclick="shareRefLink()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Поделиться ссылкой
+        </button>
+
+        <div class="ref-info-card">
+            <div class="ref-info-title">Как это работает</div>
+            <div class="ref-info-item">
+                <div class="ref-info-num">1</div>
+                <div class="ref-info-text">Поделитесь своей реферальной ссылкой с друзьями</div>
+            </div>
+            <div class="ref-info-item">
+                <div class="ref-info-num">2</div>
+                <div class="ref-info-text">Друг регистрируется по вашей ссылке</div>
+            </div>
+            <div class="ref-info-item">
+                <div class="ref-info-num">3</div>
+                <div class="ref-info-text">Вы получаете бонусные звёзды за каждого приглашённого!</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item active"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    async function loadReferralStats() {
+        if (!currentUser) return;
+        try {
+            const res = await fetch('/api/referral/stats/' + currentUser.telegram_id);
+            const d = await res.json();
+            document.getElementById('refCount').textContent = d.count || 0;
+            document.getElementById('refEarnings').textContent = (d.earnings || 0) + ' ⭐';
+            document.getElementById('refLinkInput').value = 'https://t.me/lunagifts_robot?start=ref_' + currentUser.telegram_id;
+        } catch(e) {}
+    }
+
+    function copyRefLink() {
+        const inp = document.getElementById('refLinkInput');
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(inp.value).then(() => showNotification('Ссылка скопирована!', 'success'));
+        } else {
+            inp.select();
+            document.execCommand('copy');
+            showNotification('Ссылка скопирована!', 'success');
+        }
+    }
+
+    function shareRefLink() {
+        const link = document.getElementById('refLinkInput').value;
+        if (!link) return;
+        try {
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent('Присоединяйся к Luna Gifts! 🎁'));
+            } else if (navigator.share) {
+                navigator.share({title: 'Luna Gifts', text: 'Присоединяйся к Luna Gifts! 🎁', url: link});
+            } else {
+                copyRefLink();
+            }
+        } catch(e) { copyRefLink(); }
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        setLoadProgress(80, 'Загрузка данных...');
+        await loadReferralStats();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

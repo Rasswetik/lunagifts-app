@@ -697,14 +697,17 @@ def api_online():
     db = get_db()
     import time
     cutoff = time.time() - 300  # 5 minutes
+    settings = load_settings()
+    boost = int(settings.get('online_boost', 0))
     try:
         count = db.execute('SELECT COUNT(*) as cnt FROM users WHERE last_active > ?', (cutoff,)).fetchone()
-        return jsonify({'count': count['cnt'] if count else 0})
+        real = count['cnt'] if count else 0
+        return jsonify({'count': real + boost})
     except Exception:
         # last_active column may not exist
         count = db.execute('SELECT COUNT(*) as cnt FROM users').fetchone()
         online = min(count['cnt'] if count else 0, max(1, (count['cnt'] if count else 0) // 10))
-        return jsonify({'count': online})
+        return jsonify({'count': online + boost})
 
 
 # ============ RECENT WINS ============
@@ -1618,7 +1621,21 @@ def api_admin_settings():
         return jsonify({
             'telethon_connected': connected,
             'telethon_phone': settings.get('telethon_phone', ''),
+            'online_boost': settings.get('online_boost', 0),
         })
+
+
+@app.route('/api/admin/online-boost', methods=['POST'])
+def api_admin_online_boost():
+    data = request.json or {}
+    admin_id = data.get('admin_id')
+    if not admin_id or not is_admin(admin_id):
+        return jsonify({'error': 'Unauthorized'}), 403
+    boost = int(data.get('boost', 0))
+    settings = load_settings()
+    settings['online_boost'] = boost
+    save_settings(settings)
+    return jsonify({'success': True, 'online_boost': boost})
 
 
 # ---------- Telegram catalog cache ----------
@@ -2446,8 +2463,55 @@ def api_inventory_withdraw():
     # Look up the gift to get telegram_gift_id
     gifts = load_gifts()
     gift = next((g for g in gifts if g['id'] == item['gift_id']), None)
-    if not gift or not gift.get('withdrawable') or not gift.get('telegram_gift_id'):
+    if not gift or not gift.get('withdrawable'):
         return jsonify({'error': 'Этот подарок нельзя вывести'}), 400
+
+    # NFT gifts without telegram_gift_id — just create notification
+    if not gift.get('telegram_gift_id'):
+        # Check if this is the user's first withdrawal
+        prior_withdrawals = db.execute(
+            'SELECT COUNT(*) as cnt FROM withdrawals WHERE user_id = ?', (telegram_id,)
+        ).fetchone()['cnt']
+        is_first_withdrawal = (prior_withdrawals == 0)
+
+        star_count = gift.get('value', gift.get('price', 0))
+
+        # Create withdrawal record as pending (manual)
+        db.execute(
+            'INSERT INTO withdrawals (user_id, amount, gifts_json, status, error_msg) VALUES (?, ?, ?, ?, ?)',
+            (telegram_id, star_count,
+             json.dumps([{'name': gift.get('name', ''), 'star_count': star_count, 'qty': 1, 'type': 'nft'}], ensure_ascii=False),
+             'pending', 'NFT — ручной вывод')
+        )
+        withdrawal_id = db.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+        # Remove from inventory
+        db.execute('DELETE FROM inventory WHERE id = ?', (inventory_id,))
+        db.commit()
+
+        # Notify admins
+        usr = db.execute('SELECT username, first_name FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        uname = (usr['username'] or usr['first_name'] or str(telegram_id)) if usr else str(telegram_id)
+        gifts_desc = f"1x {gift.get('name', 'NFT Gift')} (NFT)"
+        notify_admins_withdrawal(withdrawal_id, telegram_id, uname, gifts_desc, star_count, 'pending')
+
+        # Notify user via Telegram
+        def _notify_user():
+            try:
+                text = f"📦 Ваша заявка на вывод NFT подарка <b>{gift.get('name', '')}</b> принята!\n\nЗаявка #{withdrawal_id}. Ожидайте отправки."
+                http_requests.post(
+                    f'https://api.telegram.org/bot{BOT_TOKEN}/sendMessage',
+                    json={'chat_id': telegram_id, 'text': text, 'parse_mode': 'HTML'},
+                    timeout=5)
+            except Exception:
+                pass
+        threading.Thread(target=_notify_user, daemon=True).start()
+
+        user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        return jsonify({'success': True, 'status': 'pending',
+                        'message': f'Заявка #{withdrawal_id} на вывод NFT принята! Вам придёт уведомление.',
+                        'new_balance': user['balance'],
+                        'is_first_withdrawal': is_first_withdrawal})
 
     tg_gift_id = gift['telegram_gift_id']
     star_count = gift.get('value', gift.get('price', 0))
@@ -2838,6 +2902,21 @@ def api_admin_set_balance():
     return jsonify({'success': True})
 
 
+@app.route('/api/admin/clear-inventory', methods=['POST'])
+def api_admin_clear_inventory():
+    data = request.json
+    admin_id = data.get('admin_id')
+    if not admin_id or not is_admin(admin_id):
+        return jsonify({'error': 'Unauthorized'}), 403
+    target_id = data.get('target_id')
+    if not target_id:
+        return jsonify({'error': 'Missing target_id'}), 400
+    db = get_db()
+    deleted = db.execute('DELETE FROM inventory WHERE user_id = ?', (target_id,)).rowcount
+    db.commit()
+    return jsonify({'success': True, 'deleted': deleted})
+
+
 @app.route('/api/admin/stats')
 def api_admin_stats():
     """Dashboard statistics for admin panel"""
@@ -2924,9 +3003,11 @@ def api_admin_users():
     if not admin_id or not is_admin(admin_id):
         return jsonify({'error': 'Unauthorized'}), 403
     db = get_db()
-    users = db.execute('SELECT telegram_id, username, first_name, last_name, balance, deposited_balance, referral_code, referred_by, created_at FROM users ORDER BY created_at DESC').fetchall()
+    users = db.execute('SELECT telegram_id, username, first_name, last_name, balance, deposited_balance, referral_code, referred_by, created_at, photo_url FROM users ORDER BY created_at DESC').fetchall()
     result = []
     for u in users:
+        inv_count = db.execute('SELECT COUNT(*) as cnt FROM inventory WHERE user_id=?', (u['telegram_id'],)).fetchone()['cnt']
+        ref_count = db.execute('SELECT COUNT(*) as cnt FROM referrals WHERE referrer_id=?', (u['telegram_id'],)).fetchone()['cnt']
         result.append({
             'telegram_id': u['telegram_id'],
             'username': u['username'],
@@ -2936,7 +3017,10 @@ def api_admin_users():
             'deposited_balance': u['deposited_balance'] or 0,
             'referral_code': u['referral_code'],
             'referred_by': u['referred_by'],
-            'created_at': u['created_at']
+            'created_at': u['created_at'],
+            'photo_url': u['photo_url'] if 'photo_url' in u.keys() else '',
+            'inventory_count': inv_count,
+            'referral_count': ref_count,
         })
     return jsonify(result)
 
@@ -3575,6 +3659,11 @@ def scratch():
 @app.route('/inventory')
 def inventory():
     return render_template('inventory.html')
+
+
+@app.route('/referral')
+def referral_page():
+    return render_template('referral.html')
 
 
 @app.route('/admin')

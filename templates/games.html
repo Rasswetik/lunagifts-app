@@ -10,96 +10,22 @@
     <link rel="stylesheet" href="/static/css/style.css">
     <style>
         body {
-            background: #0E1621;
+            background: var(--bg);
             overflow-x: hidden;
-        }
-
-        /* Animated background */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background:
-                radial-gradient(circle at 15% 25%, rgba(138, 92, 246, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 85% 75%, rgba(59, 130, 246, 0.06) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
-            z-index: -1;
-            animation: bgFlow 20s ease infinite alternate;
-        }
-        @keyframes bgFlow {
-            0% { transform: scale(1) rotate(0deg); }
-            100% { transform: scale(1.1) rotate(180deg); }
-        }
-
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-image:
-                radial-gradient(1px 1px at 10% 20%, rgba(138, 92, 246, 0.12) 1px, transparent 0),
-                radial-gradient(1px 1px at 30% 60%, rgba(245, 158, 11, 0.08) 1px, transparent 0),
-                radial-gradient(1px 1px at 70% 40%, rgba(59, 130, 246, 0.1) 1px, transparent 0),
-                radial-gradient(1px 1px at 90% 80%, rgba(138, 92, 246, 0.08) 1px, transparent 0);
-            background-size: 200px 200px;
-            z-index: -1;
-            animation: particleDrift 25s linear infinite;
-        }
-        @keyframes particleDrift {
-            0% { transform: translateY(0) translateX(0); }
-            100% { transform: translateY(-80px) translateX(80px); }
         }
 
         .games-container {
             max-width: 480px;
             margin: 0 auto;
-            padding: 30px 20px 120px;
+            padding: 14px 16px 120px;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Title */
-        .games-title {
-            text-align: center;
-            margin-bottom: 40px;
-            animation: titleFade 0.8s ease forwards;
-            opacity: 0;
-        }
-        @keyframes titleFade {
-            to { opacity: 1; transform: translateY(0); }
-            from { transform: translateY(-20px); }
-        }
-
-        .games-title h1 {
-            font-size: 38px;
-            font-weight: 900;
-            background: linear-gradient(135deg, #8A5CF6, #A78BFA, #8A5CF6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            background-size: 200% auto;
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
-            animation: titleShine 3s linear infinite;
-        }
-        @keyframes titleShine {
-            to { background-position: 200% center; }
-        }
-
-        .games-title p {
-            color: #8E9AA9;
-            font-size: 15px;
-            font-weight: 400;
         }
 
         /* Game cards */
         .games-menu {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 14px;
             width: 100%;
         }
 
@@ -108,149 +34,163 @@
             border: none;
             border-radius: 20px;
             cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             overflow: hidden;
             width: 100%;
-            height: 150px;
-            backdrop-filter: blur(20px);
-            box-shadow:
-                0 12px 35px rgba(0, 0, 0, 0.5),
-                inset 0 1px 1px rgba(255, 255, 255, 0.08);
-            animation: cardAppear 0.7s ease-out forwards;
-            opacity: 0;
-            transform: translateY(40px);
-        }
-
-        @keyframes cardAppear {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .game-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg,
-                rgba(255,255,255,0.06) 0%,
-                rgba(255,255,255,0.02) 50%,
-                rgba(255,255,255,0) 100%);
-            z-index: 1;
-            border-radius: 20px;
-        }
-
-        .game-card::after {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg,
-                transparent 20%, rgba(255,255,255,0.15) 50%, transparent 80%);
-            z-index: -1;
-            border-radius: 22px;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-            background-size: 200% 100%;
-        }
-
-        .game-card:hover::after {
-            opacity: 1;
-            animation: cardGlow 2s linear infinite;
-        }
-        @keyframes cardGlow {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-
-        .game-card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow:
-                0 25px 50px rgba(0, 0, 0, 0.7),
-                inset 0 1px 1px rgba(255,255,255,0.15);
+            min-height: 160px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         }
 
         .game-card:active {
-            transform: translateY(-4px) scale(0.98);
-            transition: transform 0.1s ease;
+            transform: scale(0.97);
         }
 
         .game-card-content {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 0 35px;
+            align-items: flex-end;
+            padding: 20px 24px;
             height: 100%;
             width: 100%;
             position: relative;
             z-index: 2;
         }
 
+        .game-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
         .game-card-text {
-            font-size: 30px;
+            font-size: 26px;
             font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            background: linear-gradient(45deg, #fff, #f0f0f0, #fff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            background-size: 200% auto;
-            animation: titleShine 2.5s linear infinite;
+            color: #fff;
+            line-height: 1.1;
+        }
+
+        .game-card-badges {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .game-card-badge {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+        }
+
+        .game-card-badge img {
+            width: 14px;
+            height: 14px;
         }
 
         .game-card-gif {
-            width: 85px;
-            height: 85px;
+            width: 120px;
+            height: 120px;
             object-fit: contain;
-            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.6)) brightness(1.15) saturate(1.2);
-            transition: all 0.5s ease;
+            filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
+            position: absolute;
+            right: 16px;
+            bottom: 12px;
         }
 
-        .game-card:hover .game-card-gif {
-            transform: scale(1.2) rotate(10deg);
-            filter: drop-shadow(0 8px 25px rgba(0,0,0,0.8)) brightness(1.4) saturate(1.5);
-        }
-
-        /* Card colors */
+        /* Card themes */
         .game-card-cases {
-            background: linear-gradient(135deg,
-                rgba(59, 130, 246, 0.9) 0%,
-                rgba(37, 99, 235, 0.9) 100%);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            animation-delay: 0.1s;
+            background: linear-gradient(145deg, #3565e0 0%, #1e3a8a 100%);
+            border: 1px solid rgba(59, 130, 246, 0.25);
         }
 
         .game-card-scratch {
-            background: linear-gradient(135deg,
-                rgba(138, 92, 246, 0.9) 0%,
-                rgba(109, 40, 217, 0.9) 100%);
-            border: 1px solid rgba(138, 92, 246, 0.3);
-            animation-delay: 0.2s;
+            background: linear-gradient(145deg, #7c3aed 0%, #4c1d95 100%);
+            border: 1px solid rgba(138, 92, 246, 0.25);
         }
 
-        /* Ripple effect */
-        @keyframes ripple {
-            to { transform: scale(3); opacity: 0; }
+        .game-card-mini {
+            background: linear-gradient(145deg, #0891b2 0%, #155e75 100%);
+            border: 1px solid rgba(8, 145, 178, 0.25);
         }
 
-        @media (max-width: 480px) {
-            .games-container { padding: 25px 15px 120px; }
-            .games-title h1 { font-size: 32px; }
-            .game-card { height: 135px; }
-            .game-card-content { padding: 0 25px; }
-            .game-card-text { font-size: 26px; letter-spacing: 1.5px; }
-            .game-card-gif { width: 75px; height: 75px; }
+        /* Banner at top */
+        .games-banner {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            min-height: 140px;
+            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #7e22ce 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
+        }
+
+        .games-banner-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .games-banner-label {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 6px;
+        }
+
+        .games-banner-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.2;
+        }
+
+        .games-banner-img {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 20px rgba(0,0,0,0.4));
+            position: relative;
+            z-index: 2;
+        }
+
+        .games-banner-price {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 4px 10px;
+            margin-top: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .games-banner-price img {
+            width: 14px;
+            height: 14px;
         }
 
         @media (max-width: 360px) {
-            .games-title h1 { font-size: 28px; }
-            .game-card { height: 120px; }
+            .game-card { min-height: 140px; }
             .game-card-text { font-size: 22px; }
-            .game-card-gif { width: 65px; height: 65px; }
+            .game-card-gif { width: 100px; height: 100px; }
         }
     </style>
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
         <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
-        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
         <div class="loading-text">Luna Gifts</div>
         <div class="load-progress-wrap">
             <div class="load-progress-bar" id="loadProgressBar"></div>
@@ -260,23 +200,51 @@
     </div>
 
     <div class="games-container">
-        <div class="games-title">
-            <h1>LUNA GAMES</h1>
-            <p>Выберите режим игры</p>
+        <!-- Banner -->
+        <div class="games-banner" id="gamesBanner" style="display:none;" onclick="window.location.href='/cases'">
+            <div class="games-banner-text">
+                <div class="games-banner-label">НОВЫЙ КЕЙС</div>
+                <div class="games-banner-title" id="gamesBannerTitle"></div>
+                <div class="games-banner-price" id="gamesBannerPrice"></div>
+            </div>
+            <img class="games-banner-img" id="gamesBannerImg" src="" alt="">
         </div>
 
         <div class="games-menu">
             <div class="game-card game-card-cases" onclick="window.location.href='/cases'">
                 <div class="game-card-content">
-                    <span class="game-card-text">Кейсы</span>
-                    <img src="/static/img/gifs/cases.gif" alt="Cases" class="game-card-gif">
+                    <div class="game-card-info">
+                        <span class="game-card-text">Кейсы</span>
+                        <div class="game-card-badges">
+                            <div class="game-card-badge"><img src="/static/img/ton.png" alt=""></div>
+                            <div class="game-card-badge"><img src="/static/img/star.png" alt=""></div>
+                        </div>
+                    </div>
+                    <img src="/static/gifs/cases.gif" alt="Cases" class="game-card-gif">
                 </div>
             </div>
 
             <div class="game-card game-card-scratch" onclick="window.location.href='/scratch'">
                 <div class="game-card-content">
-                    <span class="game-card-text">Moon Scratch</span>
-                    <img src="/static/img/gifs/moon.gif" alt="Moon Scratch" class="game-card-gif">
+                    <div class="game-card-info">
+                        <span class="game-card-text">Moon Scratch</span>
+                        <div class="game-card-badges">
+                            <div class="game-card-badge"><img src="/static/img/star.png" alt=""></div>
+                        </div>
+                    </div>
+                    <img src="/static/gifs/moon.gif" alt="Moon Scratch" class="game-card-gif">
+                </div>
+            </div>
+
+            <div class="game-card game-card-mini" onclick="showNotification('Скоро!','info')">
+                <div class="game-card-content">
+                    <div class="game-card-info">
+                        <span class="game-card-text">Мини-игры</span>
+                        <div class="game-card-badges">
+                            <div class="game-card-badge"><img src="/static/img/star.png" alt=""></div>
+                            <div class="game-card-badge" style="background:rgba(255,255,255,0.2);font-size:9px;font-weight:700;color:#fff;padding:0 6px;width:auto;">СКОРО</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -284,9 +252,11 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Главная</span></a>
             <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
         </div>
     </nav>
 
