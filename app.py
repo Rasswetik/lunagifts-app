@@ -950,6 +950,21 @@ def api_online():
         return jsonify({'count': online + boost})
 
 
+@app.route('/api/banners')
+def api_banners():
+    import os as _os
+    allowed = ('.png', '.jpg', '.jpeg', '.webp', '.gif')
+    result = []
+    for dirname in ('banners', 'baners'):
+        banners_dir = _os.path.join(app.static_folder, 'img', dirname)
+        if not _os.path.isdir(banners_dir):
+            continue
+        for f in sorted(_os.listdir(banners_dir)):
+            if f.lower().endswith(allowed):
+                result.append(f'/static/img/{dirname}/{f}')
+    return jsonify(result)
+
+
 # ============ RECENT WINS ============
 @app.route('/api/cases/recent-wins')
 def api_recent_wins():

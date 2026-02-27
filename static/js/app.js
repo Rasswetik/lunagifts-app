@@ -610,13 +610,91 @@ async function confirmWithdraw(){
 }
 
 // ============ INIT ============
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();injectDesktopNav();});}
-else{startNftRotation();injectDesktopNav();}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();});}
+else{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();}
+
+// ============ COMPOSITE PARTICLE ICONS ============
+const NAV_ICON_SVGS={
+    'gift.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 01-2 2H7a2 2 0 01-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 110-5C9 3 12 8 12 8"/><path d="M16.5 8a2.5 2.5 0 100-5C15 3 12 8 12 8"/></svg>',color:'#FFB800',glow:'rgba(255,184,0,0.4)'},
+    'quest.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',color:'#5BA8FF',glow:'rgba(91,168,255,0.4)'},
+    'games.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="4"/><path d="M7 12h4M9 10v4"/><circle cx="15" cy="10.5" r="1" fill="currentColor" stroke="none"/><circle cx="17.5" cy="13" r="1" fill="currentColor" stroke="none"/></svg>',color:'#A855F7',glow:'rgba(168,85,247,0.4)'},
+    'ref.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>',color:'#34D399',glow:'rgba(52,211,153,0.4)'},
+    'profil.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',color:'#F472B6',glow:'rgba(244,114,182,0.4)'},
+    'cases.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><path d="M12 12v4M10 14h4"/></svg>',color:'#3B82F6',glow:'rgba(59,130,246,0.4)'},
+    'moon.png':{svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',color:'#8B5CF6',glow:'rgba(139,92,246,0.4)'}
+};
+
+function upgradeNavIcons(){
+    document.querySelectorAll('.nav-icon').forEach(function(wrap){
+        const img=wrap.querySelector('img');
+        if(!img)return;
+        const src=img.getAttribute('src')||'';
+        const filename=src.split('/').pop();
+        const config=NAV_ICON_SVGS[filename];
+        if(!config)return;
+        const comp=document.createElement('span');
+        comp.className='nav-icon-composite';
+        comp.style.setProperty('--icon-color',config.color);
+        comp.style.setProperty('--icon-glow',config.glow);
+        comp.innerHTML=config.svg
+            +'<span class="nav-particle p1"></span>'
+            +'<span class="nav-particle p2"></span>'
+            +'<span class="nav-particle p3"></span>';
+        wrap.innerHTML='';
+        wrap.appendChild(comp);
+    });
+    // Also upgrade desktop nav links
+    document.querySelectorAll('.desktop-nav-link').forEach(function(link){
+        const img=link.querySelector('img');
+        if(!img)return;
+        const src=img.getAttribute('src')||'';
+        const filename=src.split('/').pop();
+        const config=NAV_ICON_SVGS[filename];
+        if(!config)return;
+        const comp=document.createElement('span');
+        comp.className='nav-icon-composite';
+        comp.style.setProperty('--icon-color',config.color);
+        comp.style.setProperty('--icon-glow',config.glow);
+        comp.innerHTML=config.svg
+            +'<span class="nav-particle p1"></span>'
+            +'<span class="nav-particle p2"></span>'
+            +'<span class="nav-particle p3"></span>';
+        img.replaceWith(comp);
+    });
+}
+
+// ============ UNIFIED MOBILE HEADER ============
+function injectMobileHeader(){
+    if(document.querySelector('.header-v2'))return;
+    const container=document.querySelector('.container')||document.querySelector('.games-container')||document.querySelector('.topup-container')||document.querySelector('.ref-page');
+    if(!container)return;
+    // Hide old-style headers
+    const oldH=container.querySelector('.header');if(oldH)oldH.style.display='none';
+    const topupH=container.querySelector('.topup-header');if(topupH)topupH.style.display='none';
+    const refBar=container.querySelector('.ref-top-bar');if(refBar)refBar.style.display='none';
+    const hdr=document.createElement('div');
+    hdr.className='header-v2';
+    hdr.innerHTML='<div class="header-avatar-wrap" onclick="window.location.href=\'/inventory\'">'
+        +'<img class="user-avatar" src="" alt="">'
+        +'<div class="avatar-wallet-overlay" id="avatarWallet" style="display:none"></div></div>'
+        +'<div class="balance-pill">'
+        +'<div class="balance-section ton-balance" onclick="showTonTopup()">'
+        +'<span class="balance-val" id="tonBalVal">0.00</span>'
+        +'<img src="/static/img/ton.png" alt="TON"></div>'
+        +'<div class="balance-divider"></div>'
+        +'<div class="balance-section star-balance" onclick="openBalanceAction()">'
+        +'<span class="balance-val balance-amount" style="color:var(--gold)">0</span>'
+        +'<img src="/static/img/star.png" alt="⭐"></div></div>'
+        +'<button class="balance-plus-btn" onclick="window.location.href=\'/topup\'">+</button>'
+        +'<div class="online-badge" id="onlineBadge">'
+        +'<span class="online-dot"></span>'
+        +'<span class="online-count" id="onlineCount">...</span></div>';
+    container.insertBefore(hdr,container.firstChild);
+}
 
 // ============ DESKTOP NAVIGATION ============
 function injectDesktopNav(){
     if(document.getElementById('desktopNav'))return;
-    // Detect current page for active state
     const path=window.location.pathname;
     function navActive(p){
         if(p==='/cases'&&(path==='/'||path==='/cases'))return' active';
@@ -639,6 +717,7 @@ function injectDesktopNav(){
         +'<a class="desktop-nav-link'+navActive('/cases')+'" href="/cases"><img src="/static/img/cases.png" alt="">КЕЙСЫ</a>'
         +'<a class="desktop-nav-link'+navActive('/games')+'" href="/games"><img src="/static/img/games.png" alt="">ИГРЫ</a>'
         +'<a class="desktop-nav-link'+navActive('/scratch')+'" href="/scratch"><img src="/static/img/moon.png" alt="">СКРЕТЧИ</a>'
+        +'<a class="desktop-nav-link'+navActive('/market')+'" href="/market"><img src="/static/img/gift.png" alt="">МАРКЕТ</a>'
         +'<a class="desktop-nav-link'+navActive('/referral')+'" href="/referral"><img src="/static/img/ref.png" alt="">ДРУЗЬЯ</a>'
         +'</div>'
         +'<div class="desktop-nav-right">'

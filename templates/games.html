@@ -200,6 +200,12 @@
     </div>
 
     <div class="games-container">
+        <!-- Banners Carousel -->
+        <div class="banners-carousel" id="bannersCarousel" style="display:none;">
+            <div class="banners-track" id="bannersTrack"></div>
+            <div class="banners-dots" id="bannersDots"></div>
+        </div>
+
         <!-- Banner -->
         <div class="games-banner" id="gamesBanner" style="display:none;" onclick="window.location.href='/cases'">
             <div class="games-banner-text">
@@ -281,8 +287,41 @@
         await initApp();
         setLoadProgress(65, 'TON Connect...');
         initTonConnect();
+        loadBanners();
         dismissLoading();
     });
+
+    // ── Banners Carousel ──
+    let _bannerIdx=0;let _bannerCount=0;let _bannerTimer=null;
+    async function loadBanners(){
+        try{
+            const res=await fetch('/api/banners');
+            const banners=await res.json();
+            if(!banners.length)return;
+            _bannerCount=banners.length;
+            const carousel=document.getElementById('bannersCarousel');
+            const track=document.getElementById('bannersTrack');
+            const dots=document.getElementById('bannersDots');
+            track.innerHTML=banners.map(function(url){return '<div class="banner-slide"><img src="'+url+'" alt="" onerror="this.parentElement.style.display=\'none\'"></div>';}).join('');
+            if(_bannerCount>1){
+                dots.innerHTML=banners.map(function(_,i){return '<span class="banners-dot'+(i===0?' active':'')+'" onclick="goToBanner('+i+')"></span>';}).join('');
+            }
+            carousel.style.display='block';
+            if(_bannerCount>1){
+                _bannerTimer=setInterval(function(){nextBanner();},5000);
+            }
+        }catch(e){}
+    }
+    function goToBanner(idx){
+        _bannerIdx=idx;
+        document.getElementById('bannersTrack').style.transform='translateX(-'+(_bannerIdx*100)+'%)';
+        document.querySelectorAll('.banners-dot').forEach(function(d,i){d.classList.toggle('active',i===_bannerIdx);});
+        if(_bannerTimer){clearInterval(_bannerTimer);_bannerTimer=setInterval(function(){nextBanner();},5000);}
+    }
+    function nextBanner(){
+        _bannerIdx=(_bannerIdx+1)%_bannerCount;
+        goToBanner(_bannerIdx);
+    }
     </script>
 </body>
 </html>
