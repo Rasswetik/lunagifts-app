@@ -339,6 +339,9 @@
     const WAIT_COLORS = ['#1a1f2e','#1e2438','#1a1f2e','#1e2438','#1a1f2e','#1e2438','#1a1f2e','#1e2438','#1a1f2e','#1e2438','#1a1f2e','#1e2438'];
 
     // ── Draw Wheel ──
+    let wheelGlowPhase = 0;
+    let wheelPulseAnim = null;
+    
     function drawWheel(players, rotation){
         ctx.clearRect(0, 0, W, H);
 
@@ -351,52 +354,93 @@
         if(total === 0){ drawWaitingWheel(); return; }
 
         let startAngle = -Math.PI/2 + (rotation||0) * Math.PI/180;
+        
+        // Outer glow effect
+        ctx.save();
+        ctx.shadowColor = players.length === 1 ? players[0].color : '#6C5CE7';
+        ctx.shadowBlur = 20 + Math.sin(wheelGlowPhase) * 5;
+        ctx.beginPath();
+        ctx.arc(CX, CY, R + 2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0)';
+        ctx.stroke();
+        ctx.restore();
 
         players.forEach((p, i) => {
             const slice = (p.amount / total) * Math.PI * 2;
 
-            // Gradient-like fill for each slice
+            // Main slice with gradient
             ctx.beginPath();
             ctx.moveTo(CX, CY);
             ctx.arc(CX, CY, R, startAngle, startAngle + slice);
             ctx.closePath();
-            ctx.fillStyle = p.color || '#444';
-            ctx.fill();
-
-            // Inner shadow on slice
-            ctx.beginPath();
-            ctx.moveTo(CX, CY);
-            ctx.arc(CX, CY, R, startAngle, startAngle + slice);
-            ctx.closePath();
-            const grad = ctx.createRadialGradient(CX, CY, R*0.3, CX, CY, R);
-            grad.addColorStop(0, 'rgba(0,0,0,.15)');
-            grad.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            // Avatar in slice center (no divider lines for cleaner look)
+            
+            // Create radial gradient for depth
             const midAngle = startAngle + slice/2;
-            const avatarDist = R * 0.62;
+            const gx = CX + R * 0.3 * Math.cos(midAngle);
+            const gy = CY + R * 0.3 * Math.sin(midAngle);
+            const sliceGrad = ctx.createRadialGradient(gx, gy, 0, CX, CY, R);
+            sliceGrad.addColorStop(0, lightenColor(p.color || '#444', 20));
+            sliceGrad.addColorStop(0.7, p.color || '#444');
+            sliceGrad.addColorStop(1, darkenColor(p.color || '#444', 30));
+            ctx.fillStyle = sliceGrad;
+            ctx.fill();
+
+            // Inner shadow overlay
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.arc(CX, CY, R, startAngle, startAngle + slice);
+            ctx.closePath();
+            const shadowGrad = ctx.createRadialGradient(CX, CY, R*0.2, CX, CY, R);
+            shadowGrad.addColorStop(0, 'rgba(255,255,255,.08)');
+            shadowGrad.addColorStop(0.5, 'rgba(0,0,0,0)');
+            shadowGrad.addColorStop(1, 'rgba(0,0,0,.2)');
+            ctx.fillStyle = shadowGrad;
+            ctx.fill();
+
+            // Thin slice divider for multiple players
+            if(players.length > 1){
+                ctx.beginPath();
+                ctx.moveTo(CX, CY);
+                ctx.lineTo(CX + R * Math.cos(startAngle), CY + R * Math.sin(startAngle));
+                ctx.strokeStyle = 'rgba(0,0,0,.3)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Avatar in slice center
+            const avatarDist = players.length === 1 ? R * 0.5 : R * 0.62;
             const ax = CX + avatarDist * Math.cos(midAngle);
             const ay = CY + avatarDist * Math.sin(midAngle);
-            const avatarR = Math.min(28, Math.max(14, slice * R * 0.12));
+            const avatarR = players.length === 1 ? 36 : Math.min(28, Math.max(14, slice * R * 0.12));
 
-            // Draw avatar circle with photo or letter
+            // Avatar glow
+            ctx.save();
+            ctx.shadowColor = p.color || '#fff';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(ax, ay, avatarR + 2, 0, Math.PI*2);
+            ctx.fillStyle = 'rgba(0,0,0,.4)';
+            ctx.fill();
+            ctx.restore();
+
+            // Avatar circle
             ctx.save();
             ctx.beginPath();
             ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
             ctx.clip();
             
-            // Try to draw photo if loaded
             const img = avatarImages[p.telegram_id];
             if(img && img.complete && img.naturalWidth > 0){
                 ctx.drawImage(img, ax - avatarR, ay - avatarR, avatarR*2, avatarR*2);
             } else {
-                // Letter avatar fallback
-                ctx.fillStyle = 'rgba(0,0,0,.5)';
+                // Gradient letter avatar
+                const avatarGrad = ctx.createLinearGradient(ax - avatarR, ay - avatarR, ax + avatarR, ay + avatarR);
+                avatarGrad.addColorStop(0, darkenColor(p.color || '#444', 10));
+                avatarGrad.addColorStop(1, darkenColor(p.color || '#444', 30));
+                ctx.fillStyle = avatarGrad;
                 ctx.fillRect(ax - avatarR, ay - avatarR, avatarR*2, avatarR*2);
                 ctx.fillStyle = '#fff';
-                ctx.font = `bold ${Math.round(avatarR*1.2)}px -apple-system,sans-serif`;
+                ctx.font = `bold ${Math.round(avatarR*1.1)}px -apple-system,sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText((p.first_name||p.username||'?')[0].toUpperCase(), ax, ay);
@@ -405,22 +449,96 @@
 
             startAngle += slice;
         });
+        
+        // Center hole overlay for depth
+        const centerGrad = ctx.createRadialGradient(CX, CY, 30, CX, CY, 50);
+        centerGrad.addColorStop(0, 'rgba(17,19,24,1)');
+        centerGrad.addColorStop(0.7, 'rgba(17,19,24,0.9)');
+        centerGrad.addColorStop(1, 'rgba(17,19,24,0)');
+        ctx.beginPath();
+        ctx.arc(CX, CY, 50, 0, Math.PI * 2);
+        ctx.fillStyle = centerGrad;
+        ctx.fill();
+    }
+    
+    // Color helpers
+    function lightenColor(hex, percent){
+        const num = parseInt(hex.replace('#',''), 16);
+        const r = Math.min(255, (num >> 16) + percent);
+        const g = Math.min(255, ((num >> 8) & 0x00FF) + percent);
+        const b = Math.min(255, (num & 0x0000FF) + percent);
+        return '#' + (0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
+    }
+    
+    function darkenColor(hex, percent){
+        const num = parseInt(hex.replace('#',''), 16);
+        const r = Math.max(0, (num >> 16) - percent);
+        const g = Math.max(0, ((num >> 8) & 0x00FF) - percent);
+        const b = Math.max(0, (num & 0x0000FF) - percent);
+        return '#' + (0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
+    }
+    
+    // Pulse animation for wheel glow
+    function startWheelPulse(){
+        if(wheelPulseAnim) return;
+        function pulse(){
+            wheelGlowPhase += 0.08;
+            wheelPulseAnim = requestAnimationFrame(pulse);
+        }
+        wheelPulseAnim = requestAnimationFrame(pulse);
+    }
+    
+    function stopWheelPulse(){
+        if(wheelPulseAnim){ cancelAnimationFrame(wheelPulseAnim); wheelPulseAnim = null; }
     }
 
     function drawWaitingWheel(){
+        ctx.clearRect(0, 0, W, H);
+        
         const segments = 12;
         const sliceAngle = (Math.PI*2)/segments;
         let start = -Math.PI/2 + (waitingRotation * Math.PI/180);
+        
+        // Subtle outer glow
+        ctx.save();
+        ctx.shadowColor = '#6C5CE7';
+        ctx.shadowBlur = 15 + Math.sin(waitingRotation * 0.02) * 5;
+        ctx.beginPath();
+        ctx.arc(CX, CY, R, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(108,92,231,0.2)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
 
         for(let i=0; i<segments; i++){
             ctx.beginPath();
             ctx.moveTo(CX, CY);
             ctx.arc(CX, CY, R, start, start + sliceAngle);
             ctx.closePath();
-            ctx.fillStyle = i%2===0 ? '#1a1e2e' : '#22283a';
+            
+            // Gradient fill for each segment
+            const midAngle = start + sliceAngle/2;
+            const baseColor = i%2===0 ? '#1a1e2e' : '#22283a';
+            const edgeColor = i%2===0 ? '#151928' : '#1c2030';
+            const segGrad = ctx.createRadialGradient(CX, CY, 0, CX, CY, R);
+            segGrad.addColorStop(0, baseColor);
+            segGrad.addColorStop(0.8, baseColor);
+            segGrad.addColorStop(1, edgeColor);
+            ctx.fillStyle = segGrad;
             ctx.fill();
+            
             start += sliceAngle;
         }
+        
+        // Center gradient
+        const centerGrad = ctx.createRadialGradient(CX, CY, 25, CX, CY, 50);
+        centerGrad.addColorStop(0, 'rgba(17,19,24,1)');
+        centerGrad.addColorStop(0.8, 'rgba(17,19,24,0.95)');
+        centerGrad.addColorStop(1, 'rgba(17,19,24,0)');
+        ctx.beginPath();
+        ctx.arc(CX, CY, 50, 0, Math.PI * 2);
+        ctx.fillStyle = centerGrad;
+        ctx.fill();
     }
 
     // Slow waiting rotation
@@ -446,12 +564,77 @@
         // We use colored letter avatars which look better anyway
     }
 
+    // ── Wheel transition animation ──
+    let transitionAnim = null;
+    function animateWheelTransition(players){
+        if(transitionAnim) cancelAnimationFrame(transitionAnim);
+        
+        let scale = 0.85;
+        const targetScale = 1;
+        const duration = 400;
+        const startTime = performance.now();
+        
+        function animate(now){
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            // Ease out back for bouncy effect
+            const eased = 1 - Math.pow(1 - progress, 3);
+            scale = 0.85 + eased * 0.15;
+            
+            ctx.save();
+            ctx.clearRect(0, 0, W, H);
+            ctx.translate(CX, CY);
+            ctx.scale(scale, scale);
+            ctx.translate(-CX, -CY);
+            drawWheelInternal(players, 0);
+            ctx.restore();
+            
+            if(progress < 1){
+                transitionAnim = requestAnimationFrame(animate);
+            } else {
+                transitionAnim = null;
+                drawWheel(players, 0);
+            }
+        }
+        transitionAnim = requestAnimationFrame(animate);
+    }
+    
+    function drawWheelInternal(players, rotation){
+        // Same as drawWheel but without clearRect (for transform animations)
+        const total = players.reduce((s,p) => s + p.amount, 0);
+        if(total === 0) return;
+        
+        let startAngle = -Math.PI/2 + (rotation||0) * Math.PI/180;
+        
+        players.forEach((p, i) => {
+            const slice = (p.amount / total) * Math.PI * 2;
+            const midAngle = startAngle + slice/2;
+            
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.arc(CX, CY, R, startAngle, startAngle + slice);
+            ctx.closePath();
+            
+            const gx = CX + R * 0.3 * Math.cos(midAngle);
+            const gy = CY + R * 0.3 * Math.sin(midAngle);
+            const sliceGrad = ctx.createRadialGradient(gx, gy, 0, CX, CY, R);
+            sliceGrad.addColorStop(0, lightenColor(p.color || '#444', 20));
+            sliceGrad.addColorStop(0.7, p.color || '#444');
+            sliceGrad.addColorStop(1, darkenColor(p.color || '#444', 30));
+            ctx.fillStyle = sliceGrad;
+            ctx.fill();
+            
+            startAngle += slice;
+        });
+    }
+
     // ── Spin animation ──
     function spinWheel(targetAngle, players){
         if(isSpinning) return;
         isSpinning = true;
         resultShown = false;
         stopWaitingAnim();
+        stopWheelPulse();
 
         const duration = 6000;
         const startTime = performance.now();
@@ -466,7 +649,6 @@
         function animate(now){
             const elapsed = now - startTime;
             const progress = Math.min(1, elapsed / duration);
-            // Exponential ease out for realistic deceleration
             const eased = easeOutExpo(progress);
             wheelRotation = startRot + eased * endRot;
             drawWheel(players, wheelRotation);
@@ -476,7 +658,6 @@
             } else {
                 isSpinning = false;
                 wheelRotation = endRot;
-                // Final redraw to ensure perfect alignment
                 drawWheel(players, wheelRotation);
             }
         }
@@ -585,15 +766,21 @@
         // Draw wheel (only if not currently spinning and players actually changed)
         if(!isSpinning){
             if(status === 'spinning' && prevStatus !== 'spinning'){
+                stopWaitingAnim();
+                stopWheelPulse();
                 spinWheel(state.spin_angle, players);
             } else if(status !== 'spinning'){
                 // Only redraw if players changed or game reset
                 if(playersChanged || state.game_id !== prevGameId){
                     wheelRotation = 0;
                     if(players.length > 0){
-                        drawWheel(players, 0);
+                        stopWaitingAnim();
+                        startWheelPulse();
+                        // Smooth transition animation
+                        animateWheelTransition(players);
                     } else {
-                        drawWaitingWheel();
+                        stopWheelPulse();
+                        startWaitingAnim();
                     }
                 }
             }
@@ -610,11 +797,18 @@
             showPvpResult(state);
         }
 
-        // New game reset
+        // New game reset - clear everything
         if(state.game_id !== prevGameId && prevGameId !== 0){
             resultShown = false;
             wheelRotation = 0;
+            isSpinning = false;
             closePvpResult();
+            // Force clear player list UI immediately
+            document.getElementById('pvpPlayersList').innerHTML = '';
+            document.getElementById('pvpPlayerCount').textContent = '0';
+            // Reset to waiting wheel with animation
+            drawWaitingWheel();
+            startWaitingAnim();
         }
 
         // Info text
