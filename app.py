@@ -388,12 +388,28 @@ def start_pvp_loop():
 
             # Create new game
             game_hash = _pvp_generate_hash()
-            game_id = db.insert_returning_id(
-                'pvp_games',
-                ['status', 'total_pot', 'hash'],
-                ('waiting', 0, game_hash)
-            )
+            try:
+                game_id = db.insert_returning_id(
+                    'pvp_games',
+                    ['status', 'total_pot', 'hash'],
+                    ('waiting', 0, game_hash)
+                )
+            except Exception as e:
+                logging.error(f"insert_returning_id failed: {e}, falling back to SELECT")
+                db.execute(
+                    "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
+                    ('waiting', 0, game_hash)
+                )
+                db.commit()
+                row = db.execute("SELECT id FROM pvp_games WHERE hash = ? ORDER BY id DESC LIMIT 1", (game_hash,)).fetchone()
+                game_id = row['id'] if row else 0
             db.commit()
+            
+            if game_id == 0:
+                logging.error("Failed to create PVP game - game_id is 0")
+                db.close()
+                _time.sleep(2)
+                continue
 
             update_pvp_cache(
                 game_id=game_id, status='waiting', players=[], total_pot=0,
