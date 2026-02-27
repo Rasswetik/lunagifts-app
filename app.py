@@ -376,20 +376,34 @@ def _pvp_generate_hash():
 def _pvp_create_game(db):
     """Create a new PVP game and update cache. Returns game_id."""
     game_hash = _pvp_generate_hash()
-    db.execute(
-        "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
-        ('waiting', 0, game_hash)
-    )
-    db.commit()
     
-    row = db.execute("SELECT id FROM pvp_games WHERE hash = ?", (game_hash,)).fetchone()
-    if row is None:
-        return 0
-    
+    # Use RETURNING for reliable id retrieval
     try:
-        game_id = row['id']
-    except (TypeError, KeyError):
-        game_id = row[0] if row else 0
+        game_id = db.insert_returning_id(
+            'pvp_games',
+            ['status', 'total_pot', 'hash'],
+            ('waiting', 0, game_hash)
+        )
+        db.commit()
+    except AttributeError:
+        # Fallback for connections without insert_returning_id
+        db.execute(
+            "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
+            ('waiting', 0, game_hash)
+        )
+        db.commit()
+        row = db.execute("SELECT id FROM pvp_games WHERE hash = ?", (game_hash,)).fetchone()
+        if row is None:
+            logging.error(f"PVP: Failed to get game_id for hash {game_hash}")
+            return 0
+        try:
+            game_id = row['id']
+        except (TypeError, KeyError):
+            game_id = row[0] if row else 0
+    
+    if not game_id:
+        logging.error(f"PVP: game_id is 0 after insert, hash={game_hash}")
+        return 0
     
     with _pvp_lock:
         _pvp_cache['game_id'] = game_id
@@ -403,6 +417,8 @@ def _pvp_create_game(db):
         _pvp_cache['countdown_started_at'] = 0
         _pvp_cache['spin_started_at'] = 0
         _pvp_cache['result_shown_at'] = 0
+        _pvp_cache['needs_refund'] = False
+        _pvp_cache['refund_players'] = []
     
     logging.info(f"PVP game #{game_id} created, hash={game_hash}")
     return game_id
