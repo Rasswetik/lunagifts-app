@@ -432,7 +432,12 @@ def start_pvp_loop():
                 game_id=game_id, status='waiting', players=[], total_pot=0,
                 countdown=0, winner=None, spin_angle=0, hash=game_hash
             )
-            logging.info(f"PVP game #{game_id} created, hash={game_hash}")
+            logging.info(f"PVP game #{game_id} created and CACHED, hash={game_hash}")
+            
+            # Verify cache was updated
+            with _pvp_lock:
+                cached_id = _pvp_cache['game_id']
+            logging.info(f"PVP: After update_pvp_cache, cached game_id={cached_id}")
 
             # Wait for at least 2 players
             while True:
@@ -2203,36 +2208,44 @@ def api_admin_pvp_debug():
     with _pvp_lock:
         cache_copy = dict(_pvp_cache)
     
-    # Test SELECT by hash
+    # Test SELECT by hash - simulating exactly what the PVP loop does
     test_result = None
+    db_test = None
     if games:
         test_hash = games[0]['hash']
-        row = db.execute("SELECT id FROM pvp_games WHERE hash = ?", (test_hash,)).fetchone()
-        if row:
-            test_result = {
-                'hash_tested': test_hash,
-                'row_type': str(type(row)),
-                'row_str': str(row),
-                'row_dict_access': row.get('id') if hasattr(row, 'get') else 'no get',
-                'row_bracket_access': None,
-                'row_index_access': None,
-            }
-            try:
-                test_result['row_bracket_access'] = row['id']
-            except Exception as e:
-                test_result['row_bracket_access'] = f"error: {e}"
-            try:
-                test_result['row_index_access'] = row[0]
-            except Exception as e:
-                test_result['row_index_access'] = f"error: {e}"
-        else:
-            test_result = {'hash_tested': test_hash, 'row': None}
+        try:
+            # Use connect_db() like PVP loop does, not get_db()
+            test_db = connect_db()
+            row = test_db.execute("SELECT id FROM pvp_games WHERE hash = ?", (test_hash,)).fetchone()
+            test_db.close()
+            
+            if row:
+                test_result = {
+                    'hash_tested': test_hash,
+                    'row_type': str(type(row)),
+                    'row_str': str(row),
+                    'row_bracket_access': None,
+                    'row_index_access': None,
+                }
+                try:
+                    test_result['row_bracket_access'] = row['id']
+                except Exception as e:
+                    test_result['row_bracket_access'] = f"error: {e}"
+                try:
+                    test_result['row_index_access'] = row[0]
+                except Exception as e:
+                    test_result['row_index_access'] = f"error: {e}"
+            else:
+                test_result = {'hash_tested': test_hash, 'row': None}
+        except Exception as e:
+            db_test = f"connect_db test error: {e}"
     
     return jsonify({
         'cache': cache_copy,
         'recent_games': [dict(g) for g in games],
         'threads_started': _threads_started,
-        'select_test': test_result
+        'select_test': test_result,
+        'db_test_error': db_test
     })
 
 
