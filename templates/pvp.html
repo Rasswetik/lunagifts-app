@@ -30,10 +30,10 @@
     .pvp-wheel-wrap{position:relative;width:290px;height:290px;margin:0 auto 0;}
     @media(min-width:400px){.pvp-wheel-wrap{width:330px;height:330px;}}
 
-    .pvp-wheel-ring{position:absolute;inset:-8px;border-radius:50%;border:3px solid rgba(255,255,255,.06);pointer-events:none;z-index:1;}
-    .pvp-wheel-ring.countdown-active{border-color:var(--pvp-green);box-shadow:0 0 20px rgba(0,210,160,.15);transition:border-color .3s,box-shadow .3s;}
+    .pvp-wheel-ring{position:absolute;inset:-8px;border-radius:50%;border:none;pointer-events:none;z-index:1;}
+    .pvp-wheel-ring.countdown-active{border:none;box-shadow:none;}
 
-    .pvp-wheel-outer{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#0d1220;box-shadow:inset 0 0 60px rgba(0,0,0,.5),0 0 40px rgba(0,0,0,.3);}
+    .pvp-wheel-outer{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#0d1220;box-shadow:none;}
     #pvpWheelCanvas{width:100%;height:100%;border-radius:50%;}
 
     /* Pointer */
@@ -41,7 +41,7 @@
     .pvp-pointer.active{filter:drop-shadow(0 2px 12px rgba(0,210,160,.5));border-top-color:var(--pvp-green);}
 
     /* Center overlay */
-    .pvp-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:86px;height:86px;border-radius:50%;background:var(--pvp-bg);border:3px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:5;box-shadow:0 0 30px rgba(0,0,0,.4);}
+    .pvp-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;border-radius:50%;background:#111318;border:none;display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:5;box-shadow:0 0 20px rgba(0,0,0,.8);}
     .pvp-center-text{font-size:13px;font-weight:800;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:2px;}
     .pvp-center-text.live{color:var(--pvp-green);text-shadow:0 0 16px rgba(0,210,160,.4);animation:pvpLivePulse 2s ease-in-out infinite;}
     @keyframes pvpLivePulse{0%,100%{opacity:1;text-shadow:0 0 16px rgba(0,210,160,.4);}50%{opacity:.7;text-shadow:0 0 24px rgba(0,210,160,.6);}}
@@ -214,17 +214,12 @@
         <!-- Wheel Section -->
         <div class="pvp-wheel-section">
             <div class="pvp-wheel-wrap" id="pvpWheelWrap">
-                <div class="pvp-wheel-ring" id="pvpWheelRing"></div>
                 <div class="pvp-pointer" id="pvpPointer"></div>
                 <div class="pvp-wheel-outer" id="pvpWheelOuter">
                     <canvas id="pvpWheelCanvas" width="680" height="680"></canvas>
                 </div>
                 <div class="pvp-center" id="pvpCenter">
-                    <svg class="pvp-progress-ring" id="pvpProgressRing" viewBox="0 0 94 94">
-                        <circle class="ring-bg" cx="47" cy="47" r="45"></circle>
-                        <circle class="ring-progress" id="pvpRingProgress" cx="47" cy="47" r="45"></circle>
-                    </svg>
-                    <div class="pvp-center-text" id="pvpCenterText">WAITING</div>
+                    <div class="pvp-center-text" id="pvpCenterText">LIVE</div>
                     <div class="pvp-center-timer" id="pvpCenterTimer" style="display:none;">00:30</div>
                     <div class="pvp-center-timer-label" id="pvpCenterTimerLabel" style="display:none;">remaining</div>
                 </div>
@@ -379,51 +374,37 @@
             ctx.fillStyle = grad;
             ctx.fill();
 
-            // Divider line
-            ctx.beginPath();
-            ctx.moveTo(CX, CY);
-            ctx.lineTo(CX + R * Math.cos(startAngle), CY + R * Math.sin(startAngle));
-            ctx.strokeStyle = 'rgba(0,0,0,.35)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            // Avatar in slice center
+            // Avatar in slice center (no divider lines for cleaner look)
             const midAngle = startAngle + slice/2;
-            const avatarDist = R * 0.6;
+            const avatarDist = R * 0.62;
             const ax = CX + avatarDist * Math.cos(midAngle);
             const ay = CY + avatarDist * Math.sin(midAngle);
-            const avatarR = Math.min(32, Math.max(16, slice * R * 0.14));
+            const avatarR = Math.min(28, Math.max(14, slice * R * 0.12));
 
-            // Letter avatar with colored background
+            // Draw avatar circle with photo or letter
+            ctx.save();
             ctx.beginPath();
             ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
-            ctx.fillStyle = p.color || 'rgba(0,0,0,.35)';
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = '#fff';
-            ctx.font = `bold ${Math.round(avatarR*1.1)}px -apple-system,BlinkMacSystemFont,sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText((p.first_name||p.username||'?')[0].toUpperCase(), ax, ay);
+            ctx.clip();
+            
+            // Try to draw photo if loaded
+            const img = avatarImages[p.telegram_id];
+            if(img && img.complete && img.naturalWidth > 0){
+                ctx.drawImage(img, ax - avatarR, ay - avatarR, avatarR*2, avatarR*2);
+            } else {
+                // Letter avatar fallback
+                ctx.fillStyle = 'rgba(0,0,0,.5)';
+                ctx.fillRect(ax - avatarR, ay - avatarR, avatarR*2, avatarR*2);
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${Math.round(avatarR*1.2)}px -apple-system,sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText((p.first_name||p.username||'?')[0].toUpperCase(), ax, ay);
+            }
+            ctx.restore();
 
             startAngle += slice;
         });
-
-        // Outer ring glow
-        ctx.beginPath();
-        ctx.arc(CX, CY, R+2, 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(255,255,255,.06)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        // Inner ring
-        ctx.beginPath();
-        ctx.arc(CX, CY, R*0.25, 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(255,255,255,.04)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
     }
 
     function drawWaitingWheel(){
@@ -436,33 +417,10 @@
             ctx.moveTo(CX, CY);
             ctx.arc(CX, CY, R, start, start + sliceAngle);
             ctx.closePath();
-            ctx.fillStyle = i%2===0 ? '#161b2b' : '#1a2035';
+            ctx.fillStyle = i%2===0 ? '#1a1e2e' : '#22283a';
             ctx.fill();
-
-            // Subtle divider
-            ctx.beginPath();
-            ctx.moveTo(CX, CY);
-            ctx.lineTo(CX + R * Math.cos(start), CY + R * Math.sin(start));
-            ctx.strokeStyle = 'rgba(255,255,255,.03)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
             start += sliceAngle;
         }
-
-        // Outer ring
-        ctx.beginPath();
-        ctx.arc(CX, CY, R, 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(255,255,255,.05)';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        // Inner subtle ring
-        ctx.beginPath();
-        ctx.arc(CX, CY, R*0.25, 0, Math.PI*2);
-        ctx.strokeStyle = 'rgba(255,255,255,.03)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
     }
 
     // Slow waiting rotation
@@ -561,11 +519,8 @@
         document.getElementById('pvpPlayerCount').textContent = players.length;
         document.getElementById('pvpPlayerPlural').textContent = players.length === 1 ? '' : 's';
 
-        // Ring + pointer state
-        const ring = document.getElementById('pvpWheelRing');
+        // Ring + pointer state (simplified)
         const pointer = document.getElementById('pvpPointer');
-        const progressRing = document.getElementById('pvpRingProgress');
-        const RING_CIRCUMFERENCE = 282.6;
 
         // Center text
         const centerText = document.getElementById('pvpCenterText');
@@ -573,27 +528,20 @@
         const centerTimerLabel = document.getElementById('pvpCenterTimerLabel');
 
         if(status === 'loading'){
-            centerText.textContent = 'LOADING';
-            centerText.className = 'pvp-center-text';
+            centerText.textContent = 'LIVE';
+            centerText.className = 'pvp-center-text live';
             centerText.style.display = '';
             centerTimer.style.display = 'none';
             centerTimerLabel.style.display = 'none';
-            ring.classList.remove('countdown-active');
-            pointer.classList.remove('active');
-            progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE;
             startWaitingAnim();
-            // Disable bets during loading
             document.querySelectorAll('.pvp-bet-btn').forEach(b => b.disabled = true);
             return;
         } else if(status === 'waiting' || (status === 'betting' && players.length < 2)){
-            centerText.textContent = 'WAITING';
-            centerText.className = 'pvp-center-text';
+            centerText.textContent = 'LIVE';
+            centerText.className = 'pvp-center-text live';
             centerText.style.display = '';
             centerTimer.style.display = 'none';
             centerTimerLabel.style.display = 'none';
-            ring.classList.remove('countdown-active');
-            pointer.classList.remove('active');
-            progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE;
             if(players.length === 0) startWaitingAnim();
             else stopWaitingAnim();
         } else if(status === 'betting' || status === 'countdown'){
@@ -604,21 +552,14 @@
                 centerTimerLabel.style.display = '';
                 const secs = Math.ceil(countdown);
                 centerTimer.textContent = String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
-                ring.classList.add('countdown-active');
                 pointer.classList.add('active');
-                // Update circular progress ring (30 second countdown)
-                const maxCountdown = 30;
-                const progress = Math.min(1, (maxCountdown - countdown) / maxCountdown);
-                progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
             } else {
                 centerText.textContent = 'LIVE';
                 centerText.className = 'pvp-center-text live';
                 centerText.style.display = '';
                 centerTimer.style.display = 'none';
                 centerTimerLabel.style.display = 'none';
-                ring.classList.remove('countdown-active');
                 pointer.classList.add('active');
-                progressRing.style.strokeDashoffset = 0;
             }
         } else if(status === 'spinning'){
             stopWaitingAnim();
@@ -627,14 +568,14 @@
             centerText.style.display = '';
             centerTimer.style.display = 'none';
             centerTimerLabel.style.display = 'none';
-            ring.classList.remove('countdown-active');
             pointer.classList.add('active');
         } else if(status === 'result'){
             stopWaitingAnim();
-            centerText.style.display = 'none';
+            centerText.textContent = 'LIVE';
+            centerText.className = 'pvp-center-text live';
+            centerText.style.display = '';
             centerTimer.style.display = 'none';
             centerTimerLabel.style.display = 'none';
-            ring.classList.remove('countdown-active');
             pointer.classList.remove('active');
         }
 

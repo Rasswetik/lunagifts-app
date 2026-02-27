@@ -480,12 +480,9 @@ def _pvp_tick():
                 _pvp_cache['result_shown_at'] = now
                 logging.info(f"PVP game #{game_id} showing result")
         
-        # Result phase - show for 5 seconds then create new game
+        # Result phase - background thread handles transition to new game
         elif status == 'result':
-            shown_at = _pvp_cache.get('result_shown_at', 0)
-            if shown_at > 0 and now - shown_at > 5:
-                # Mark for new game
-                _pvp_cache['game_id'] = 0
+            pass  # Background thread will create new game after 5 seconds
 
 
 def _pvp_finalize_game(db, game_id):
@@ -553,13 +550,14 @@ def start_pvp_loop():
                         _pvp_cache['status'] = 'result'
                         _pvp_cache['result_shown_at'] = _time.time()
             
-            # Create new game after result
+            # Create new game after result (5 second display)
             elif status == 'result':
                 result_at = _pvp_cache.get('result_shown_at', 0)
                 if result_at > 0 and _time.time() - result_at > 5:
                     db = connect_db()
-                    _pvp_create_game(db)
+                    _pvp_create_game(db)  # This atomically updates cache with new game_id
                     db.close()
+                    logging.info("PVP: New game created after result display")
             
             # Create game if none exists
             elif game_id == 0:
