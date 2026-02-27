@@ -388,6 +388,7 @@ def start_pvp_loop():
 
             # Create new game
             game_hash = _pvp_generate_hash()
+            logging.info(f"PVP: Creating new game with hash={game_hash}")
             
             # Insert the game
             db.execute(
@@ -395,16 +396,34 @@ def start_pvp_loop():
                 ('waiting', 0, game_hash)
             )
             db.commit()
+            logging.info("PVP: INSERT committed")
             
             # Get the ID by hash (works for both SQLite and PostgreSQL)
             row = db.execute(
                 "SELECT id FROM pvp_games WHERE hash = ?", 
                 (game_hash,)
             ).fetchone()
-            game_id = row['id'] if row else 0
+            logging.info(f"PVP: SELECT result row={row}")
+            
+            if row is None:
+                logging.error(f"PVP: SELECT returned None for hash={game_hash}")
+                db.close()
+                _time.sleep(2)
+                continue
+            
+            # Access the ID - try both dict and tuple access
+            try:
+                game_id = row['id']
+            except (TypeError, KeyError):
+                try:
+                    game_id = row[0]
+                except (TypeError, IndexError):
+                    game_id = 0
+            
+            logging.info(f"PVP: Got game_id={game_id}")
             
             if game_id == 0:
-                logging.error(f"Failed to create PVP game - game_id is 0, hash={game_hash}")
+                logging.error(f"PVP: game_id is 0 after extraction, row={row}")
                 db.close()
                 _time.sleep(2)
                 continue
