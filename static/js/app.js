@@ -222,18 +222,27 @@ function injectTopupModals(){
     +'<div class="modal-overlay" id="topupModal"><div class="modal">'
     +'<div class="sheet-handle"></div>'
     +'<div style="font-size:18px;font-weight:800;margin-bottom:16px;">Пополнение</div>'
-    +'<div class="topup-row disabled">'
+    +'<div class="topup-row" onclick="showNotification(\'Отправьте подарок боту @lunagifts_robot\',\'info\')">'
     +'<img class="topup-row-icon" src="/static/img/gift.png" alt="">'
-    +'<div class="topup-row-info"><div class="topup-row-title">Депозит подарками</div><div class="topup-row-desc">Появится в инвенторе LunaGifts</div></div>'
-    +'<span class="topup-row-badge">Скоро</span></div>'
+    +'<div class="topup-row-info"><div class="topup-row-title">Депозит подарками</div><div class="topup-row-desc">Отправьте подарок боту</div></div>'
+    +'<span class="topup-row-badge">TopGift</span></div>'
+    +'<div class="topup-row" onclick="openCryptoBotTopup()">'
+    +'<img class="topup-row-icon" src="/static/img/star.png" alt="">'
+    +'<div class="topup-row-info"><div class="topup-row-title">USDT (CryptoBot)</div><div class="topup-row-desc">5% бонус звёздами</div></div>'
+    +'<span class="topup-row-badge">от 1</span></div>'
     +'<div class="topup-row" onclick="openTopupSheet(\'ton\')">'
     +'<img class="topup-row-icon" src="/static/img/ton.png" alt="" onerror="this.src=\'/static/img/star.png\'">'
     +'<div class="topup-row-info"><div class="topup-row-title">Toncoin</div><div class="topup-row-desc">Без комиссии</div></div>'
-    +'<span class="topup-row-badge">от 0.2</span></div>'
+    +'<span class="topup-row-badge">от 0.4</span></div>'
     +'<div class="topup-row" onclick="openTopupSheet(\'stars\')">'
     +'<img class="topup-row-icon" src="/static/img/star.png" alt="">'
     +'<div class="topup-row-info"><div class="topup-row-title">Telegram Stars</div><div class="topup-row-desc">Без комиссии</div></div>'
     +'<span class="topup-row-badge">от 1</span></div>'
+    +'<div class="topup-row" onclick="openCryptoBotTopup()">'
+    +'<img class="topup-row-icon" src="/static/img/ton.png" alt="" onerror="this.src=\'/static/img/star.png\'">'
+    +'<div class="topup-row-info"><div class="topup-row-title">Crypto Bot</div><div class="topup-row-desc">TON, USDT, BTC</div></div>'
+    +'<span class="topup-row-badge">Crypto</span></div>'
+    +'<button class="sheet-continue-btn active" style="margin-top:14px;width:100%;" onclick="closeModal(\'topupModal\')">Закрыть</button>'
     +'</div></div>'
 
     +'<div class="bottom-sheet-overlay" id="topupSheet" onclick="if(event.target===this)closeTopupSheet();">'
@@ -360,6 +369,16 @@ function onCustomAmountInput(el){
 async function confirmStarsTopup(){
     if(!currentUser||!selectedTopupAmount)return;
     confirmStarsTopupDirect(selectedTopupAmount);
+}
+
+// ============ CRYPTO BOT TOPUP ============
+function openCryptoBotTopup(){
+    closeModal('topupModal');
+    showNotification('CryptoBot: отправьте /pay боту @CryptoBot','info');
+    try{
+        if(tg&&tg.openTelegramLink)tg.openTelegramLink('https://t.me/CryptoBot');
+        else window.open('https://t.me/CryptoBot','_blank');
+    }catch(e){window.open('https://t.me/CryptoBot','_blank');}
 }
 
 // ============ TON CONNECT ============

@@ -113,8 +113,8 @@
         }
 
         .game-card-mini {
-            background: linear-gradient(145deg, #0891b2 0%, #155e75 100%);
-            border: 1px solid rgba(8, 145, 178, 0.25);
+            background: linear-gradient(145deg, #dc2626 0%, #991b1b 100%);
+            border: 1px solid rgba(220, 38, 38, 0.25);
         }
 
         /* Banner at top */
@@ -220,7 +220,7 @@
                             <div class="game-card-badge"><img src="/static/img/star.png" alt=""></div>
                         </div>
                     </div>
-                    <img src="/static/gifs/cases.gif" alt="Cases" class="game-card-gif">
+                    <img src="/static/gifs/cases.gif" alt="Cases" class="game-card-gif" loading="lazy">
                 </div>
             </div>
 
@@ -232,19 +232,20 @@
                             <div class="game-card-badge"><img src="/static/img/star.png" alt=""></div>
                         </div>
                     </div>
-                    <img src="/static/gifs/moon.gif" alt="Moon Scratch" class="game-card-gif">
+                    <img src="/static/gifs/moon.gif" alt="Moon Scratch" class="game-card-gif" loading="lazy">
                 </div>
             </div>
 
-            <div class="game-card game-card-mini" onclick="showNotification('Скоро!','info')">
+            <div class="game-card game-card-mini" onclick="window.location.href='/crash'">
                 <div class="game-card-content">
                     <div class="game-card-info">
-                        <span class="game-card-text">Мини-игры</span>
+                        <span class="game-card-text">Краш</span>
                         <div class="game-card-badges">
+                            <div class="game-card-badge"><img src="/static/img/ton.png" alt=""></div>
                             <div class="game-card-badge"><img src="/static/img/star.png" alt=""></div>
-                            <div class="game-card-badge" style="background:rgba(255,255,255,0.2);font-size:9px;font-weight:700;color:#fff;padding:0 6px;width:auto;">СКОРО</div>
                         </div>
                     </div>
+                    <img src="/static/gifs/boom.gif" alt="Crash" class="game-card-gif" loading="lazy">
                 </div>
             </div>
         </div>

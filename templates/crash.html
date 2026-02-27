@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Краш</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .crash-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 14px 16px 120px;
+            min-height: 100vh;
+        }
+        .crash-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .crash-header img {
+            width: 100px; height: 100px;
+            margin: 0 auto 12px;
+            filter: drop-shadow(0 6px 20px rgba(220, 38, 38, 0.4));
+        }
+        .crash-header h1 {
+            font-size: 28px; font-weight: 900; color: #fff;
+            margin-bottom: 6px;
+        }
+        .crash-header p {
+            font-size: 14px; color: rgba(255,255,255,0.5);
+        }
+        .crash-graph {
+            position: relative;
+            width: 100%;
+            height: 260px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .crash-multiplier {
+            font-size: 56px;
+            font-weight: 900;
+            color: #34D87A;
+            text-shadow: 0 0 30px rgba(52, 216, 122, 0.3);
+            transition: color 0.3s;
+        }
+        .crash-multiplier.crashed {
+            color: #FF4B4B;
+            text-shadow: 0 0 30px rgba(255, 75, 75, 0.3);
+        }
+        .crash-multiplier.waiting {
+            color: rgba(255,255,255,0.3);
+            font-size: 24px;
+        }
+        .crash-controls {
+            display: flex; gap: 10px; margin-bottom: 16px;
+        }
+        .crash-bet-input {
+            flex: 1;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.10);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .crash-bet-input:focus {
+            border-color: var(--accent);
+        }
+        .crash-btn {
+            padding: 14px 28px;
+            border-radius: 14px;
+            border: none;
+            font-size: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .crash-btn:active { transform: scale(0.96); }
+        .crash-btn-play {
+            background: linear-gradient(135deg, #34D87A, #2BA866);
+            color: #fff;
+        }
+        .crash-btn-cashout {
+            background: linear-gradient(135deg, #FFCC00, #E5B800);
+            color: #131313;
+        }
+        .crash-btn:disabled {
+            opacity: 0.5; cursor: not-allowed; transform: none !important;
+        }
+        .crash-auto-row {
+            display: flex; gap: 10px; margin-bottom: 16px;
+        }
+        .crash-auto-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .crash-auto-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .crash-history {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+        }
+        .crash-history-item {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+        .crash-history-item.green {
+            background: rgba(52, 216, 122, 0.15);
+            color: #34D87A;
+        }
+        .crash-history-item.red {
+            background: rgba(255, 75, 75, 0.15);
+            color: #FF4B4B;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="crash-container">
+        <div class="crash-header">
+            <img src="/static/gifs/boom.gif" alt="Crash" loading="lazy">
+            <h1>Краш</h1>
+            <p>Успей забрать до краша!</p>
+        </div>
+
+        <!-- History -->
+        <div class="crash-history" id="crashHistory"></div>
+
+        <!-- Graph -->
+        <div class="crash-graph" id="crashGraph">
+            <div class="crash-multiplier waiting" id="crashMultiplier">Ожидание ставки...</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="crash-controls">
+            <input type="number" class="crash-bet-input" id="crashBetInput" placeholder="Ставка ⭐" min="1" step="1">
+            <button class="crash-btn crash-btn-play" id="crashPlayBtn" onclick="startCrash()">Играть</button>
+        </div>
+
+        <!-- Quick bets -->
+        <div class="crash-auto-row">
+            <button class="crash-auto-btn" onclick="setCrashBet(10)">10 ⭐</button>
+            <button class="crash-auto-btn" onclick="setCrashBet(50)">50 ⭐</button>
+            <button class="crash-auto-btn" onclick="setCrashBet(100)">100 ⭐</button>
+            <button class="crash-auto-btn" onclick="setCrashBet(500)">500 ⭐</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    let crashRunning = false;
+    let crashMultiplier = 1.00;
+    let crashTarget = 1.00;
+    let crashBet = 0;
+    let crashInterval = null;
+    let crashHistory = [];
+
+    function setCrashBet(val) {
+        document.getElementById('crashBetInput').value = val;
+    }
+
+    function generateCrashPoint() {
+        // House edge ~5%: E = 0.95
+        const r = Math.random();
+        if (r < 0.02) return 1.00; // instant crash 2%
+        return Math.max(1.00, Math.floor(100 / (r * 100)) * 0.01 * 100) / 100;
+    }
+
+    async function startCrash() {
+        if (crashRunning) {
+            // Cashout
+            cashoutCrash();
+            return;
+        }
+        const bet = parseInt(document.getElementById('crashBetInput').value);
+        if (!bet || bet < 1) { showNotification('Минимальная ставка: 1 ⭐', 'error'); return; }
+        if (!currentUser) { showNotification('Авторизуйтесь', 'error'); return; }
+        if (currentUser.balance < bet) { showNotification('Недостаточно средств', 'error'); return; }
+
+        // Deduct bet via API
+        try {
+            const res = await fetch('/api/crash/bet', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telegram_id: currentUser.telegram_id, bet: bet }) });
+            const data = await res.json();
+            if (!data.success) { showNotification(data.error || 'Ошибка', 'error'); return; }
+            currentUser.balance = data.new_balance;
+            updateUI();
+        } catch (e) { showNotification('Ошибка соединения', 'error'); return; }
+
+        crashBet = bet;
+        crashTarget = generateCrashPoint();
+        crashMultiplier = 1.00;
+        crashRunning = true;
+
+        const btn = document.getElementById('crashPlayBtn');
+        btn.textContent = 'Забрать';
+        btn.className = 'crash-btn crash-btn-cashout';
+
+        const el = document.getElementById('crashMultiplier');
+        el.className = 'crash-multiplier';
+        el.textContent = '1.00x';
+
+        crashInterval = setInterval(() => {
+            crashMultiplier += 0.01 + crashMultiplier * 0.008;
+            crashMultiplier = Math.round(crashMultiplier * 100) / 100;
+            el.textContent = crashMultiplier.toFixed(2) + 'x';
+
+            if (crashMultiplier >= crashTarget) {
+                // CRASH!
+                clearInterval(crashInterval);
+                crashInterval = null;
+                crashRunning = false;
+                el.className = 'crash-multiplier crashed';
+                el.textContent = crashMultiplier.toFixed(2) + 'x';
+                btn.textContent = 'Играть';
+                btn.className = 'crash-btn crash-btn-play';
+                addCrashHistory(crashMultiplier, false);
+                showNotification('Краш на ' + crashMultiplier.toFixed(2) + 'x! Вы потеряли ' + crashBet + ' ⭐', 'error');
+                try { if (tg) tg.HapticFeedback.impactOccurred('heavy'); } catch (e) {}
+            }
+        }, 80);
+        try { if (tg) tg.HapticFeedback.impactOccurred('medium'); } catch (e) {}
+    }
+
+    async function cashoutCrash() {
+        if (!crashRunning) return;
+        clearInterval(crashInterval);
+        crashInterval = null;
+        crashRunning = false;
+
+        const winnings = Math.floor(crashBet * crashMultiplier);
+        const el = document.getElementById('crashMultiplier');
+        el.className = 'crash-multiplier';
+
+        // Credit winnings
+        try {
+            const res = await fetch('/api/crash/cashout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ telegram_id: currentUser.telegram_id, winnings: winnings }) });
+            const data = await res.json();
+            if (data.success) {
+                currentUser.balance = data.new_balance;
+                updateUI();
+            }
+        } catch (e) {}
+
+        const btn = document.getElementById('crashPlayBtn');
+        btn.textContent = 'Играть';
+        btn.className = 'crash-btn crash-btn-play';
+        addCrashHistory(crashMultiplier, true);
+        showNotification('+' + winnings + ' ⭐ (x' + crashMultiplier.toFixed(2) + ')', 'success');
+        try { if (tg) tg.HapticFeedback.impactOccurred('light'); } catch (e) {}
+    }
+
+    function addCrashHistory(mult, won) {
+        crashHistory.unshift({ mult: mult.toFixed(2), won: won });
+        if (crashHistory.length > 10) crashHistory.pop();
+        renderCrashHistory();
+    }
+
+    function renderCrashHistory() {
+        const c = document.getElementById('crashHistory');
+        c.innerHTML = crashHistory.map(h =>
+            '<span class="crash-history-item ' + (h.won ? 'green' : 'red') + '">' + h.mult + 'x</span>'
+        ).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

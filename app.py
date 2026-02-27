@@ -35,6 +35,7 @@ except ImportError:
 # ============ CONFIG ============
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'luna-gifts-secret-key-change-me')
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache for static files
 
 ADMIN_IDS = [5257227756, 7589153715]
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '8338591585:AAH8ezZ8xO7Y9KlU9GQe4Sj5nhdCIyOaXnE')
@@ -46,6 +47,19 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(me
 # ============ AUTH KEYS (in-memory) ============
 # {key: {telegram_id, username, first_name, last_name, photo_url} or None if pending}
 auth_keys = {}
+
+
+@app.after_request
+def add_cache_headers(response):
+    """Set aggressive caching for static assets (GIFs, images, CSS, JS)."""
+    if request.path.startswith('/static/'):
+        if request.path.endswith('.gif'):
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        elif request.path.endswith(('.png', '.jpg', '.jpeg', '.webp', '.svg')):
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        elif request.path.endswith(('.css', '.js')):
+            response.headers['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 
 # ============ BOT SETUP ============
@@ -840,6 +854,51 @@ def api_topup_confirm():
 
     updated_user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     return jsonify({'success': True, 'new_balance': updated_user['balance']})
+
+
+# ============ TON ↔ STARS EXCHANGE ============
+
+@app.route('/api/exchange', methods=['POST'])
+def api_exchange():
+    data = request.json
+    telegram_id = data.get('telegram_id')
+    direction = data.get('direction')  # 'ton_to_stars' or 'stars_to_ton'
+    amount = data.get('amount', 0)
+
+    if not telegram_id or not direction or not amount or amount <= 0:
+        return jsonify({'error': 'Invalid data'}), 400
+
+    RATE = 100  # 1 TON = 100 Stars
+
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    if direction == 'ton_to_stars':
+        # Convert TON to Stars (user sends TON-equivalent, gets Stars)
+        stars_amount = int(amount * RATE)
+        if stars_amount < 1:
+            return jsonify({'error': 'Минимум 0.01 TON'}), 400
+        # TON balance is tracked as Stars internally, so add stars_amount
+        db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (stars_amount, telegram_id))
+        db.commit()
+        updated = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        return jsonify({'success': True, 'new_balance': updated['balance'], 'message': f'+{stars_amount} ⭐ зачислено!'})
+
+    elif direction == 'stars_to_ton':
+        stars_amount = int(amount)
+        if stars_amount < 100:
+            return jsonify({'error': 'Минимум 100 Stars'}), 400
+        if user['balance'] < stars_amount:
+            return jsonify({'error': 'Недостаточно Stars'}), 400
+        ton_amount = stars_amount / RATE
+        db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (stars_amount, telegram_id))
+        db.commit()
+        updated = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        return jsonify({'success': True, 'new_balance': updated['balance'], 'message': f'Обменяно на {ton_amount:.2f} TON'})
+
+    return jsonify({'error': 'Unknown direction'}), 400
 
 
 # ============ WITHDRAWAL API (Telethon — отправка подарков с аккаунта) ============
@@ -1991,6 +2050,47 @@ def api_gifts():
     return jsonify(gifts)
 
 
+# ============ CRASH GAME API ============
+
+@app.route('/api/crash/bet', methods=['POST'])
+def api_crash_bet():
+    data = request.json
+    telegram_id = data.get('telegram_id')
+    bet = data.get('bet', 0)
+    if not telegram_id or not bet or bet < 1:
+        return jsonify({'error': 'Invalid bet'}), 400
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user['balance'] < bet:
+        return jsonify({'error': 'Недостаточно средств'}), 400
+    db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (bet, telegram_id))
+    db.commit()
+    user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    return jsonify({'success': True, 'new_balance': user['balance']})
+
+
+@app.route('/api/crash/cashout', methods=['POST'])
+def api_crash_cashout():
+    data = request.json
+    telegram_id = data.get('telegram_id')
+    winnings = data.get('winnings', 0)
+    if not telegram_id or winnings < 0:
+        return jsonify({'error': 'Invalid data'}), 400
+    # Cap winnings to prevent abuse (max 50x any bet)
+    if winnings > 500000:
+        winnings = 500000
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (winnings, telegram_id))
+    db.commit()
+    user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    return jsonify({'success': True, 'new_balance': user['balance']})
+
+
 @app.route('/api/buy', methods=['POST'])
 def api_buy():
     data = request.json
@@ -2011,11 +2111,9 @@ def api_buy():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    # Dual balance: only earned balance (balance - deposited_balance) can be spent in market
-    deposited = user['deposited_balance'] if user['deposited_balance'] else 0
-    earned_balance = user['balance'] - deposited
-    if earned_balance < price:
-        return jsonify({'error': 'Недостаточно заработанных средств. Пополненный баланс нельзя тратить в маркете.'}), 400
+    # Allow spending full balance (including deposited) on market
+    if user['balance'] < price:
+        return jsonify({'error': 'Недостаточно средств'}), 400
 
     db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (price, telegram_id))
     db.execute(
@@ -3649,6 +3747,11 @@ def cases():
 @app.route('/games')
 def games():
     return render_template('games.html')
+
+
+@app.route('/crash')
+def crash():
+    return render_template('crash.html')
 
 
 @app.route('/scratch')

@@ -96,6 +96,30 @@
             </div>
         </div>
 
+        <!-- TON ↔ Stars Exchange -->
+        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:16px;padding:16px;margin-bottom:16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                <div style="font-size:15px;font-weight:700;color:#fff;">Обменник</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.4);">1 TON = 100 ⭐</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;">
+                <button class="exchange-dir-btn active" id="exDirTonToStars" onclick="setExchangeDir('ton_to_stars')" style="flex:1;padding:10px;border-radius:10px;background:var(--accent);border:1px solid var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">TON → Stars</button>
+                <button class="exchange-dir-btn" id="exDirStarsToTon" onclick="setExchangeDir('stars_to_ton')" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">Stars → TON</button>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                <div style="flex:1;position:relative;">
+                    <input type="number" id="exchangeInput" placeholder="0" min="0" step="any" style="width:100%;padding:12px 40px 12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);color:#fff;font-size:16px;font-weight:700;outline:none;" oninput="updateExchangePreview()">
+                    <img id="exchangeInputIcon" src="/static/img/ton.png" alt="" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;pointer-events:none;" onerror="this.src='/static/img/star.png'">
+                </div>
+                <div style="color:rgba(255,255,255,0.3);font-size:18px;">→</div>
+                <div style="flex:1;display:flex;align-items:center;gap:6px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);min-height:46px;">
+                    <span id="exchangeOutput" style="font-size:16px;font-weight:700;color:var(--gold);">0</span>
+                    <img id="exchangeOutputIcon" src="/static/img/star.png" alt="" style="width:18px;height:18px;">
+                </div>
+            </div>
+            <button id="exchangeBtn" onclick="doExchange()" disabled style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#4a6bd4);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;opacity:0.5;transition:all 0.2s;">Обменять</button>
+        </div>
+
         <!-- Action Buttons -->
         <div style="display:flex;gap:10px;margin-bottom:18px;">
             <button style="flex:1;padding:13px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="injectTopupModals();openModal('topupModal')">
@@ -457,6 +481,77 @@
             showNotification('Ошибка соединения', 'error');
         }
         btn.disabled = false;
+    }
+
+    // ============ TON ↔ Stars Exchange ============
+    let exchangeDir = 'ton_to_stars'; // or 'stars_to_ton'
+    const EXCHANGE_RATE = 100;
+
+    function setExchangeDir(dir) {
+        exchangeDir = dir;
+        const tonBtn = document.getElementById('exDirTonToStars');
+        const starsBtn = document.getElementById('exDirStarsToTon');
+        const inputIcon = document.getElementById('exchangeInputIcon');
+        const outputIcon = document.getElementById('exchangeOutputIcon');
+        if (dir === 'ton_to_stars') {
+            tonBtn.style.background = 'var(--accent)'; tonBtn.style.borderColor = 'var(--accent)'; tonBtn.style.color = '#fff';
+            starsBtn.style.background = 'rgba(255,255,255,0.06)'; starsBtn.style.borderColor = 'rgba(255,255,255,0.10)'; starsBtn.style.color = 'rgba(255,255,255,0.5)';
+            inputIcon.src = '/static/img/ton.png';
+            outputIcon.src = '/static/img/star.png';
+        } else {
+            starsBtn.style.background = 'var(--accent)'; starsBtn.style.borderColor = 'var(--accent)'; starsBtn.style.color = '#fff';
+            tonBtn.style.background = 'rgba(255,255,255,0.06)'; tonBtn.style.borderColor = 'rgba(255,255,255,0.10)'; tonBtn.style.color = 'rgba(255,255,255,0.5)';
+            inputIcon.src = '/static/img/star.png';
+            outputIcon.src = '/static/img/ton.png';
+        }
+        document.getElementById('exchangeInput').value = '';
+        document.getElementById('exchangeOutput').textContent = '0';
+        document.getElementById('exchangeBtn').disabled = true;
+        document.getElementById('exchangeBtn').style.opacity = '0.5';
+    }
+
+    function updateExchangePreview() {
+        const val = parseFloat(document.getElementById('exchangeInput').value) || 0;
+        let output = 0;
+        if (exchangeDir === 'ton_to_stars') {
+            output = Math.floor(val * EXCHANGE_RATE);
+        } else {
+            output = (val / EXCHANGE_RATE).toFixed(2);
+        }
+        document.getElementById('exchangeOutput').textContent = output;
+        const valid = val > 0;
+        document.getElementById('exchangeBtn').disabled = !valid;
+        document.getElementById('exchangeBtn').style.opacity = valid ? '1' : '0.5';
+    }
+
+    async function doExchange() {
+        if (!currentUser) return;
+        const val = parseFloat(document.getElementById('exchangeInput').value) || 0;
+        if (val <= 0) return;
+        const btn = document.getElementById('exchangeBtn');
+        btn.disabled = true; btn.textContent = 'Обмен...';
+        try {
+            const res = await fetch('/api/exchange', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ telegram_id: currentUser.telegram_id, direction: exchangeDir, amount: val })
+            });
+            const data = await res.json();
+            if (data.success) {
+                currentUser.balance = data.new_balance;
+                localStorage.setItem('luna_user', JSON.stringify(currentUser));
+                updateUI();
+                showNotification(data.message || 'Обмен выполнен!', 'success');
+                document.getElementById('exchangeInput').value = '';
+                document.getElementById('exchangeOutput').textContent = '0';
+            } else {
+                showNotification(data.error || 'Ошибка обмена', 'error');
+            }
+        } catch (e) {
+            showNotification('Ошибка соединения', 'error');
+        }
+        btn.disabled = false; btn.textContent = 'Обменять';
+        btn.style.opacity = '0.5';
     }
 
     document.addEventListener('DOMContentLoaded',async function(){
