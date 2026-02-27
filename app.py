@@ -310,6 +310,9 @@ _pvp_cache = {
     'spin_angle': 0,            # final angle
     'hash': '',
     'currency': 'stars',
+    'countdown_started_at': 0,  # timestamp when countdown started
+    'spin_started_at': 0,       # timestamp when spin started
+    'result_shown_at': 0,       # timestamp when result shown
 }
 _pvp_lock = threading.Lock()
 
@@ -368,151 +371,161 @@ def _pvp_generate_hash():
     return hashlib.sha256(seed.encode()).hexdigest()[:12]
 
 
-def start_pvp_loop():
-    """Background thread running the PVP wheel game loop."""
-    logging.info("PVP game loop started")
+def _pvp_create_game(db):
+    """Create a new PVP game and update cache. Returns game_id."""
+    game_hash = _pvp_generate_hash()
+    db.execute(
+        "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
+        ('waiting', 0, game_hash)
+    )
+    db.commit()
     
-    # Clean up any stuck games from previous runs
+    row = db.execute("SELECT id FROM pvp_games WHERE hash = ?", (game_hash,)).fetchone()
+    if row is None:
+        return 0
+    
+    try:
+        game_id = row['id']
+    except (TypeError, KeyError):
+        game_id = row[0] if row else 0
+    
+    with _pvp_lock:
+        _pvp_cache['game_id'] = game_id
+        _pvp_cache['status'] = 'waiting'
+        _pvp_cache['players'] = []
+        _pvp_cache['total_pot'] = 0
+        _pvp_cache['countdown'] = 0
+        _pvp_cache['winner'] = None
+        _pvp_cache['spin_angle'] = 0
+        _pvp_cache['hash'] = game_hash
+        _pvp_cache['countdown_started_at'] = 0
+        _pvp_cache['spin_started_at'] = 0
+        _pvp_cache['result_shown_at'] = 0
+    
+    logging.info(f"PVP game #{game_id} created, hash={game_hash}")
+    return game_id
+
+
+def _pvp_tick():
+    """Called on every /api/pvp/state request to advance game state."""
+    now = _time.time()
+    
+    with _pvp_lock:
+        status = _pvp_cache['status']
+        game_id = _pvp_cache['game_id']
+        players = _pvp_cache['players']
+        
+        # No game yet - create one
+        if game_id == 0:
+            # Will be created by the endpoint
+            return
+        
+        # Countdown phase - calculate remaining time
+        if status == 'countdown':
+            started = _pvp_cache.get('countdown_started_at', 0)
+            if started > 0:
+                elapsed = now - started
+                remaining = max(0, 30 - elapsed)
+                _pvp_cache['countdown'] = remaining
+                
+                # Countdown finished
+                if remaining <= 0:
+                    if len(players) >= 2:
+                        # Start spinning
+                        _pvp_cache['status'] = 'spinning'
+                        _pvp_cache['spin_started_at'] = now
+                        
+                        # Pick winner
+                        winner, target_angle = _pvp_pick_winner(list(players))
+                        spin_angle = 360 * random.randint(5, 8) + target_angle
+                        _pvp_cache['spin_angle'] = spin_angle
+                        _pvp_cache['winner'] = winner
+                        
+                        logging.info(f"PVP game #{game_id} spinning, winner determined")
+                    else:
+                        # Not enough players - reset
+                        _pvp_cache['status'] = 'waiting'
+                        _pvp_cache['countdown'] = 0
+                        _pvp_cache['countdown_started_at'] = 0
+                        # Refunds handled separately
+        
+        # Spinning phase - wait 7 seconds
+        elif status == 'spinning':
+            started = _pvp_cache.get('spin_started_at', 0)
+            if started > 0 and now - started > 7:
+                _pvp_cache['status'] = 'result'
+                _pvp_cache['result_shown_at'] = now
+                logging.info(f"PVP game #{game_id} showing result")
+        
+        # Result phase - show for 5 seconds then create new game
+        elif status == 'result':
+            shown_at = _pvp_cache.get('result_shown_at', 0)
+            if shown_at > 0 and now - shown_at > 5:
+                # Mark for new game
+                _pvp_cache['game_id'] = 0
+
+
+def _pvp_finalize_game(db, game_id):
+    """Pay winner and finalize a game."""
+    with _pvp_lock:
+        winner = _pvp_cache.get('winner')
+        total_pot = _pvp_cache.get('total_pot', 0)
+    
+    if winner and total_pot > 0:
+        db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
+                   (total_pot, winner['telegram_id']))
+        db.execute("UPDATE pvp_games SET status='result', winner_id=?, total_pot=? WHERE id=?",
+                   (winner['telegram_id'], total_pot, game_id))
+        db.commit()
+        logging.info(f"PVP game #{game_id}: {winner.get('username')} won {total_pot}")
+
+
+def start_pvp_loop():
+    """Background thread for PVP finalization only."""
+    logging.info("PVP finalization loop started")
+    
+    # Clean up stuck games
     try:
         db = connect_db()
         db.execute("UPDATE pvp_games SET status='cancelled' WHERE status IN ('waiting', 'betting', 'countdown', 'spinning')")
         db.commit()
         db.close()
-        logging.info("Cleaned up stuck PVP games")
     except Exception as e:
-        logging.error(f"Error cleaning up PVP games: {e}")
-
+        logging.error(f"Error cleaning up PVP: {e}")
+    
     while True:
         try:
-            db = connect_db()
-
-            # Create new game
-            game_hash = _pvp_generate_hash()
-            logging.info(f"PVP: Creating new game with hash={game_hash}")
+            _time.sleep(1)
             
-            # Insert the game
-            db.execute(
-                "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
-                ('waiting', 0, game_hash)
-            )
-            db.commit()
-            logging.info("PVP: INSERT committed")
-            
-            # Get the ID by hash (works for both SQLite and PostgreSQL)
-            row = db.execute(
-                "SELECT id FROM pvp_games WHERE hash = ?", 
-                (game_hash,)
-            ).fetchone()
-            logging.info(f"PVP: SELECT result row={row}")
-            
-            if row is None:
-                logging.error(f"PVP: SELECT returned None for hash={game_hash}")
-                db.close()
-                _time.sleep(2)
-                continue
-            
-            # Access the ID - try both dict and tuple access
-            try:
-                game_id = row['id']
-            except (TypeError, KeyError):
-                try:
-                    game_id = row[0]
-                except (TypeError, IndexError):
-                    game_id = 0
-            
-            logging.info(f"PVP: Got game_id={game_id}")
-            
-            if game_id == 0:
-                logging.error(f"PVP: game_id is 0 after extraction, row={row}")
-                db.close()
-                _time.sleep(2)
-                continue
-
-            update_pvp_cache(
-                game_id=game_id, status='waiting', players=[], total_pot=0,
-                countdown=0, winner=None, spin_angle=0, hash=game_hash
-            )
-            logging.info(f"PVP game #{game_id} created and CACHED, hash={game_hash}")
-            
-            # Verify cache was updated
             with _pvp_lock:
-                cached_id = _pvp_cache['game_id']
-            logging.info(f"PVP: After update_pvp_cache, cached game_id={cached_id}")
-
-            # Wait for at least 2 players
-            while True:
-                _time.sleep(0.5)
-                with _pvp_lock:
-                    player_count = len(_pvp_cache['players'])
-                    status = _pvp_cache['status']
-                # api_pvp_bet may have already flipped status to 'countdown'
-                if status == 'countdown':
-                    break
-                if player_count >= 2 and status == 'betting':
-                    break
-
-            # Start countdown (only if not already started by api_pvp_bet)
-            with _pvp_lock:
-                if _pvp_cache['status'] != 'countdown':
-                    _pvp_cache['status'] = 'countdown'
-                    _pvp_cache['countdown'] = 30
-            db.execute("UPDATE pvp_games SET status='countdown' WHERE id=?", (game_id,))
-            db.commit()
-            logging.info(f"PVP game #{game_id} countdown started")
-
-            for i in range(60):  # 30 seconds, check every 0.5s
-                _time.sleep(0.5)
-                remaining = 30 - (i + 1) * 0.5
-                update_pvp_cache(countdown=max(0, remaining))
-                if remaining <= 0:
-                    break
-
-            # Spin phase
-            with _pvp_lock:
-                players = list(_pvp_cache['players'])
-                total_pot = _pvp_cache['total_pot']
-
-            if len(players) < 2:
-                # Not enough players, refund and restart
-                for p in players:
-                    db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
-                               (p['amount'], p['telegram_id']))
-                db.execute("UPDATE pvp_games SET status='cancelled' WHERE id=?", (game_id,))
-                db.commit()
+                status = _pvp_cache['status']
+                game_id = _pvp_cache['game_id']
+            
+            # Finalize game when spinning ends
+            if status == 'spinning':
+                spin_started = _pvp_cache.get('spin_started_at', 0)
+                if spin_started > 0 and _time.time() - spin_started > 7:
+                    db = connect_db()
+                    _pvp_finalize_game(db, game_id)
+                    db.close()
+                    with _pvp_lock:
+                        _pvp_cache['status'] = 'result'
+                        _pvp_cache['result_shown_at'] = _time.time()
+            
+            # Create new game after result
+            elif status == 'result':
+                result_at = _pvp_cache.get('result_shown_at', 0)
+                if result_at > 0 and _time.time() - result_at > 5:
+                    db = connect_db()
+                    _pvp_create_game(db)
+                    db.close()
+            
+            # Create game if none exists
+            elif game_id == 0:
+                db = connect_db()
+                _pvp_create_game(db)
                 db.close()
-                update_pvp_cache(status='waiting')
-                _time.sleep(2)
-                continue
-
-            winner, target_angle = _pvp_pick_winner(players)
-            # Spin angle = multiple full rotations + target
-            spin_angle = 360 * random.randint(5, 8) + target_angle
-
-            update_pvp_cache(status='spinning', spin_angle=spin_angle, winner=winner)
-            db.execute("UPDATE pvp_games SET status='spinning', winner_id=?, winner_angle=? WHERE id=?",
-                       (winner['telegram_id'], spin_angle, game_id))
-            db.commit()
-            logging.info(f"PVP game #{game_id} spinning, winner={winner['username']}, angle={spin_angle}")
-
-            # Wait for spin animation (6 seconds)
-            _time.sleep(6.5)
-
-            # Result phase — give winnings to winner
-            win_amount = total_pot
-            db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
-                       (win_amount, winner['telegram_id']))
-            db.execute("UPDATE pvp_games SET status='result', total_pot=? WHERE id=?",
-                       (total_pot, game_id))
-            db.commit()
-
-            update_pvp_cache(status='result')
-            logging.info(f"PVP game #{game_id} result: {winner['username']} won {win_amount}")
-
-            # Show result for 5 seconds
-            _time.sleep(5)
-
-            db.close()
-
+                
         except Exception as e:
             logging.error(f"PVP loop error: {e}")
             import traceback
@@ -2195,32 +2208,10 @@ def api_admin_pvp_reset():
     
     return jsonify({'success': True, 'message': 'PVP games reset'})
 
-
-@app.route('/api/admin/pvp/test-cache')
-def api_admin_pvp_test_cache():
-    """Test manually updating the PVP cache to verify it works."""
-    import random
-    test_id = random.randint(1000, 9999)
-    test_hash = f"test_{test_id}"
-    
-    # Update cache
-    update_pvp_cache(game_id=test_id, hash=test_hash)
-    
-    # Read back
-    c = get_pvp_cache()
-    
-    return jsonify({
-        'wrote': {'game_id': test_id, 'hash': test_hash},
-        'read_back': {'game_id': c['game_id'], 'hash': c['hash']},
-        'match': c['game_id'] == test_id and c['hash'] == test_hash
-    })
-
-
 @app.route('/api/admin/pvp/debug')
 def api_admin_pvp_debug():
     """Debug endpoint to view PVP cache and recent games."""
     db = get_db()
-    # Get last 5 games from DB
     games = db.execute(
         "SELECT id, status, total_pot, hash, winner_id, created_at FROM pvp_games ORDER BY id DESC LIMIT 5"
     ).fetchall()
@@ -2228,44 +2219,9 @@ def api_admin_pvp_debug():
     with _pvp_lock:
         cache_copy = dict(_pvp_cache)
     
-    # Test SELECT by hash - simulating exactly what the PVP loop does
-    test_result = None
-    db_test = None
-    if games:
-        test_hash = games[0]['hash']
-        try:
-            # Use connect_db() like PVP loop does, not get_db()
-            test_db = connect_db()
-            row = test_db.execute("SELECT id FROM pvp_games WHERE hash = ?", (test_hash,)).fetchone()
-            test_db.close()
-            
-            if row:
-                test_result = {
-                    'hash_tested': test_hash,
-                    'row_type': str(type(row)),
-                    'row_str': str(row),
-                    'row_bracket_access': None,
-                    'row_index_access': None,
-                }
-                try:
-                    test_result['row_bracket_access'] = row['id']
-                except Exception as e:
-                    test_result['row_bracket_access'] = f"error: {e}"
-                try:
-                    test_result['row_index_access'] = row[0]
-                except Exception as e:
-                    test_result['row_index_access'] = f"error: {e}"
-            else:
-                test_result = {'hash_tested': test_hash, 'row': None}
-        except Exception as e:
-            db_test = f"connect_db test error: {e}"
-    
     return jsonify({
         'cache': cache_copy,
-        'recent_games': [dict(g) for g in games],
-        'threads_started': _threads_started,
-        'select_test': test_result,
-        'db_test_error': db_test
+        'recent_games': [dict(g) for g in games]
     })
 
 
@@ -2798,24 +2754,25 @@ def api_crash_bets():
 @app.route('/api/pvp/state')
 def api_pvp_state():
     """Polled by clients to get current PVP game state."""
+    # Tick the game state
+    _pvp_tick()
+    
+    # Create game if needed
+    with _pvp_lock:
+        game_id = _pvp_cache['game_id']
+    
+    if game_id == 0:
+        try:
+            db = get_db()
+            _pvp_create_game(db)
+        except Exception as e:
+            logging.error(f"Error creating PVP game: {e}")
+    
     c = get_pvp_cache()
-    # If no game created yet (cold start), indicate loading state
-    if c['game_id'] == 0:
-        return jsonify({
-            'success': True,
-            'game_id': 0,
-            'status': 'loading',
-            'players': [],
-            'total_pot': 0,
-            'countdown': 0,
-            'winner': None,
-            'spin_angle': 0,
-            'hash': '',
-        })
     return jsonify({
         'success': True,
         'game_id': c['game_id'],
-        'status': c['status'],
+        'status': c['status'] if c['game_id'] > 0 else 'loading',
         'players': c['players'],
         'total_pot': c['total_pot'],
         'countdown': c.get('countdown', 0),
@@ -2905,6 +2862,7 @@ def api_pvp_bet():
         if len(_pvp_cache['players']) >= 2 and _pvp_cache['status'] == 'betting':
             _pvp_cache['status'] = 'countdown'
             _pvp_cache['countdown'] = 30
+            _pvp_cache['countdown_started_at'] = _time.time()
         elif _pvp_cache['status'] == 'waiting':
             _pvp_cache['status'] = 'betting'
 
