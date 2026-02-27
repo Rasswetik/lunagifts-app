@@ -79,7 +79,7 @@
                 <span class="user-name" style="font-size:16px;font-weight:700;color:#fff;">Загрузка...</span>
             </div>
             <button style="width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="window.location.href='/admin'" id="settingsBtn">
-                <img src="/static/img/settings.png" alt="" style="width:18px;height:18px;opacity:0.6;">
+                <img src="/static/img/settings.svg" alt="" style="width:18px;height:18px;opacity:0.6;">
             </button>
         </div>
 
@@ -87,7 +87,7 @@
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
             <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
                 <div style="display:flex;align-items:center;gap:10px;">
-                    <img src="/static/img/star.png" alt="" style="width:28px;height:28px;">
+                    <img src="/static/img/star.svg" alt="" style="width:28px;height:28px;">
                     <div>
                         <div style="font-size:12px;color:rgba(255,255,255,0.4);">Telegram Stars</div>
                         <div style="font-size:18px;font-weight:700;color:#fff;" class="balance-amount">0</div>
@@ -109,12 +109,12 @@
             <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
                 <div style="flex:1;position:relative;">
                     <input type="number" id="exchangeInput" placeholder="0" min="0" step="any" style="width:100%;padding:12px 40px 12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);color:#fff;font-size:16px;font-weight:700;outline:none;" oninput="updateExchangePreview()">
-                    <img id="exchangeInputIcon" src="/static/img/ton.png" alt="" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;pointer-events:none;" onerror="this.src='/static/img/star.png'">
+                    <img id="exchangeInputIcon" src="/static/img/ton.svg" alt="" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;pointer-events:none;" onerror="this.src='/static/img/star.svg'">
                 </div>
                 <div style="color:rgba(255,255,255,0.3);font-size:18px;">→</div>
                 <div style="flex:1;display:flex;align-items:center;gap:6px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);min-height:46px;">
                     <span id="exchangeOutput" style="font-size:16px;font-weight:700;color:var(--gold);">0</span>
-                    <img id="exchangeOutputIcon" src="/static/img/star.png" alt="" style="width:18px;height:18px;">
+                    <img id="exchangeOutputIcon" src="/static/img/star.svg" alt="" style="width:18px;height:18px;">
                 </div>
             </div>
             <button id="exchangeBtn" onclick="doExchange()" disabled style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#4a6bd4);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;opacity:0.5;transition:all 0.2s;">Обменять</button>
@@ -135,7 +135,7 @@
             <h2 style="font-size:18px;font-weight:800;color:#fff;margin:0;">Инвентарь <span id="inventoryCount" style="color:rgba(255,255,255,0.4);">0</span></h2>
             <div style="display:flex;gap:8px;">
                 <button class="inv-action-btn sell-all-btn" id="sellAllBtn" style="display:none;flex:initial;padding:8px 14px;font-size:12px;border-radius:10px;" onclick="sellAllItems()">
-                    <img src="/static/img/star.png" alt="" style="width:12px;height:12px;"> Продать всё
+                    <img src="/static/img/star.svg" alt="" style="width:12px;height:12px;"> Продать всё
                 </button>
                 <button class="inv-action-btn withdraw-all-btn" id="withdrawAllBtn" style="display:none;flex:initial;padding:8px 14px;font-size:12px;border-radius:10px;" onclick="withdrawAllItems()">
                     Вывести NFT
@@ -153,7 +153,7 @@
             <p class="referral-desc">Приглашайте друзей и получайте бонусы!</p>
             <div class="referral-stats" id="referralStats">
                 <div class="ref-stat"><span class="ref-stat-val" id="refCount">0</span><span class="ref-stat-label">Приглашено</span></div>
-                <div class="ref-stat"><span class="ref-stat-val" id="refEarnings">0 <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;"></span><span class="ref-stat-label">Заработано</span></div>
+                <div class="ref-stat"><span class="ref-stat-val" id="refEarnings">0 <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;"></span><span class="ref-stat-label">Заработано</span></div>
             </div>
             <div class="referral-link-wrap">
                 <input type="text" readonly class="referral-link-input" id="refLinkInput" value="">
@@ -261,7 +261,7 @@
         g.innerHTML=inventoryData.map(item=>{
             const isCase=item.type==='case';
             const bg=!isCase?getNftBg(item.slug,item.item_count):'';
-            return '<div class="inventory-item" onclick="'+(isCase?'openCaseItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+item.case_id+')':'openItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+(item.price||0)+',\''+esc(item.slug||'')+'\','+(item.item_count||1000)+','+(item.gift_id||0)+')')+'"><div class="inv-item-visual">'+(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+(item.slug||'')+'" data-count="'+(item.item_count||1000)+'" alt="">':'<img class="inv-item-img" src="'+imgSrc(item.image)+'" alt="'+esc(item.name)+'" onerror="this.src=\'/static/img/star.png\'">')+'</div><div class="inv-item-name">'+esc(item.name)+'</div>'+(isCase?'<div class="inv-item-tag">Кейс</div>':'<div class="inv-item-price">'+Math.floor(item.price||0)+' <img src="/static/img/star.png" alt=""></div>')+'</div>';
+            return '<div class="inventory-item" onclick="'+(isCase?'openCaseItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+item.case_id+')':'openItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+(item.price||0)+',\''+esc(item.slug||'')+'\','+(item.item_count||1000)+','+(item.gift_id||0)+')')+'"><div class="inv-item-visual">'+(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+(item.slug||'')+'" data-count="'+(item.item_count||1000)+'" alt="">':'<img class="inv-item-img" src="'+imgSrc(item.image)+'" alt="'+esc(item.name)+'" onerror="this.src=\'/static/img/star.svg\'">')+'</div><div class="inv-item-name">'+esc(item.name)+'</div>'+(isCase?'<div class="inv-item-tag">Кейс</div>':'<div class="inv-item-price">'+Math.floor(item.price||0)+' <img src="/static/img/star.svg" alt=""></div>')+'</div>';
         }).join('');
     }
 
@@ -272,13 +272,13 @@
         const canWithdraw = invItem && invItem.withdrawable;
         const isNft = !!slug;
         const bg=getNftBg(slug,itemCount);
-        document.getElementById('itemModalVisual').innerHTML=bg?'<img class="item-modal-backdrop" src="'+bg+'" alt="" style="width:200px;height:200px;object-fit:cover;border-radius:20px;">':'<img class="item-modal-img" src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';
+        document.getElementById('itemModalVisual').innerHTML=bg?'<img class="item-modal-backdrop" src="'+bg+'" alt="" style="width:200px;height:200px;object-fit:cover;border-radius:20px;">':'<img class="item-modal-img" src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'">';
         document.getElementById('itemModalName').textContent=name;
-        document.getElementById('itemModalPrice').innerHTML=Math.floor(price)+' <img src="/static/img/star.png" alt="" style="width:16px;height:16px;vertical-align:middle;">';
+        document.getElementById('itemModalPrice').innerHTML=Math.floor(price)+' <img src="/static/img/star.svg" alt="" style="width:16px;height:16px;vertical-align:middle;">';
         const sp=Math.floor(price);
         const escapedName=name.replace(/'/g,"\\'");
         let btns='<div style="display:flex;flex-direction:column;gap:10px;width:100%;">';
-        btns+='<button class="result-btn sell" style="width:100%;" onclick="sellItem('+invId+',\''+escapedName+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.png" alt=""></button>';
+        btns+='<button class="result-btn sell" style="width:100%;" onclick="sellItem('+invId+',\''+escapedName+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.svg" alt=""></button>';
         if(canWithdraw){
             btns+='<button class="result-btn next" style="width:100%;" onclick="withdrawItem('+invId+',\''+escapedName+'\')">Вывести в Telegram</button>';
         } else if(isNft){
@@ -290,7 +290,7 @@
     }
 
     function openCaseItemModal(invId,name,image,caseId){
-        document.getElementById('itemModalVisual').innerHTML='<img src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';
+        document.getElementById('itemModalVisual').innerHTML='<img src="'+image+'" alt="" style="width:200px;height:200px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'">';
         document.getElementById('itemModalName').textContent=name;
         document.getElementById('itemModalPrice').innerHTML='Кейс';
         document.getElementById('itemModalButtons').innerHTML='<button class="result-btn next" onclick="closeModal(\'itemModal\');openCaseFromInventory('+invId+','+caseId+')">Открыть кейс</button>';
@@ -303,12 +303,12 @@
             const res=await fetch('/api/cases/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,case_id:caseId,inventory_id:invId})});
             const data=await res.json();if(data.error){showNotification(data.error,'error');return;}
             let dropsRes,drops=[];try{dropsRes=await fetch('/api/cases/drops/'+caseId);drops=await dropsRes.json();}catch(e){}
-            const wonItem={name:data.type==='stars'?'+'+data.amount+' Stars':data.gift.name,image:data.type==='stars'?'/static/img/star.png':imgSrc(data.gift.image),backdrop:data.type==='stars'?'':getNftBg(data.gift.slug,data.gift.item_count),price:data.type==='stars'?data.amount:(data.gift.price||0)};
+            const wonItem={name:data.type==='stars'?'+'+data.amount+' Stars':data.gift.name,image:data.type==='stars'?'/static/img/star.svg':imgSrc(data.gift.image),backdrop:data.type==='stars'?'':getNftBg(data.gift.slug,data.gift.item_count),price:data.type==='stars'?data.amount:(data.gift.price||0)};
             let pool=drops.map(d=>({name:d.name,image:imgSrc(d.image),backdrop:getNftBg(d.slug,d.item_count),price:d.price||0}));
             if(!pool.length)pool=[wonItem];
             const totalItems=60;const winnerIndex=50+Math.floor(Math.random()*5);
             let stripItems=[];for(let i=0;i<totalItems;i++)stripItems.push(i===winnerIndex?wonItem:pool[Math.floor(Math.random()*pool.length)]);
-            const stripHtml=stripItems.map(item=>'<div class="roulette-item" style="'+(item.backdrop?'background-image:url('+item.backdrop+');background-size:cover;background-position:center;':'')+'">'+(item.backdrop?'':'<img src="'+item.image+'" alt="" onerror="this.src=\'/static/img/star.png\'">')+'</div>').join('');
+            const stripHtml=stripItems.map(item=>'<div class="roulette-item" style="'+(item.backdrop?'background-image:url('+item.backdrop+');background-size:cover;background-position:center;':'')+'">'+(item.backdrop?'':'<img src="'+item.image+'" alt="" onerror="this.src=\'/static/img/star.svg\'">')+'</div>').join('');
             document.getElementById('invRouletteStrip').innerHTML=stripHtml;
             document.getElementById('invRouletteResult').innerHTML='';
             openModal('invRouletteOverlay');
@@ -331,8 +331,8 @@
 
     function showInvRouletteResult(data){
         const r=document.getElementById('invRouletteResult');
-        if(data.type==='stars'){r.innerHTML='<div style="margin-top:16px;font-size:24px;font-weight:700;color:var(--gold);">+'+data.amount+' <img src="/static/img/star.png" alt="" style="width:20px;height:20px;vertical-align:middle;"></div><p style="color:var(--text-secondary);font-size:14px;">Звёзды зачислены</p><button class="result-btn next" onclick="closeModal(\'invRouletteOverlay\')" style="margin-top:12px;">Закрыть</button>';}
-        else{const bg=getNftBg(data.gift.slug,data.gift.item_count);r.innerHTML='<div style="margin-top:16px;">'+(bg?'<img src="'+bg+'" style="width:100px;height:100px;object-fit:cover;border-radius:16px;" alt="">':'<img src="'+imgSrc(data.gift.image)+'" style="width:100px;height:100px;object-fit:contain;" alt="" onerror="this.src=\'/static/img/star.png\'">')+'</div><div style="font-size:18px;font-weight:700;margin:8px 0;">'+data.gift.name+'</div><button class="result-btn next" onclick="closeModal(\'invRouletteOverlay\')" style="margin-top:8px;">Закрыть</button>';}
+        if(data.type==='stars'){r.innerHTML='<div style="margin-top:16px;font-size:24px;font-weight:700;color:var(--gold);">+'+data.amount+' <img src="/static/img/star.svg" alt="" style="width:20px;height:20px;vertical-align:middle;"></div><p style="color:var(--text-secondary);font-size:14px;">Звёзды зачислены</p><button class="result-btn next" onclick="closeModal(\'invRouletteOverlay\')" style="margin-top:12px;">Закрыть</button>';}
+        else{const bg=getNftBg(data.gift.slug,data.gift.item_count);r.innerHTML='<div style="margin-top:16px;">'+(bg?'<img src="'+bg+'" style="width:100px;height:100px;object-fit:cover;border-radius:16px;" alt="">':'<img src="'+imgSrc(data.gift.image)+'" style="width:100px;height:100px;object-fit:contain;" alt="" onerror="this.src=\'/static/img/star.svg\'">')+'</div><div style="font-size:18px;font-weight:700;margin:8px 0;">'+data.gift.name+'</div><button class="result-btn next" onclick="closeModal(\'invRouletteOverlay\')" style="margin-top:8px;">Закрыть</button>';}
     }
 
     async function sellItem(invId,name,price){
@@ -386,7 +386,7 @@
         try{
             const res=await fetch('/api/referral/stats/'+currentUser.telegram_id);const d=await res.json();
             document.getElementById('refCount').textContent=d.count||0;
-            document.getElementById('refEarnings').innerHTML=(d.earnings||0)+' <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;">';
+            document.getElementById('refEarnings').innerHTML=(d.earnings||0)+' <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;">';
             document.getElementById('refLinkInput').value='https://t.me/lunagifts_robot?start=ref_'+currentUser.telegram_id;
         }catch(e){}
     }
@@ -419,7 +419,7 @@
         const nonCase=inventoryData.filter(i=>i.type!=='case');
         if(!nonCase.length){showNotification('Нет предметов для продажи','error');return;}
         const totalPrice=nonCase.reduce((s,i)=>s+Math.floor(i.price||0),0);
-        document.getElementById('confirmSellText').innerHTML='Будет продано <b>'+nonCase.length+'</b> предмет(ов) за <b>'+totalPrice+'</b> <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;">';
+        document.getElementById('confirmSellText').innerHTML='Будет продано <b>'+nonCase.length+'</b> предмет(ов) за <b>'+totalPrice+'</b> <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;">';
         document.getElementById('confirmSellAll').classList.add('active');
     }
 
@@ -496,13 +496,13 @@
         if (dir === 'ton_to_stars') {
             tonBtn.style.background = 'var(--accent)'; tonBtn.style.borderColor = 'var(--accent)'; tonBtn.style.color = '#fff';
             starsBtn.style.background = 'rgba(255,255,255,0.06)'; starsBtn.style.borderColor = 'rgba(255,255,255,0.10)'; starsBtn.style.color = 'rgba(255,255,255,0.5)';
-            inputIcon.src = '/static/img/ton.png';
-            outputIcon.src = '/static/img/star.png';
+            inputIcon.src = '/static/img/ton.svg';
+            outputIcon.src = '/static/img/star.svg';
         } else {
             starsBtn.style.background = 'var(--accent)'; starsBtn.style.borderColor = 'var(--accent)'; starsBtn.style.color = '#fff';
             tonBtn.style.background = 'rgba(255,255,255,0.06)'; tonBtn.style.borderColor = 'rgba(255,255,255,0.10)'; tonBtn.style.color = 'rgba(255,255,255,0.5)';
-            inputIcon.src = '/static/img/star.png';
-            outputIcon.src = '/static/img/ton.png';
+            inputIcon.src = '/static/img/star.svg';
+            outputIcon.src = '/static/img/ton.svg';
         }
         document.getElementById('exchangeInput').value = '';
         document.getElementById('exchangeOutput').textContent = '0';

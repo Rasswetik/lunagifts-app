@@ -152,7 +152,7 @@ function formatBalance(b){
     return Math.floor(b).toString();
 }
 
-function imgSrc(p){ return !p?'/static/img/star.png':p.startsWith('/')?p:'/'+p; }
+function imgSrc(p){ return !p?'/static/img/star.svg':p.startsWith('/')?p:'/'+p; }
 
 function getNftBg(slug,count){
     if(!slug)return'';
@@ -228,19 +228,19 @@ function injectTopupModals(){
     +'<div class="topup-row-info"><div class="topup-row-title">Депозит подарками</div><div class="topup-row-desc">Отправьте подарок боту</div></div>'
     +'<span class="topup-row-badge">TopGift</span></div>'
     +'<div class="topup-row" onclick="openCryptoBotTopup()">'
-    +'<img class="topup-row-icon" src="/static/img/star.png" alt="">'
+    +'<img class="topup-row-icon" src="/static/img/star.svg" alt="">'
     +'<div class="topup-row-info"><div class="topup-row-title">USDT (CryptoBot)</div><div class="topup-row-desc">5% бонус звёздами</div></div>'
     +'<span class="topup-row-badge">от 1</span></div>'
     +'<div class="topup-row" onclick="openTopupSheet(\'ton\')">'
-    +'<img class="topup-row-icon" src="/static/img/ton.png" alt="" onerror="this.src=\'/static/img/star.png\'">'
+    +'<img class="topup-row-icon" src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'">'
     +'<div class="topup-row-info"><div class="topup-row-title">Toncoin</div><div class="topup-row-desc">Без комиссии</div></div>'
     +'<span class="topup-row-badge">от 0.4</span></div>'
     +'<div class="topup-row" onclick="openTopupSheet(\'stars\')">'
-    +'<img class="topup-row-icon" src="/static/img/star.png" alt="">'
+    +'<img class="topup-row-icon" src="/static/img/star.svg" alt="">'
     +'<div class="topup-row-info"><div class="topup-row-title">Telegram Stars</div><div class="topup-row-desc">Без комиссии</div></div>'
     +'<span class="topup-row-badge">от 1</span></div>'
     +'<div class="topup-row" onclick="openCryptoBotTopup()">'
-    +'<img class="topup-row-icon" src="/static/img/ton.png" alt="" onerror="this.src=\'/static/img/star.png\'">'
+    +'<img class="topup-row-icon" src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'">'
     +'<div class="topup-row-info"><div class="topup-row-title">Crypto Bot</div><div class="topup-row-desc">TON, USDT, BTC</div></div>'
     +'<span class="topup-row-badge">Crypto</span></div>'
     +'<button class="sheet-continue-btn active" style="margin-top:14px;width:100%;" onclick="closeModal(\'topupModal\')">Закрыть</button>'
@@ -258,7 +258,7 @@ function injectTopupModals(){
     // Legacy modals kept for TON connect flow
     +'<div class="modal-overlay" id="tonTopupModal"><div class="modal">'
     +'<button class="modal-close" onclick="closeModal(\'tonTopupModal\')"><img src="/static/img/exit.png" alt="✕"></button>'
-    +'<div class="section-header" style="margin-top:10px;"><h2><img class="section-icon" src="/static/img/ton.png" alt="" onerror="this.src=\'/static/img/star.png\'"> TON Connect</h2><p>Пополняйте баланс через TON</p></div>'
+    +'<div class="section-header" style="margin-top:10px;"><h2><img class="section-icon" src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"> TON Connect</h2><p>Пополняйте баланс через TON</p></div>'
     +'<div style="text-align:center;padding:12px 0;">'
     +'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:12px;">1 TON = 100 ⭐</div>'
     +'<div id="tonWalletStatus" style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">Кошелёк не подключён</div>'
@@ -480,12 +480,12 @@ function injectWithdrawModals(){
     +'<div class="section-header" style="margin-top:10px;"><h2>Баланс</h2><p>Выберите действие</p></div>'
     +'<div class="topup-methods">'
     +'<div class="topup-method" onclick="closeModal(\'balanceActionModal\');openModal(\'topupModal\');"><img src="/static/img/plus.png" alt="+"><span>Пополнить</span></div>'
-    +'<div class="topup-method" onclick="closeModal(\'balanceActionModal\');openWithdrawModal();"><img src="/static/img/star.png" alt="★"><span>Вывод Stars</span></div>'
+    +'<div class="topup-method" onclick="closeModal(\'balanceActionModal\');openWithdrawModal();"><img src="/static/img/star.svg" alt="★"><span>Вывод Stars</span></div>'
     +'</div></div></div>'
 
     +'<div class="modal-overlay" id="withdrawModal"><div class="modal" style="max-height:85vh;overflow-y:auto;">'
     +'<button class="modal-close" onclick="closeModal(\'withdrawModal\')"><img src="/static/img/exit.png" alt="✕"></button>'
-    +'<div class="section-header" style="margin-top:10px;"><h2><img class="section-icon" src="/static/img/star.png" alt=""> Вывод Stars</h2><p>Минимум '+MIN_WITHDRAW_AMOUNT+' ⭐</p></div>'
+    +'<div class="section-header" style="margin-top:10px;"><h2><img class="section-icon" src="/static/img/star.svg" alt=""> Вывод Stars</h2><p>Минимум '+MIN_WITHDRAW_AMOUNT+' ⭐</p></div>'
     +'<div id="withdrawStep1">'
     +'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:8px;">Ваш баланс: <span id="withdrawBalance" style="color:var(--gold);font-weight:700;">0</span> ⭐</div>'
     +'<div id="withdrawRelayBalance" style="display:none;font-size:12px;color:var(--green);margin-bottom:10px;"></div>'
@@ -542,10 +542,10 @@ function renderWithdrawGifts(){
         const count=withdrawSelected[g.id]||0;
         const sel=count>0;
         const bg=g.bg_color||'#6b8aff';
-        const thumbSrc=g.thumb_b64?'data:'+(g.thumb_mime||'image/webp')+';base64,'+g.thumb_b64:(g.image||'/static/img/star.png');
+        const thumbSrc=g.thumb_b64?'data:'+(g.thumb_mime||'image/webp')+';base64,'+g.thumb_b64:(g.image||'/static/img/star.svg');
         return '<div onclick="toggleWithdrawGift('+g.id+','+g.star_count+')" style="background:'+(sel?'linear-gradient(135deg,'+bg+'40,'+bg+'20)':'var(--bg-card)')+';border:2px solid '+(sel?bg:'var(--border)')+';border-radius:14px;padding:12px 6px;text-align:center;cursor:pointer;transition:all .25s;position:relative;'+(sel?'box-shadow:0 0 20px '+bg+'30;transform:scale(1.03);':'')+'">'
         +(count>0?'<div style="position:absolute;top:-6px;right:-6px;background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;">'+count+'</div>':'')
-        +'<img src="'+thumbSrc+'" alt="" style="width:48px;height:48px;object-fit:contain;margin:0 auto 6px;display:block;" onerror="this.src=\'/static/img/star.png\'">'
+        +'<img src="'+thumbSrc+'" alt="" style="width:48px;height:48px;object-fit:contain;margin:0 auto 6px;display:block;" onerror="this.src=\'/static/img/star.svg\'">'
         +'<div style="font-size:13px;font-weight:800;color:var(--gold);">'+g.star_count+' ⭐</div>'
         +'<div style="font-size:11px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+(g.name||'Gift')+'</div></div>';
     }).join('');
@@ -610,8 +610,28 @@ async function confirmWithdraw(){
 }
 
 // ============ INIT ============
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();});}
-else{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();initBtnRipple();});}
+else{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();initBtnRipple();}
+
+// ============ BUTTON RIPPLE EFFECT ============
+function initBtnRipple(){
+    document.addEventListener('click',function(e){
+        var btn=e.target.closest('.case-sheet-open-btn,.result-btn,.topup-pay-btn,.topup-nft-btn,.inv-action-btn,.popular-case-price-btn');
+        if(!btn)return;
+        btn.style.position=btn.style.position||'relative';
+        btn.style.overflow='hidden';
+        var ripple=document.createElement('span');
+        ripple.className='btn-ripple';
+        var rect=btn.getBoundingClientRect();
+        var size=Math.max(rect.width,rect.height)*2;
+        ripple.style.width=size+'px';
+        ripple.style.height=size+'px';
+        ripple.style.left=(e.clientX-rect.left-size/2)+'px';
+        ripple.style.top=(e.clientY-rect.top-size/2)+'px';
+        btn.appendChild(ripple);
+        setTimeout(function(){ripple.remove();},600);
+    });
+}
 
 // ============ SVG NAV ICONS (UpGift style) ============
 const NAV_ICONS={
@@ -696,11 +716,11 @@ function injectMobileHeader(){
         +'<div class="balance-pill">'
         +'<div class="balance-section ton-balance" onclick="showTonTopup()">'
         +'<span class="balance-val" id="tonBalVal">0.00</span>'
-        +'<img src="/static/img/ton.png" alt="TON"></div>'
+        +'<img src="/static/img/ton.svg" alt="TON"></div>'
         +'<div class="balance-divider"></div>'
         +'<div class="balance-section star-balance" onclick="openBalanceAction()">'
         +'<span class="balance-val balance-amount" style="color:var(--gold)">0</span>'
-        +'<img src="/static/img/star.png" alt="⭐"></div></div>'
+        +'<img src="/static/img/star.svg" alt="⭐"></div></div>'
         +'<button class="balance-plus-btn" onclick="window.location.href=\'/topup\'">+</button>'
         +'<div class="online-badge" id="onlineBadge">'
         +'<span class="online-dot"></span>'
@@ -738,9 +758,9 @@ function injectDesktopNav(){
         +'</div>'
         +'<div class="desktop-nav-right">'
         +'<div class="desktop-nav-balance ton-bal" onclick="showTonTopup()">'
-        +'<img src="/static/img/ton.png" alt="TON"><span class="desktop-ton-val" id="desktopTonVal">0.00</span></div>'
+        +'<img src="/static/img/ton.svg" alt="TON"><span class="desktop-ton-val" id="desktopTonVal">0.00</span></div>'
         +'<div class="desktop-nav-balance star-bal" onclick="window.location.href=\'/topup\'">'
-        +'<img src="/static/img/star.png" alt="Stars"><span class="balance-amount desktop-star-val" id="desktopStarVal">0</span></div>'
+        +'<img src="/static/img/star.svg" alt="Stars"><span class="balance-amount desktop-star-val" id="desktopStarVal">0</span></div>'
         +'<button class="desktop-nav-plus" onclick="window.location.href=\'/topup\'">+</button>'
         +'<img class="desktop-nav-avatar user-avatar" id="desktopAvatar" src="" alt="" onclick="window.location.href=\'/inventory\'">'
         +'</div></div>';

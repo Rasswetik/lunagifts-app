@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Luna Gifts — Cutscene v6
  * - First visit: full cinematic + tutorial
  * - Return visits: 3D loading screen (top-down desk with phone showing real site)
@@ -9,7 +9,7 @@
   'use strict';
 
   const LOGO  = '/static/img/logo.png';
-  const STAR  = '/static/img/star.png';
+  const STAR  = '/static/img/star.svg';
   const LOADING_GIF = '/static/img/loading.gif';
   const THREE_VER = '0.157.0';
   const LOADER_VER = '0.147.0';

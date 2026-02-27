@@ -29,12 +29,12 @@
             <div class="balance-pill">
                 <div class="balance-section ton-balance" onclick="showTonTopup()">
                     <span class="balance-val" id="tonBalVal">0.00</span>
-                    <img src="/static/img/ton.png" alt="TON">
+                    <img src="/static/img/ton.svg" alt="TON">
                 </div>
                 <div class="balance-divider"></div>
                 <div class="balance-section star-balance" onclick="openBalanceAction()">
                     <span class="balance-val balance-amount" style="color:var(--gold)">0</span>
-                    <img src="/static/img/star.png" alt="⭐">
+                    <img src="/static/img/star.svg" alt="⭐">
                 </div>
             </div>
             <button class="balance-plus-btn" onclick="window.location.href='/topup'">+</button>
@@ -69,8 +69,8 @@
             <!-- Filter Tabs -->
             <div class="case-filter-tabs" id="caseFilterTabs">
                 <button class="case-filter-tab active" data-filter="all" onclick="filterCases('all',this)">Все</button>
-                <button class="case-filter-tab" data-filter="ton" onclick="filterCases('ton',this)"><img src="/static/img/ton.png" alt="" style="width:13px;height:13px;"> За TON</button>
-                <button class="case-filter-tab" data-filter="stars" onclick="filterCases('stars',this)"><img src="/static/img/star.png" alt="" style="width:13px;height:13px;"> Звёздные</button>
+                <button class="case-filter-tab" data-filter="ton" onclick="filterCases('ton',this)"><img src="/static/img/ton.svg" alt="" style="width:13px;height:13px;"> За TON</button>
+                <button class="case-filter-tab" data-filter="stars" onclick="filterCases('stars',this)"><img src="/static/img/star.svg" alt="" style="width:13px;height:13px;"> Звёздные</button>
                 <button class="case-filter-tab" data-filter="free" onclick="filterCases('free',this)">Бесплатные</button>
             </div>
 
@@ -106,7 +106,7 @@
                 <div class="case-sheet-header">
                     <div class="case-sheet-header-left">
                         <div class="case-sheet-name" id="caseSheetName"></div>
-                        <div class="case-sheet-price" id="caseSheetPrice"><img src="/static/img/star.png" alt=""> <span id="caseSheetPriceVal"></span></div>
+                        <div class="case-sheet-price" id="caseSheetPrice"><img src="/static/img/star.svg" alt=""> <span id="caseSheetPriceVal"></span></div>
                         <div class="case-sheet-demo">
                             <span>Демо</span>
                             <button class="case-sheet-demo-toggle" id="caseSheetDemoToggle" onclick="this.classList.toggle('active')"></button>
@@ -127,7 +127,7 @@
                 <div class="case-result-area" id="caseResultArea"></div>
 
                 <button class="case-sheet-open-btn" id="caseSheetOpenBtn" onclick="openCaseFromSheet()">Открыть кейс</button>
-                <div class="case-sheet-sub" id="caseSheetSub">Один спин <img src="/static/img/ton.png" alt=""> <span id="caseSheetSubPrice">0</span></div>
+                <div class="case-sheet-sub" id="caseSheetSub">Один спин <img src="/static/img/ton.svg" alt=""> <span id="caseSheetSubPrice">0</span></div>
             </div>
         </div>
     </div>
@@ -201,20 +201,20 @@
             if(dp!==null){
                 const dTon=(dp/100).toFixed(2);
                 priceHtml='<div class="case-card-v2-prices">'
-                    +'<span class="case-price-row"><img src="/static/img/ton.png" alt=""> '+dTon+'</span>'
-                    +'<span class="case-price-row stars"><img src="/static/img/star.png" alt=""> '+dp+'</span>'
+                    +'<span class="case-price-row"><img src="/static/img/ton.svg" alt=""> '+dTon+'</span>'
+                    +'<span class="case-price-row stars"><img src="/static/img/star.svg" alt=""> '+dp+'</span>'
                     +'</div>';
             }else if(cs.price===0){
                 priceHtml='<span style="color:var(--green);">Бесплатно</span>';
             }else{
                 const tonPrice=(cs.price/100).toFixed(2);
                 priceHtml='<div class="case-card-v2-prices">'
-                    +'<span class="case-price-row"><img src="/static/img/ton.png" alt=""> '+tonPrice+'</span>'
-                    +'<span class="case-price-row stars"><img src="/static/img/star.png" alt=""> '+cs.price+'</span>'
+                    +'<span class="case-price-row"><img src="/static/img/ton.svg" alt=""> '+tonPrice+'</span>'
+                    +'<span class="case-price-row stars"><img src="/static/img/star.svg" alt=""> '+cs.price+'</span>'
                     +'</div>';
             }
             return '<div class="case-card-v2" onclick="openCaseDetail('+cs.id+')">'
-                +'<div class="case-card-v2-visual"><img src="'+imgSrc(cs.image)+'" alt="'+cs.name+'" onerror="this.src=\'/static/img/star.png\'"></div>'
+                +'<div class="case-card-v2-visual"><img src="'+imgSrc(cs.image)+'" alt="'+cs.name+'" onerror="this.src=\'/static/img/star.svg\'"></div>'
                 +'<div class="case-card-v2-name">'+cs.name+'</div>'
                 +'<div class="case-card-v2-price">'+priceHtml+'</div></div>';
         }).join('');
@@ -228,14 +228,14 @@
         document.getElementById('popularCaseName').textContent=_popularCase.name;
         document.getElementById('popularCaseImg').src=imgSrc(_popularCase.image);
         const priceBtn=document.getElementById('popularCasePriceBtn');
-        const popIcon=_popularCase.currency==='ton'?'/static/img/ton.png':'/static/img/star.png';
+        const popIcon=_popularCase.currency==='ton'?'/static/img/ton.svg':'/static/img/star.svg';
         priceBtn.innerHTML='<img src="'+popIcon+'" alt=""> '+_popularCase.price;
         card.style.display='flex';
         fetch('/api/cases/drops/'+_popularCase.id).then(r=>r.json()).then(drops=>{
             const dContainer=document.getElementById('popularCaseDrops');
             const show=drops.slice(0,3);
             const more=drops.length-3;
-            dContainer.innerHTML=show.map(d=>'<img class="popular-drop-thumb" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.png\'">').join('')
+            dContainer.innerHTML=show.map(d=>'<img class="popular-drop-thumb" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.svg\'">').join('')
                 +(more>0?'<div class="popular-drop-more">+'+more+'</div>':'');
         }).catch(()=>{});
     }
@@ -252,9 +252,9 @@
             const scroll=document.getElementById('recentWinsScroll');
             scroll.innerHTML=wins.map(w=>{
                 const avatar=w.photo_url||generateAvatar(w.username||'U');
-                const prize=w.gift_image||'/static/img/star.png';
+                const prize=w.gift_image||'/static/img/star.svg';
                 return '<div class="recent-win-card">'
-                    +'<div class="recent-win-avatar"><img src="'+avatar+'" alt="" onerror="this.src=\''+generateAvatar(w.username||"U")+'\'"><img class="recent-win-prize" src="'+imgSrc(prize)+'" alt="" onerror="this.src=\'/static/img/star.png\'"></div>'
+                    +'<div class="recent-win-avatar"><img src="'+avatar+'" alt="" onerror="this.src=\''+generateAvatar(w.username||"U")+'\'"><img class="recent-win-prize" src="'+imgSrc(prize)+'" alt="" onerror="this.src=\'/static/img/star.svg\'"></div>'
                     +'<div class="recent-win-name">'+(w.username||'User')+'</div>'
                     +'</div>';
             }).join('');
@@ -285,7 +285,7 @@
         const dp=getDiscountedPrice(cs);
         const price=dp!==null?dp:cs.price;
         const isTon=cs.currency==='ton';
-        const currIcon=isTon?'/static/img/ton.png':'/static/img/star.png';
+        const currIcon=isTon?'/static/img/ton.svg':'/static/img/star.svg';
         document.getElementById('caseSheetPriceVal').textContent=price;
         document.getElementById('caseSheetPrice').querySelector('img').src=currIcon;
         document.getElementById('caseSheetSubPrice').textContent=price;
@@ -326,7 +326,7 @@
                     +'</div>';
             }else{
                 visualHtml='<div class="case-sheet-item-visual">'
-                    +'<img class="csi-model" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.png\'">'
+                    +'<img class="csi-model" src="'+imgSrc(d.image)+'" alt="" onerror="this.src=\'/static/img/star.svg\'">'
                     +'</div>';
             }
             const starsPrice=d.price||0;
@@ -334,8 +334,8 @@
             return '<div class="case-sheet-item">'
                 +visualHtml
                 +'<div class="case-sheet-item-prices">'
-                +'<div class="case-sheet-item-price"><img src="/static/img/ton.png" alt=""> '+tonPrice+'</div>'
-                +'<div class="case-sheet-item-price stars"><img src="/static/img/star.png" alt=""> '+starsPrice+'</div>'
+                +'<div class="case-sheet-item-price"><img src="/static/img/ton.svg" alt=""> '+tonPrice+'</div>'
+                +'<div class="case-sheet-item-price stars"><img src="/static/img/star.svg" alt=""> '+starsPrice+'</div>'
                 +'</div>'
                 +'</div>';
         }).join('');
@@ -368,7 +368,7 @@
         // Build item pool & won item
         const wonItem=buildWonItem(data);
         const isTon=cs&&cs.currency==='ton';
-        const currIcon=isTon?'/static/img/ton.png':'/static/img/star.png';
+        const currIcon=isTon?'/static/img/ton.svg':'/static/img/star.svg';
         let pool=currentCaseDrops.map(d=>({name:d.name,image:imgSrc(d.image),backdrop:getNftBg(d.slug,d.item_count),price:d.price||0}));
         if(!pool.length)pool=[wonItem];
 
@@ -403,7 +403,7 @@
                 visual.appendChild(bg);
             }else{
                 const img=document.createElement('img');img.className='rc-img';
-                img.src=item.image;img.alt='';img.onerror=function(){this.src='/static/img/star.png';};
+                img.src=item.image;img.alt='';img.onerror=function(){this.src='/static/img/star.svg';};
                 visual.appendChild(img);
             }
             card.appendChild(visual);
@@ -479,7 +479,7 @@
             wonVisual.appendChild(bgImg);
         }else{
             const img=document.createElement('img');img.src=wonItem.image;img.alt='';
-            img.onerror=function(){this.src='/static/img/star.png';};
+            img.onerror=function(){this.src='/static/img/star.svg';};
             wonVisual.appendChild(img);
         }
         wonName.textContent=wonItem.name;
@@ -500,20 +500,20 @@
     }
 
     function buildWonItem(data){
-        return{name:data.type==='stars'?'+'+data.amount+' Stars':data.gift.name,image:data.type==='stars'?'/static/img/star.png':imgSrc(data.gift.image),backdrop:data.type==='stars'?'':getNftBg(data.gift.slug,data.gift.item_count),price:data.type==='stars'?data.amount:(data.gift.price||0),type:data.type};
+        return{name:data.type==='stars'?'+'+data.amount+' Stars':data.gift.name,image:data.type==='stars'?'/static/img/star.svg':imgSrc(data.gift.image),backdrop:data.type==='stars'?'':getNftBg(data.gift.slug,data.gift.item_count),price:data.type==='stars'?data.amount:(data.gift.price||0),type:data.type};
     }
 
     function showSingleResult(data,wonItem){
         const ra=document.getElementById('caseResultArea');
         if(data.type==='stars'){
-            ra.innerHTML='<div class="result-title" style="color:var(--gold);">+'+data.amount+' <img src="/static/img/star.png" alt="" style="width:18px;height:18px;vertical-align:middle;"></div>'
+            ra.innerHTML='<div class="result-title" style="color:var(--gold);">+'+data.amount+' <img src="/static/img/star.svg" alt="" style="width:18px;height:18px;vertical-align:middle;"></div>'
                 +'<div class="result-sub">Звёзды зачислены на баланс</div>';
         }else{
             const sp=Math.floor(data.gift.price||0);const sn=data.gift.name.replace(/'/g,"\\'");
             const canW=data.gift.withdrawable&&data.gift.telegram_gift_id;
             const wBtn=canW?'<button class="result-btn next" id="withdrawResultBtn" onclick="withdrawResult('+data.gift.id+',\''+sn+'\')" style="background:linear-gradient(135deg,#6B8AFF,#8B5CF6);">Вывести</button>':'';
             ra.innerHTML='<div class="result-sub">Подарок добавлен в инвентарь</div>'
-                +'<div class="result-buttons"><button class="result-btn sell" id="sellResultBtn" onclick="sellResult('+data.gift.id+',\''+sn+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.png" alt="" style="width:14px;height:14px;vertical-align:middle;"></button>'+wBtn+'</div>';
+                +'<div class="result-buttons"><button class="result-btn sell" id="sellResultBtn" onclick="sellResult('+data.gift.id+',\''+sn+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;"></button>'+wBtn+'</div>';
         }
     }
 

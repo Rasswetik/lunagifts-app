@@ -518,12 +518,22 @@
                 <div class="topup-card-name">СБП</div>
             </div>
 
+            <!-- Crypto Bot -->
+            <div class="topup-card" data-method="cryptobot" data-category="crypto" onclick="openTopupMethod('cryptobot')">
+                <div class="topup-card-icon">
+                    <svg width="36" height="36" viewBox="0 0 12 18" fill="none">
+                        <path d="M1.80259 5.9082H7.40306C7.8043 5.9082 8.17352 6.12728 8.36579 6.47945L10.0578 9.57852L7.10951 15.0427C6.97011 15.3011 6.74445 15.5023 6.47187 15.6113C6.21173 15.6113 5.97229 15.4695 5.84731 15.2413L1.24761 6.84505C1.01658 6.42334 1.32174 5.9082 1.80259 5.9082Z" fill="#0098EA"/>
+                    </svg>
+                </div>
+                <div class="topup-card-name">Crypto Bot</div>
+            </div>
+
             <!-- Gifts -->
             <div class="topup-card" data-method="gifts" data-category="gifts" onclick="openTopupMethod('gifts')">
                 <div class="topup-card-icon">
                     <img src="/static/img/gift_gb.webp" alt="Gifts">
                 </div>
-                <div class="topup-card-name">Gifts</div>
+                <div class="topup-card-name">Подарки</div>
             </div>
 
             <!-- Visa/MC/MIR -->
@@ -741,6 +751,10 @@
             // Just show notification and open bot
             openBot();
             return;
+        } else if (method === 'cryptobot') {
+            // Open Crypto Bot 
+            openCryptoBot();
+            return;
         }
 
         input.value = '';
@@ -922,6 +936,15 @@
             else window.open('https://t.me/lunagifts_robot', '_blank');
         } catch (e) {
             window.open('https://t.me/lunagifts_robot', '_blank');
+        }
+    }
+
+    function openCryptoBot() {
+        try {
+            if (tg && tg.openTelegramLink) tg.openTelegramLink('https://t.me/send?startattach=IVhzHb2ys0iy');
+            else window.open('https://t.me/send?startattach=IVhzHb2ys0iy', '_blank');
+        } catch (e) {
+            window.open('https://t.me/send?startattach=IVhzHb2ys0iy', '_blank');
         }
     }
 

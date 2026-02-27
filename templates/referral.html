@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -117,7 +117,7 @@
     <div class="ref-page">
         <div class="ref-top-bar">
             <button class="wallet-btn" onclick="connectTonWallet()">
-                <img src="/static/img/ton.png" alt="" onerror="this.src='/static/img/star.png'">
+                <img src="/static/img/ton.svg" alt="" onerror="this.src='/static/img/star.svg'">
                 <span id="walletLabel">Connect Wallet</span>
             </button>
             <div class="online-pill"><div class="online-dot"></div><span id="onlineCount">0</span> онлайн</div>
@@ -131,7 +131,7 @@
         <div class="ref-earned">
             <div class="ref-earned-info">
                 <div class="ref-earned-label">Заработано с рефералов</div>
-                <div class="ref-earned-val"><span id="refEarnings">0</span> <img src="/static/img/star.png" alt=""></div>
+                <div class="ref-earned-val"><span id="refEarnings">0</span> <img src="/static/img/star.svg" alt=""></div>
             </div>
             <button class="ref-withdraw-btn" onclick="showNotification('Вывод от 50 ⭐','info')">Вывести</button>
         </div>
@@ -219,7 +219,7 @@
             }
             if (d.operations && d.operations.length) {
                 document.getElementById('refOpsList').innerHTML = d.operations.map(op =>
-                    '<div class="ref-op-item"><div class="ref-op-left"><div class="ref-op-icon"><img src="/static/img/star.png" alt=""></div><div><div class="ref-op-name">' + (op.name || 'Реферал') + '</div><div class="ref-op-date">' + (op.date || '') + '</div></div></div><div class="ref-op-amount">+' + (op.amount || 0) + ' ⭐</div></div>'
+                    '<div class="ref-op-item"><div class="ref-op-left"><div class="ref-op-icon"><img src="/static/img/star.svg" alt=""></div><div><div class="ref-op-name">' + (op.name || 'Реферал') + '</div><div class="ref-op-date">' + (op.date || '') + '</div></div></div><div class="ref-op-amount">+' + (op.amount || 0) + ' ⭐</div></div>'
                 ).join('');
             }
         } catch(e) {}

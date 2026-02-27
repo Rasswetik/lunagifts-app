@@ -5107,3 +5107,117 @@ select {
 body.is-tg-miniapp .desktop-nav {
     display: none !important;
 }
+
+/* ============ BUTTON ANIMATIONS ============ */
+/* Universal press animation */
+.btn-press,
+.case-card-v2,
+.topup-card,
+.game-card,
+.popular-case-card,
+.case-filter-tab,
+.case-sheet-open-btn,
+.result-btn,
+.inv-action-btn,
+.exchange-dir-btn,
+.topup-filter-tab,
+.topup-preset-btn,
+.topup-pay-btn,
+.topup-nft-btn,
+.referral-copy-btn,
+.promo-btn,
+.popular-case-price-btn {
+    transition: transform 0.15s cubic-bezier(.2,.8,.4,1), opacity 0.15s ease, box-shadow 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+}
+
+.btn-press:active,
+.case-card-v2:active,
+.topup-card:active,
+.popular-case-card:active,
+.case-filter-tab:active,
+.topup-filter-tab:active,
+.topup-preset-btn:active {
+    transform: scale(0.96);
+    opacity: 0.85;
+}
+
+.case-sheet-open-btn:active,
+.result-btn:active,
+.inv-action-btn:active,
+.topup-pay-btn:active,
+.topup-nft-btn:active,
+.referral-copy-btn:active,
+.promo-btn:active,
+.exchange-dir-btn:active,
+.popular-case-price-btn:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+}
+
+.game-card:active {
+    transform: scale(0.975);
+}
+
+/* Button ripple effect */
+@keyframes btnRipple {
+    0% { transform: scale(0); opacity: 0.4; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+.btn-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    pointer-events: none;
+    animation: btnRipple 0.6s ease-out forwards;
+}
+
+/* Glow pulse for highlighted buttons */
+@keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(22,137,255,0.3); }
+    50% { box-shadow: 0 0 20px 4px rgba(22,137,255,0.15); }
+}
+
+.case-sheet-open-btn,
+.topup-pay-btn:not(:disabled),
+.topup-card.highlighted {
+    animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+.case-sheet-open-btn:active,
+.topup-pay-btn:active {
+    animation: none;
+}
+
+/* Bounce-in animation for modals and results */
+@keyframes bounceIn {
+    0% { transform: scale(0.85); opacity: 0; }
+    60% { transform: scale(1.03); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.won-display.active,
+.modal-content,
+.confirm-box {
+    animation: bounceIn 0.35s cubic-bezier(.32,.72,0,1);
+}
+
+/* Shimmer effect for gold buttons */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.sell-all-btn,
+.result-btn.sell {
+    background-size: 200% 100%;
+    background-image: linear-gradient(90deg, #FFCC00 0%, #FFE066 25%, #FFCC00 50%, #FFE066 75%, #FFCC00 100%);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+/* SVG icon sizing defaults */
+img[src$=".svg"] {
+    image-rendering: auto;
+}

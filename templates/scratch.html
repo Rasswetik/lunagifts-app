@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -320,7 +320,7 @@
                     <span class="user-name">Загрузка...</span>
                     <div class="balance-row" onclick="openBalanceAction()">
                         <span class="balance-amount">0</span>
-                        <img class="balance-icon" src="/static/img/star.png" alt="">
+                        <img class="balance-icon" src="/static/img/star.svg" alt="">
                     </div>
                 </div>
             </div>
@@ -454,8 +454,8 @@
             const discPrice = hasDisc ? Math.max(0, Math.round(s.price * (1 - activeScratchDiscount.percent / 100))) : null;
             let priceHtml;
             if (isFreeTarget) priceHtml = 'Бесплатно';
-            else if (discPrice !== null) priceHtml = '<span style="text-decoration:line-through;opacity:.45;font-size:11px;">' + s.price + '</span> <span style="color:var(--green);">' + discPrice + '</span> <img src="/static/img/star.png" alt="">';
-            else priceHtml = s.price + ' <img src="/static/img/star.png" alt="">';
+            else if (discPrice !== null) priceHtml = '<span style="text-decoration:line-through;opacity:.45;font-size:11px;">' + s.price + '</span> <span style="color:var(--green);">' + discPrice + '</span> <img src="/static/img/star.svg" alt="">';
+            else priceHtml = s.price + ' <img src="/static/img/star.svg" alt="">';
             return `<div class="scratch-card${isFreeTarget?' free-glow':''}${hasDisc?' disc-glow':''}" onclick="openScratchDetail(${s.id})">
                 ${isFreeTarget?'<div class="free-badge">FREE</div>':''}${hasDisc?'<div class="disc-badge">-'+activeScratchDiscount.percent+'%</div>':''}
                 <img class="scratch-card-img" src="${s.image}" alt="${esc(s.name)}" onerror="this.src='/static/gifs/moon.gif'">
@@ -481,11 +481,11 @@
         const hasDisc = !isFree && activeScratchDiscount.scratch_id && (activeScratchDiscount.scratch_id == s.id || activeScratchDiscount.scratch_id == 0) && activeScratchDiscount.percent;
         const discPrice = hasDisc ? Math.max(0, Math.round(s.price * (1 - activeScratchDiscount.percent / 100))) : null;
         if (isFree) {
-            document.getElementById('detailPrice').innerHTML = '<span style="text-decoration:line-through;opacity:.5;">' + s.price + '</span> Бесплатно <img src="/static/img/star.png" alt="">';
+            document.getElementById('detailPrice').innerHTML = '<span style="text-decoration:line-through;opacity:.5;">' + s.price + '</span> Бесплатно <img src="/static/img/star.svg" alt="">';
         } else if (discPrice !== null) {
-            document.getElementById('detailPrice').innerHTML = '<span style="text-decoration:line-through;opacity:.45;font-size:13px;">' + s.price + '</span> <span style="color:var(--green);">' + discPrice + '</span> <img src="/static/img/star.png" alt=""> <span style="background:var(--green);color:#000;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-left:4px;">-' + activeScratchDiscount.percent + '%</span>';
+            document.getElementById('detailPrice').innerHTML = '<span style="text-decoration:line-through;opacity:.45;font-size:13px;">' + s.price + '</span> <span style="color:var(--green);">' + discPrice + '</span> <img src="/static/img/star.svg" alt=""> <span style="background:var(--green);color:#000;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:700;margin-left:4px;">-' + activeScratchDiscount.percent + '%</span>';
         } else {
-            document.getElementById('detailPrice').innerHTML = s.price + ' <img src="/static/img/star.png" alt="">';
+            document.getElementById('detailPrice').innerHTML = s.price + ' <img src="/static/img/star.svg" alt="">';
         }
         const picksCount = s.picks || 1;
         document.getElementById('playBtn').querySelector('span').textContent = picksCount > 1 ? 'Стереть x' + picksCount : 'Стереть';
@@ -500,7 +500,7 @@
             let name, icon, price, slug = '', itemCount = 1000;
             if (d.type === 'stars') {
                 name = '+' + d.amount + ' Stars';
-                icon = '/static/img/star.png';
+                icon = '/static/img/star.svg';
                 price = d.amount;
             } else {
                 const g = giftsMap[d.gift_id];
@@ -513,11 +513,11 @@
             const nftBg = getNftBg(slug, itemCount);
             const visualHtml = nftBg
                 ? `<img class="gift-backdrop" src="${nftBg}" data-slug="${slug}" data-count="${itemCount}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:12px;opacity:0.55;" onerror="this.onerror=null;this.style='';this.src='${icon}';this.className='';">`
-                : `<img src="${icon}" alt="" onerror="this.onerror=null;this.src='/static/img/star.png';">`;
+                : `<img src="${icon}" alt="" onerror="this.onerror=null;this.src='/static/img/star.svg';">`;
             return `<div class="scratch-drop-card">
                 <div class="scratch-drop-visual">${visualHtml}</div>
                 <div class="scratch-drop-name">${esc(name)}</div>
-                <div class="scratch-drop-price">${price} <img src="/static/img/star.png" alt=""></div>
+                <div class="scratch-drop-price">${price} <img src="/static/img/star.svg" alt=""></div>
             </div>`;
         }).join('');
         // Start NFT backdrop rotation for this detail view
@@ -604,7 +604,7 @@
             const cp = cellPrizes[i];
             let prizeImg, prizeIsNft = false;
             if (cp.prize_type === 'stars') {
-                prizeImg = '/static/img/star.png';
+                prizeImg = '/static/img/star.svg';
             } else if (cp.prize_slug) {
                 prizeImg = getNftBg(cp.prize_slug, cp.prize_item_count || 1000);
                 prizeIsNft = true;
@@ -629,12 +629,12 @@
     }
 
     function getRandomFillerPrize() {
-        if (!currentScratch) return { prize_type: 'stars', prize_amount: 0, prize_image: '/static/img/star.png' };
+        if (!currentScratch) return { prize_type: 'stars', prize_amount: 0, prize_image: '/static/img/star.svg' };
         const drops = currentScratch.drops || [];
         const d = drops[Math.floor(Math.random() * drops.length)];
-        if (!d) return { prize_type: 'stars', prize_amount: 0, prize_image: '/static/img/star.png' };
+        if (!d) return { prize_type: 'stars', prize_amount: 0, prize_image: '/static/img/star.svg' };
         if (d.type === 'stars') {
-            return { prize_type: 'stars', prize_amount: d.amount, prize_image: '/static/img/star.png' };
+            return { prize_type: 'stars', prize_amount: d.amount, prize_image: '/static/img/star.svg' };
         } else {
             const g = giftsMap[d.gift_id];
             return {
@@ -709,7 +709,7 @@
                     const prizeEl = cell.querySelector('.scratch-cell-prize img');
                     if (prizeEl && realPrize) {
                         if (realPrize.prize_type === 'stars') {
-                            prizeEl.src = '/static/img/star.png';
+                            prizeEl.src = '/static/img/star.svg';
                             prizeEl.removeAttribute('style');
                         } else if (realPrize.prize_slug) {
                             const nftBg = getNftBg(realPrize.prize_slug, realPrize.prize_item_count || 1000);
@@ -859,7 +859,7 @@
             const prizes = gameResult.prizes;
             let rText = prizes.length + ' призов!';
             let rSub = 'Все добавлены в инвентарь/баланс';
-            let rImg = '/static/img/star.png';
+            let rImg = '/static/img/star.svg';
             // Use first gift image if available
             const firstGift = prizes.find(p => p.prize_type === 'gift');
             if (firstGift) {
@@ -879,7 +879,7 @@
             prizes.forEach(p => {
                 let img, name;
                 if (p.prize_type === 'stars') {
-                    img = '/static/img/star.png'; name = '+' + p.prize_amount + ' Stars';
+                    img = '/static/img/star.svg'; name = '+' + p.prize_amount + ' Stars';
                 } else {
                     img = p.prize_slug ? getNftBg(p.prize_slug, p.prize_item_count || 1000) : (p.prize_image || '/static/img/gift.png');
                     name = p.prize_name || 'Подарок';
@@ -888,7 +888,7 @@
                 cardsHtml += '<div style="flex:0 0 calc(50% - 5px);background:linear-gradient(160deg,rgba(28,43,58,0.95),rgba(20,30,43,0.95));border:1px solid rgba(138,92,246,0.2);border-radius:16px;padding:14px 10px 12px;text-align:center;">'
                     + '<div style="width:54px;height:54px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;'
                     + (isNft ? 'border-radius:14px;overflow:hidden;' : '') + '">'
-                    + '<img src="' + img + '" alt="" style="' + (isNft ? 'width:100%;height:100%;object-fit:cover;' : 'width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.3));') + '" onerror="this.src=\'/static/img/star.png\'">'
+                    + '<img src="' + img + '" alt="" style="' + (isNft ? 'width:100%;height:100%;object-fit:cover;' : 'width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 3px 8px rgba(0,0,0,0.3));') + '" onerror="this.src=\'/static/img/star.svg\'">'
                     + '</div>'
                     + '<div style="font-size:12px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(name) + '</div>'
                     + '</div>';
@@ -899,7 +899,7 @@
             // Single pick result
             let rImg, rText, rSub;
             if (gameResult.prize_type === 'stars') {
-                rImg = '/static/img/star.png';
+                rImg = '/static/img/star.svg';
                 rText = '+' + gameResult.prize_amount + ' Stars';
                 rSub = 'Звёзды зачислены на баланс';
             } else {
@@ -960,7 +960,7 @@
             const visualStyle = nftBg
                 ? 'background-image:url('+nftBg+');background-size:cover;background-position:center;border-radius:10px;'
                 : '';
-            const imgHtml = nftBg ? '' : '<img src="'+d.image+'" alt="" style="width:36px;height:36px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'">';
+            const imgHtml = nftBg ? '' : '<img src="'+d.image+'" alt="" style="width:36px;height:36px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'">';
             html += '<div style="flex:0 0 72px;text-align:center;opacity:0.4;filter:grayscale(70%);">'
                 + '<div style="width:56px;height:56px;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.04);border-radius:12px;border:1px solid rgba(255,255,255,0.06);'+visualStyle+'">'
                 + imgHtml + '</div>'

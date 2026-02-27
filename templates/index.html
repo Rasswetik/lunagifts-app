@@ -29,12 +29,12 @@
             <div class="balance-pill">
                 <div class="balance-section ton-balance" onclick="showTonTopup()">
                     <span class="balance-val" id="tonBalVal">0.00</span>
-                    <img src="/static/img/ton.png" alt="TON">
+                    <img src="/static/img/ton.svg" alt="TON">
                 </div>
                 <div class="balance-divider"></div>
                 <div class="balance-section star-balance" onclick="openBalanceAction()">
                     <span class="balance-val balance-amount" style="color:var(--gold)">0</span>
-                    <img src="/static/img/star.png" alt="⭐">
+                    <img src="/static/img/star.svg" alt="⭐">
                 </div>
             </div>
             <button class="balance-plus-btn" onclick="window.location.href='/topup'">+</button>
@@ -74,7 +74,7 @@
             </div>
             <div class="tutorial-step" data-step="1">
                 <div class="tutorial-glow-orb orb-gold"></div>
-                <img src="/static/img/star.png" class="tutorial-icon" alt="">
+                <img src="/static/img/star.svg" class="tutorial-icon" alt="">
                 <div class="tutorial-title">Баланс звёзд</div>
                 <div class="tutorial-text">Звёзды — ваша валюта. Пополняйте баланс, выполняйте задания и зарабатывайте на играх</div>
             </div>
@@ -183,8 +183,8 @@
             const isGoal=!!prog;
             const canClaim=isGoal?prog.done:true;
             let reward;
-            if(t.reward_type==='gift'&&t.gift_image)reward='<div class="task-reward"><img src="'+t.gift_image+'" style="width:28px;height:28px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'"></div>';
-            else reward='<div class="task-reward"><span>+'+t.reward+'</span><img src="/static/img/star.png" alt=""></div>';
+            if(t.reward_type==='gift'&&t.gift_image)reward='<div class="task-reward"><img src="'+t.gift_image+'" style="width:28px;height:28px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'"></div>';
+            else reward='<div class="task-reward"><span>+'+t.reward+'</span><img src="/static/img/star.svg" alt=""></div>';
             let progHtml='';
             if(isGoal&&!done)progHtml='<div style="width:100%;margin-top:6px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:3px;"><span>'+Math.round(prog.current)+' / '+prog.goal+'</span><span>'+prog.pct+'%</span></div><div style="width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;"><div style="width:'+prog.pct+'%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px;transition:width .5s;"></div></div></div>';
             const click=done?'':(isGoal?'openGoalTask('+JSON.stringify(t).replace(/"/g,'&quot;')+','+canClaim+')':'openTask('+JSON.stringify(t).replace(/"/g,'&quot;')+')');
@@ -199,8 +199,8 @@
         const labels={subscribe:'Подпишитесь на канал',chat:'Вступите в чат',story:'Опубликуйте историю',bot:'Запустите бота'};
         const icon=TASK_ICONS[task.type]||'star';
         let rewardD;
-        if(task.reward_type==='gift'&&task.gift_image)rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;"><img src="'+task.gift_image+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'"><span style="font-size:18px;font-weight:700;">'+(task.gift_name||'Подарок')+'</span></div>';
-        else rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px;"><span style="font-size:24px;font-weight:800;color:var(--gold);">+'+task.reward+'</span><img src="/static/img/star.png" style="width:24px;height:24px;" alt=""></div>';
+        if(task.reward_type==='gift'&&task.gift_image)rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;"><img src="'+task.gift_image+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'"><span style="font-size:18px;font-weight:700;">'+(task.gift_name||'Подарок')+'</span></div>';
+        else rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px;"><span style="font-size:24px;font-weight:800;color:var(--gold);">+'+task.reward+'</span><img src="/static/img/star.svg" style="width:24px;height:24px;" alt=""></div>';
         document.getElementById('taskModalContent').innerHTML='<div style="text-align:center;padding:10px 0;">'
             +'<img src="/static/img/'+icon+'.png" style="width:64px;height:64px;margin:0 auto 16px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));" alt="">'
             +'<div style="font-size:20px;font-weight:800;margin-bottom:6px;">'+esc(task.title)+'</div>'
@@ -218,8 +218,8 @@
         const descs={topup:'Пополните баланс на '+task.goal_amount+' Stars',referral:'Пригласите '+task.goal_amount+' рефералов',earn_stars:'Заработайте '+task.goal_amount+' Stars'};
         const prog=getTaskProgress(task);
         let rewardD;
-        if(task.reward_type==='gift'&&task.gift_image)rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;"><img src="'+task.gift_image+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.src=\'/static/img/star.png\'"><span style="font-size:18px;font-weight:700;">'+(task.gift_name||'Подарок')+'</span></div>';
-        else rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px;"><span style="font-size:24px;font-weight:800;color:var(--gold);">+'+task.reward+'</span><img src="/static/img/star.png" style="width:24px;height:24px;" alt=""></div>';
+        if(task.reward_type==='gift'&&task.gift_image)rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;"><img src="'+task.gift_image+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'"><span style="font-size:18px;font-weight:700;">'+(task.gift_name||'Подарок')+'</span></div>';
+        else rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px;"><span style="font-size:24px;font-weight:800;color:var(--gold);">+'+task.reward+'</span><img src="/static/img/star.svg" style="width:24px;height:24px;" alt=""></div>';
         let progHtml='';
         if(prog)progHtml='<div style="margin-bottom:20px;"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);margin-bottom:6px;"><span>'+Math.round(prog.current)+' / '+prog.goal+'</span><span>'+prog.pct+'%</span></div><div style="width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;"><div style="width:'+prog.pct+'%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:8px;"></div></div></div>';
         document.getElementById('taskModalContent').innerHTML='<div style="text-align:center;padding:10px 0;">'
