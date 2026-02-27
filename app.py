@@ -335,10 +335,10 @@ def _pvp_sync_from_db(db):
         if _pvp_cache['game_id'] != 0:
             return  # Cache has a game, no need to sync
     
-    # Find latest active game
+    # Find latest active game (including result - will trigger new game creation)
     row = db.execute(
         "SELECT id, status, total_pot, hash FROM pvp_games "
-        "WHERE status IN ('waiting', 'betting', 'countdown', 'spinning') "
+        "WHERE status IN ('waiting', 'betting', 'countdown', 'spinning', 'result') "
         "ORDER BY id DESC LIMIT 1"
     ).fetchone()
     
@@ -390,15 +390,18 @@ def _pvp_sync_from_db(db):
     
     with _pvp_lock:
         _pvp_cache['game_id'] = game_id
-        _pvp_cache['status'] = status if status in ['waiting', 'countdown', 'spinning'] else 'waiting'
+        _pvp_cache['status'] = status
         _pvp_cache['players'] = players
         _pvp_cache['total_pot'] = total_pot
         _pvp_cache['hash'] = game_hash
-        # Timestamps will be 0 - may cause issues but better than no game
+        # Estimate timestamps based on status
         if status == 'countdown' and len(players) > 0:
-            # Estimate countdown started recently
             _pvp_cache['countdown_started_at'] = _time.time() - 5  # Assume 5 seconds ago
             _pvp_cache['countdown'] = 25
+        elif status == 'spinning':
+            _pvp_cache['spin_started_at'] = _time.time() - 3  # Assume 3 seconds ago
+        elif status == 'result':
+            _pvp_cache['result_shown_at'] = _time.time() - 10  # Assume 10 sec ago -> triggers new game
     
     logging.info(f"PVP cache synced from DB: game_id={game_id}, status={status}, players={len(players)}")
 
@@ -2912,7 +2915,26 @@ def api_pvp_state():
     # Tick the game state
     _pvp_tick()
     
-    # Game is created by background thread only (no race condition)
+    # Sync status to DB (for other workers to see)
+    with _pvp_lock:
+        status = _pvp_cache['status']
+        result_at = _pvp_cache.get('result_shown_at', 0)
+        game_id = _pvp_cache['game_id']
+    
+    if game_id > 0 and status in ('countdown', 'spinning', 'result'):
+        db.execute("UPDATE pvp_games SET status = ? WHERE id = ?", (status, game_id))
+        db.commit()
+    
+    if status == 'result' and game_id > 0:
+        if result_at == 0 or _time.time() - result_at > 15:
+            logging.info(f"PVP: Stuck in result (result_at={result_at}), creating new game")
+            _pvp_create_game(db)
+    
+    # Also create game if none exists
+    if game_id == 0:
+        with _pvp_lock:
+            if _pvp_cache['game_id'] == 0:  # Double check
+                _pvp_create_game(db)
     
     c = get_pvp_cache()
     return jsonify({
