@@ -362,6 +362,16 @@ def _pvp_generate_hash():
 def start_pvp_loop():
     """Background thread running the PVP wheel game loop."""
     logging.info("PVP game loop started")
+    
+    # Clean up any stuck games from previous runs
+    try:
+        db = connect_db()
+        db.execute("UPDATE pvp_games SET status='cancelled' WHERE status IN ('waiting', 'betting', 'countdown', 'spinning')")
+        db.commit()
+        db.close()
+        logging.info("Cleaned up stuck PVP games")
+    except Exception as e:
+        logging.error(f"Error cleaning up PVP games: {e}")
 
     while True:
         try:
@@ -2112,6 +2122,32 @@ def api_admin_online_boost():
     settings['online_boost'] = boost
     save_settings(settings)
     return jsonify({'success': True, 'online_boost': boost})
+
+
+@app.route('/api/admin/pvp/reset', methods=['POST'])
+def api_admin_pvp_reset():
+    """Reset all PVP games and start fresh."""
+    data = request.json or {}
+    admin_id = data.get('admin_id')
+    if not admin_id or not is_admin(admin_id):
+        return jsonify({'error': 'Unauthorized'}), 403
+    
+    db = get_db()
+    # Cancel all non-finished games
+    db.execute("UPDATE pvp_games SET status='cancelled' WHERE status IN ('waiting', 'betting', 'countdown', 'spinning')")
+    db.commit()
+    
+    # Reset cache
+    with _pvp_lock:
+        _pvp_cache['game_id'] = 0
+        _pvp_cache['status'] = 'waiting'
+        _pvp_cache['players'] = []
+        _pvp_cache['total_pot'] = 0
+        _pvp_cache['countdown'] = 0
+        _pvp_cache['winner'] = None
+        _pvp_cache['spin_angle'] = 0
+    
+    return jsonify({'success': True, 'message': 'PVP games reset'})
 
 
 @app.route('/api/admin/maintenance', methods=['GET', 'POST'])
