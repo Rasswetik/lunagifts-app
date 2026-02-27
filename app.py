@@ -313,6 +313,8 @@ _pvp_cache = {
     'countdown_started_at': 0,  # timestamp when countdown started
     'spin_started_at': 0,       # timestamp when spin started
     'result_shown_at': 0,       # timestamp when result shown
+    'needs_refund': False,      # flag for background thread to process refunds
+    'refund_players': [],       # players to refund
 }
 _pvp_lock = threading.Lock()
 
@@ -443,11 +445,16 @@ def _pvp_tick():
                         
                         logging.info(f"PVP game #{game_id} spinning, winner determined")
                     else:
-                        # Not enough players - reset
+                        # Not enough players - refund and reset
+                        if len(players) >= 1:
+                            logging.info(f"PVP game #{game_id} cancelled - not enough players, refunding")
+                            _pvp_cache['refund_players'] = list(players)  # Copy before reset
+                            _pvp_cache['needs_refund'] = True
                         _pvp_cache['status'] = 'waiting'
                         _pvp_cache['countdown'] = 0
                         _pvp_cache['countdown_started_at'] = 0
-                        # Refunds handled separately
+                        _pvp_cache['players'] = []
+                        _pvp_cache['total_pot'] = 0
         
         # Spinning phase - wait 7 seconds
         elif status == 'spinning':
@@ -500,6 +507,24 @@ def start_pvp_loop():
             with _pvp_lock:
                 status = _pvp_cache['status']
                 game_id = _pvp_cache['game_id']
+                needs_refund = _pvp_cache.get('needs_refund', False)
+                refund_players = _pvp_cache.get('refund_players', [])
+            
+            # Process refunds first
+            if needs_refund and refund_players:
+                db = connect_db()
+                for p in refund_players:
+                    try:
+                        db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
+                                   (p['amount'], p['telegram_id']))
+                        logging.info(f"PVP refund: {p['amount']} to {p['telegram_id']}")
+                    except Exception as e:
+                        logging.error(f"PVP refund error: {e}")
+                db.commit()
+                db.close()
+                with _pvp_lock:
+                    _pvp_cache['needs_refund'] = False
+                    _pvp_cache['refund_players'] = []
             
             # Finalize game when spinning ends
             if status == 'spinning':
@@ -2757,16 +2782,7 @@ def api_pvp_state():
     # Tick the game state
     _pvp_tick()
     
-    # Create game if needed
-    with _pvp_lock:
-        game_id = _pvp_cache['game_id']
-    
-    if game_id == 0:
-        try:
-            db = get_db()
-            _pvp_create_game(db)
-        except Exception as e:
-            logging.error(f"Error creating PVP game: {e}")
+    # Game is created by background thread only (no race condition)
     
     c = get_pvp_cache()
     return jsonify({
@@ -2858,13 +2874,11 @@ def api_pvp_bet():
                  player['photo_url'], amount, player['color'])
             )
 
-        # Update game status
-        if len(_pvp_cache['players']) >= 2 and _pvp_cache['status'] == 'betting':
+        # Update game status - start countdown on first bet
+        if _pvp_cache['status'] == 'waiting':
             _pvp_cache['status'] = 'countdown'
             _pvp_cache['countdown'] = 30
             _pvp_cache['countdown_started_at'] = _time.time()
-        elif _pvp_cache['status'] == 'waiting':
-            _pvp_cache['status'] = 'betting'
 
     db.execute("UPDATE pvp_games SET total_pot = total_pot + ? WHERE id = ?", (amount, game_id))
     db.commit()
