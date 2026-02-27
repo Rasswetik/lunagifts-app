@@ -4523,19 +4523,36 @@ def migrate_seed():
     return jsonify(results)
 
 
-# ============ INIT & RUN ============
+# ============ BACKGROUND THREADS INIT (for gunicorn) ============
+# Start background game loops at module level so they run when gunicorn workers start
 
-if __name__ == '__main__':
-    # Start crash game loop
-    crash_thread = threading.Thread(target=start_crash_loop, daemon=True)
-    crash_thread.start()
-    logging.info("Crash game loop thread started")
+_threads_started = False
 
+def start_background_threads():
+    global _threads_started
+    if _threads_started:
+        return
+    _threads_started = True
+    
     # Start PVP game loop
     pvp_thread = threading.Thread(target=start_pvp_loop, daemon=True)
     pvp_thread.start()
-    logging.info("PVP game loop thread started")
+    logging.info("PVP game loop thread started (gunicorn)")
+    
+    # Start crash game loop
+    crash_thread = threading.Thread(target=start_crash_loop, daemon=True)
+    crash_thread.start()
+    logging.info("Crash game loop thread started (gunicorn)")
 
+# Auto-start threads when module is imported
+start_background_threads()
+
+
+# ============ INIT & RUN ============
+
+if __name__ == '__main__':
+    # Background threads already started at module level via start_background_threads()
+    
     # Запуск бота в отдельном потоке
     if HAS_AIOGRAM:
         bot_thread = threading.Thread(target=run_bot, daemon=True)
