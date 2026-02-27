@@ -559,11 +559,12 @@ def start_pvp_loop():
                     db.close()
                     logging.info("PVP: New game created after result display")
             
-            # Create game if none exists
-            elif game_id == 0:
+            # Create game if none exists (INDEPENDENT check, not elif!)
+            if game_id == 0 and status == 'waiting':
                 db = connect_db()
                 _pvp_create_game(db)
                 db.close()
+                logging.info("PVP: Created initial game")
                 
         except Exception as e:
             logging.error(f"PVP loop error: {e}")
