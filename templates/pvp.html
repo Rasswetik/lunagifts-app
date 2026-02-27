@@ -124,6 +124,28 @@
     /* ── Animations ── */
     @keyframes pvpWaitSpin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
     .pvp-waiting-anim{animation:pvpWaitSpin 20s linear infinite;}
+
+    /* ── Bet expand animation ── */
+    @keyframes betExpand{
+        0%{transform:scale(1);box-shadow:0 4px 20px rgba(108,92,231,.3);}
+        30%{transform:scale(1.15);box-shadow:0 0 40px rgba(108,92,231,.6),0 0 80px rgba(108,92,231,.3);}
+        60%{transform:scale(1.05);}
+        100%{transform:scale(1);box-shadow:0 4px 20px rgba(108,92,231,.3);}
+    }
+    .pvp-bet-btn.bet-pulse{animation:betExpand .5s ease-out;}
+
+    /* ── Bet ripple effect ── */
+    @keyframes betRipple{
+        0%{transform:translate(-50%,-50%) scale(0);opacity:.8;}
+        100%{transform:translate(-50%,-50%) scale(4);opacity:0;}
+    }
+    .bet-ripple{position:fixed;width:100px;height:100px;background:radial-gradient(circle,rgba(108,92,231,.5) 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:9999;animation:betRipple .6s ease-out forwards;}
+
+    /* ── Circular progress ring ── */
+    .pvp-progress-ring{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-90deg);width:94px;height:94px;z-index:4;pointer-events:none;}
+    .pvp-progress-ring circle{fill:none;stroke-width:4;stroke-linecap:round;}
+    .pvp-progress-ring .ring-bg{stroke:rgba(255,255,255,.06);}
+    .pvp-progress-ring .ring-progress{stroke:var(--pvp-green);stroke-dasharray:282.6;stroke-dashoffset:282.6;transition:stroke-dashoffset .3s linear;filter:drop-shadow(0 0 8px rgba(0,210,160,.4));}
     </style>
 </head>
 <body>
@@ -160,24 +182,15 @@
                     <canvas id="pvpWheelCanvas" width="680" height="680"></canvas>
                 </div>
                 <div class="pvp-center" id="pvpCenter">
+                    <svg class="pvp-progress-ring" id="pvpProgressRing" viewBox="0 0 94 94">
+                        <circle class="ring-bg" cx="47" cy="47" r="45"></circle>
+                        <circle class="ring-progress" id="pvpRingProgress" cx="47" cy="47" r="45"></circle>
+                    </svg>
                     <div class="pvp-center-text" id="pvpCenterText">WAITING</div>
                     <div class="pvp-center-timer" id="pvpCenterTimer" style="display:none;">00:30</div>
                     <div class="pvp-center-timer-label" id="pvpCenterTimerLabel" style="display:none;">remaining</div>
                 </div>
             </div>
-        </div>
-
-        <!-- Currency toggles -->
-        <div class="pvp-currency-row">
-            <button class="pvp-cur-btn" data-cur="gifts" title="Gifts">
-                <img src="/static/img/gift.svg" alt="">
-            </button>
-            <button class="pvp-cur-btn" data-cur="ton" title="TON">
-                <img src="/static/img/ton.svg" alt="">
-            </button>
-            <button class="pvp-cur-btn active" data-cur="stars" title="Stars">
-                <img src="/static/img/star.svg" alt="">
-            </button>
         </div>
 
         <!-- Balance -->
@@ -188,13 +201,13 @@
 
         <!-- Bet buttons -->
         <div class="pvp-bet-row">
-            <button class="pvp-bet-btn" onclick="placePvpBet(50)">
+            <button class="pvp-bet-btn" onclick="placePvpBet(50, this)">
                 <img src="/static/img/star.svg" alt=""> 50
             </button>
-            <button class="pvp-bet-btn" onclick="placePvpBet(100)">
+            <button class="pvp-bet-btn" onclick="placePvpBet(100, this)">
                 <img src="/static/img/star.svg" alt=""> 100
             </button>
-            <button class="pvp-bet-btn" onclick="placePvpBet(200)">
+            <button class="pvp-bet-btn" onclick="placePvpBet(200, this)">
                 <img src="/static/img/star.svg" alt=""> 200
             </button>
         </div>
@@ -536,6 +549,8 @@
         // Ring + pointer state
         const ring = document.getElementById('pvpWheelRing');
         const pointer = document.getElementById('pvpPointer');
+        const progressRing = document.getElementById('pvpRingProgress');
+        const RING_CIRCUMFERENCE = 282.6;
 
         // Center text
         const centerText = document.getElementById('pvpCenterText');
@@ -550,6 +565,7 @@
             centerTimerLabel.style.display = 'none';
             ring.classList.remove('countdown-active');
             pointer.classList.remove('active');
+            progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE;
             if(players.length === 0) startWaitingAnim();
             else stopWaitingAnim();
         } else if(status === 'betting' || status === 'countdown'){
@@ -562,6 +578,10 @@
                 centerTimer.textContent = String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
                 ring.classList.add('countdown-active');
                 pointer.classList.add('active');
+                // Update circular progress ring (30 second countdown)
+                const maxCountdown = 30;
+                const progress = Math.min(1, (maxCountdown - countdown) / maxCountdown);
+                progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress);
             } else {
                 centerText.textContent = 'LIVE';
                 centerText.className = 'pvp-center-text live';
@@ -570,6 +590,7 @@
                 centerTimerLabel.style.display = 'none';
                 ring.classList.remove('countdown-active');
                 pointer.classList.add('active');
+                progressRing.style.strokeDashoffset = 0;
             }
         } else if(status === 'spinning'){
             stopWaitingAnim();
@@ -680,7 +701,7 @@
     }
 
     // ── Place bet ──
-    async function placePvpBet(amount){
+    async function placePvpBet(amount, btnElement){
         if(!currentUser){showNotification('Login required','error');return;}
         if(!amount || amount < 1) return;
 
@@ -699,6 +720,23 @@
                 updateUI();
                 document.getElementById('pvpBalanceDisplay').textContent = Math.floor(data.new_balance);
                 showNotification('Bet '+amount+' ⭐ placed!','success');
+                
+                // Bet expand animation
+                if(btnElement){
+                    btnElement.classList.add('bet-pulse');
+                    setTimeout(() => btnElement.classList.remove('bet-pulse'), 500);
+                }
+                
+                // Create ripple effect from center of wheel
+                const wheelWrap = document.getElementById('pvpWheelWrap');
+                const rect = wheelWrap.getBoundingClientRect();
+                const ripple = document.createElement('div');
+                ripple.className = 'bet-ripple';
+                ripple.style.left = (rect.left + rect.width/2) + 'px';
+                ripple.style.top = (rect.top + rect.height/2) + 'px';
+                document.body.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+                
                 fetchPvpState();
             } else {
                 showNotification(data.error || 'Error','error');
@@ -807,14 +845,6 @@
         startWaitingAnim();
         startPvpPolling();
         dismissLoading();
-    });
-
-    // Currency toggle
-    document.querySelectorAll('.pvp-cur-btn').forEach(btn => {
-        btn.addEventListener('click', function(){
-            document.querySelectorAll('.pvp-cur-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
     });
     </script>
 </body>
