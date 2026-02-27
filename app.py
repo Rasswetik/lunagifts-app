@@ -2203,10 +2203,36 @@ def api_admin_pvp_debug():
     with _pvp_lock:
         cache_copy = dict(_pvp_cache)
     
+    # Test SELECT by hash
+    test_result = None
+    if games:
+        test_hash = games[0]['hash']
+        row = db.execute("SELECT id FROM pvp_games WHERE hash = ?", (test_hash,)).fetchone()
+        if row:
+            test_result = {
+                'hash_tested': test_hash,
+                'row_type': str(type(row)),
+                'row_str': str(row),
+                'row_dict_access': row.get('id') if hasattr(row, 'get') else 'no get',
+                'row_bracket_access': None,
+                'row_index_access': None,
+            }
+            try:
+                test_result['row_bracket_access'] = row['id']
+            except Exception as e:
+                test_result['row_bracket_access'] = f"error: {e}"
+            try:
+                test_result['row_index_access'] = row[0]
+            except Exception as e:
+                test_result['row_index_access'] = f"error: {e}"
+        else:
+            test_result = {'hash_tested': test_hash, 'row': None}
+    
     return jsonify({
         'cache': cache_copy,
         'recent_games': [dict(g) for g in games],
-        'threads_started': _threads_started
+        'threads_started': _threads_started,
+        'select_test': test_result
     })
 
 
