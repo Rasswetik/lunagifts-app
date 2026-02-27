@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — PVP</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+    body{background:var(--bg);overflow-x:hidden;}
+    .pvp-container{max-width:480px;margin:0 auto;padding:14px 16px 140px;min-height:100vh;}
+
+    /* Top bar */
+    .pvp-top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .pvp-history-btn,.pvp-chat-btn{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,.5);font-size:18px;transition:all .2s;}
+    .pvp-history-btn:active,.pvp-chat-btn:active{transform:scale(.92);background:rgba(255,255,255,.1);}
+    .pvp-total-pill{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:8px 18px;display:flex;align-items:center;gap:6px;font-weight:800;font-size:15px;}
+    .pvp-total-pill img{width:16px;height:16px;}
+    .pvp-total-label{color:rgba(255,255,255,.5);font-weight:600;font-size:12px;margin-right:4px;}
+
+    /* Username banner */
+    .pvp-user-banner{text-align:center;margin-bottom:8px;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;}
+    .pvp-user-banner img{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.2);}
+
+    /* Wheel wrapper */
+    .pvp-wheel-wrap{position:relative;width:300px;height:300px;margin:0 auto 16px;}
+    @media(min-width:400px){.pvp-wheel-wrap{width:340px;height:340px;}}
+
+    .pvp-wheel-outer{position:absolute;inset:0;border-radius:50%;background:conic-gradient(rgba(255,255,255,.04) 0deg,rgba(255,255,255,.02) 180deg,rgba(255,255,255,.04) 360deg);border:3px solid rgba(255,255,255,.08);overflow:hidden;}
+
+    /* Canvas wheel */
+    #pvpWheelCanvas{width:100%;height:100%;border-radius:50%;transition:none;}
+    .pvp-wheel-spinning #pvpWheelCanvas{transition:transform 6s cubic-bezier(0.17,0.67,0.12,0.99);}
+
+    /* Pointer triangle */
+    .pvp-pointer{position:absolute;top:-6px;left:50%;transform:translateX(-50%);z-index:10;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:18px solid #fff;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5));}
+
+    /* Center overlay */
+    .pvp-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90px;height:90px;border-radius:50%;background:var(--bg);border:3px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:5;}
+    .pvp-center-text{font-size:22px;font-weight:900;color:rgba(255,255,255,.5);}
+    .pvp-center-text.live{color:#4ECDC4;text-shadow:0 0 20px rgba(78,205,196,.5);}
+    .pvp-center-timer{font-size:28px;font-weight:900;color:#FFD700;font-variant-numeric:tabular-nums;}
+
+    /* Currency toggle buttons */
+    .pvp-currency-row{display:flex;gap:8px;justify-content:center;margin-bottom:12px;}
+    .pvp-cur-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;padding:0;}
+    .pvp-cur-btn img,.pvp-cur-btn svg{width:20px;height:20px;}
+    .pvp-cur-btn.active{border-color:var(--gold);background:rgba(255,215,0,.1);box-shadow:0 0 12px rgba(255,215,0,.2);}
+
+    /* Balance badge */
+    .pvp-balance-badge{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px;}
+    .pvp-balance-badge img{width:16px;height:16px;}
+    .pvp-balance-badge span{font-size:14px;font-weight:700;color:rgba(255,255,255,.7);}
+
+    /* Bet buttons row */
+    .pvp-bet-row{display:flex;gap:8px;justify-content:center;margin-bottom:12px;}
+    .pvp-bet-btn{flex:1;max-width:120px;padding:12px 8px;border-radius:14px;background:linear-gradient(135deg,#FFD700,#FFA500);border:none;color:#000;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .2s;box-shadow:0 4px 16px rgba(255,215,0,.25);}
+    .pvp-bet-btn:active{transform:scale(.95);}
+    .pvp-bet-btn:disabled{opacity:.4;cursor:default;transform:none;}
+    .pvp-bet-btn img{width:16px;height:16px;}
+
+    /* Customize button */
+    .pvp-custom-btn{width:100%;max-width:360px;margin:0 auto 20px;display:block;padding:12px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.7);font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+    .pvp-custom-btn:active{transform:scale(.97);background:rgba(255,255,255,.1);}
+
+    /* Player list */
+    .pvp-players-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;}
+    .pvp-players-header h3{font-size:16px;font-weight:800;margin:0;}
+    .pvp-roll-id{font-size:12px;color:rgba(255,255,255,.35);font-weight:600;}
+
+    .pvp-player-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;position:relative;}
+    .pvp-player-card .left-border{position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;}
+    .pvp-player-avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.1);}
+    .pvp-player-info{flex:1;}
+    .pvp-player-name{font-size:14px;font-weight:700;}
+    .pvp-player-role{font-size:12px;color:rgba(255,255,255,.4);}
+    .pvp-player-right{text-align:right;}
+    .pvp-player-chance{font-size:15px;font-weight:800;}
+    .pvp-player-amount{font-size:12px;color:rgba(255,255,255,.4);display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+    .pvp-player-amount img{width:12px;height:12px;}
+
+    /* Bet hash */
+    .pvp-hash{text-align:center;margin-top:16px;font-size:12px;color:rgba(255,255,255,.25);}
+    .pvp-hash a{color:rgba(255,255,255,.35);text-decoration:none;}
+
+    /* Info text */
+    .pvp-info-text{text-align:center;font-size:13px;color:rgba(255,255,255,.35);margin-bottom:6px;}
+
+    /* Result modal */
+    .pvp-result-overlay{position:fixed;inset:0;z-index:1100;display:none;align-items:flex-end;justify-content:center;padding:0 0 20px;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);}
+    .pvp-result-overlay.active{display:flex;animation:fadeIn .3s ease;}
+    .pvp-result-modal{background:#1a1e2e;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px 20px 32px;max-height:80vh;overflow-y:auto;}
+    .pvp-result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+    .pvp-result-title{font-size:20px;font-weight:900;}
+    .pvp-result-close{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .pvp-winner-card{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+    .pvp-winner-avatar{width:48px;height:48px;border-radius:50%;border:3px solid #4ECDC4;object-fit:cover;}
+    .pvp-winner-info{flex:1;}
+    .pvp-winner-name{font-size:16px;font-weight:800;}
+    .pvp-winner-label{font-size:12px;color:#4ECDC4;font-weight:600;}
+    .pvp-winner-amount{text-align:right;}
+    .pvp-winner-won{font-size:18px;font-weight:900;color:#4ECDC4;}
+    .pvp-winner-chance{font-size:12px;color:rgba(255,255,255,.4);}
+    .pvp-result-done{width:100%;padding:14px;border-radius:14px;background:#fff;border:none;color:#000;font-size:16px;font-weight:800;cursor:pointer;margin-top:16px;}
+
+    /* Waiting wheel gray stripes */
+    .pvp-wheel-waiting{animation:pvpWaitPulse 3s ease-in-out infinite;}
+    @keyframes pvpWaitPulse{0%,100%{opacity:.6;}50%{opacity:1;}}
+
+    /* History modal */
+    .pvp-history-overlay{position:fixed;inset:0;z-index:1100;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);}
+    .pvp-history-overlay.active{display:flex;animation:fadeIn .3s ease;}
+    .pvp-history-modal{background:var(--bg-card);border-radius:20px;width:90%;max-width:400px;padding:20px;max-height:70vh;overflow-y:auto;}
+    .pvp-hist-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+    .pvp-hist-item:last-child{border-bottom:none;}
+    .pvp-hist-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;}
+    .pvp-hist-name{font-size:13px;font-weight:600;flex:1;}
+    .pvp-hist-pot{font-size:13px;font-weight:700;color:var(--gold);}
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap"><div class="load-progress-bar" id="loadProgressBar"></div></div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="pvp-container">
+        <!-- Top bar -->
+        <div class="pvp-top-bar">
+            <div class="pvp-history-btn" onclick="showPvpHistory()">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>
+            </div>
+            <div class="pvp-total-pill">
+                <span class="pvp-total-label">TOTAL</span>
+                <span id="pvpTotalAmount">0</span>
+                <img src="/static/img/star.svg" alt="">
+            </div>
+            <div class="pvp-chat-btn">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+
+        <!-- Current user label -->
+        <div class="pvp-user-banner" id="pvpUserBanner" style="display:none;">
+            <img id="pvpUserAvatar" src="" alt="">
+            <span id="pvpUserName">@user</span>
+        </div>
+
+        <!-- Wheel -->
+        <div class="pvp-wheel-wrap" id="pvpWheelWrap">
+            <div class="pvp-pointer"></div>
+            <div class="pvp-wheel-outer">
+                <canvas id="pvpWheelCanvas" width="680" height="680"></canvas>
+            </div>
+            <div class="pvp-center">
+                <div class="pvp-center-text" id="pvpCenterText">Waiting</div>
+                <div class="pvp-center-timer" id="pvpCenterTimer" style="display:none;"></div>
+            </div>
+        </div>
+
+        <!-- Currency toggles -->
+        <div class="pvp-currency-row">
+            <button class="pvp-cur-btn" data-cur="gifts" title="Подарки">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#F44" stroke="none"><path d="M20 12v10H4V12m16 0H4m16 0l-4-4m-8 4l-4-4m4 0h4m-4 0c-1.5 0-3-1.5-3-3s1.5-3 3-3 3 1.5 3 3m0 3c1.5 0 3-1.5 3-3s-1.5-3-3-3"/></svg>
+            </button>
+            <button class="pvp-cur-btn" data-cur="ton" title="TON">
+                <img src="/static/img/ton.svg" alt="TON">
+            </button>
+            <button class="pvp-cur-btn active" data-cur="stars" title="Stars">
+                <img src="/static/img/star.svg" alt="⭐">
+            </button>
+        </div>
+
+        <!-- Balance -->
+        <div class="pvp-balance-badge">
+            <img src="/static/img/star.svg" alt="">
+            <span id="pvpBalanceDisplay">0</span>
+            <span style="opacity:.4;font-size:12px;margin-left:2px;">+</span>
+        </div>
+
+        <!-- Bet buttons -->
+        <div class="pvp-bet-row">
+            <button class="pvp-bet-btn" onclick="placePvpBet(50)">
+                <img src="/static/img/star.svg" alt=""> 50
+            </button>
+            <button class="pvp-bet-btn" onclick="placePvpBet(100)">
+                <img src="/static/img/star.svg" alt=""> 100
+            </button>
+            <button class="pvp-bet-btn" onclick="placePvpBet(200)">
+                <img src="/static/img/star.svg" alt=""> 200
+            </button>
+        </div>
+
+        <!-- Customize -->
+        <button class="pvp-custom-btn" onclick="showCustomBet()">🎨 Customize</button>
+
+        <!-- Info text -->
+        <div class="pvp-info-text" id="pvpInfoText">Bet STARS. Be the first to enter the game</div>
+
+        <!-- Players list -->
+        <div class="pvp-players-header">
+            <h3><span id="pvpPlayerCount">0</span> Player<span id="pvpPlayerPlural">s</span></h3>
+            <span class="pvp-roll-id">ROLL #<span id="pvpRollId">0</span></span>
+        </div>
+        <div id="pvpPlayersList"></div>
+
+        <!-- Hash -->
+        <div class="pvp-hash" id="pvpHash">Hash <span id="pvpHashVal"></span> 🔗</div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="pvp-result-overlay" id="pvpResultOverlay">
+        <div class="pvp-result-modal">
+            <div class="pvp-result-header">
+                <div class="pvp-result-title">Roll #<span id="pvpResultRoll"></span></div>
+                <button class="pvp-result-close" onclick="closePvpResult()">✕</button>
+            </div>
+            <div class="pvp-winner-card">
+                <img class="pvp-winner-avatar" id="pvpWinnerAvatar" src="" alt="">
+                <div class="pvp-winner-info">
+                    <div class="pvp-winner-name" id="pvpWinnerName"></div>
+                    <div class="pvp-winner-label">Winner</div>
+                </div>
+                <div class="pvp-winner-amount">
+                    <div class="pvp-winner-won" id="pvpWinnerWon"></div>
+                    <div class="pvp-winner-chance" id="pvpWinnerChance"></div>
+                </div>
+            </div>
+            <button class="pvp-result-done" onclick="closePvpResult()">Done</button>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="pvp-history-overlay" id="pvpHistoryOverlay" onclick="this.classList.remove('active')">
+        <div class="pvp-history-modal" onclick="event.stopPropagation()">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                <div style="font-size:18px;font-weight:800;">История PVP</div>
+                <button style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;" onclick="document.getElementById('pvpHistoryOverlay').classList.remove('active')">✕</button>
+            </div>
+            <div id="pvpHistoryList"></div>
+        </div>
+    </div>
+
+    <!-- Custom bet modal -->
+    <div class="modal-overlay" id="customBetModal">
+        <div class="modal" style="max-width:360px;padding:24px;text-align:center;">
+            <button class="modal-close" onclick="closeModal('customBetModal')">✕</button>
+            <div style="font-size:18px;font-weight:800;margin-bottom:16px;">Своя ставка</div>
+            <input type="number" id="customBetInput" placeholder="Введите сумму" min="10" style="width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;font-size:18px;font-weight:700;text-align:center;outline:none;margin-bottom:16px;-moz-appearance:textfield;">
+            <button onclick="placeCustomBet()" style="width:100%;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,#FFD700,#FFA500);color:#000;font-size:16px;font-weight:800;cursor:pointer;">Поставить</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    // ============ PVP WHEEL GAME ============
+    const canvas = document.getElementById('pvpWheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const CX = W/2, CY = H/2, R = W/2 - 4;
+
+    let pvpState = null;
+    let pvpPolling = null;
+    let lastSpinAngle = 0;
+    let isSpinning = false;
+    let wheelRotation = 0;
+    let resultShown = false;
+    let avatarImages = {};
+
+    // ── Draw Wheel ──
+    function drawWheel(players, rotation){
+        ctx.clearRect(0, 0, W, H);
+
+        if(!players || players.length === 0){
+            // Gray striped waiting wheel
+            drawWaitingWheel();
+            return;
+        }
+
+        const total = players.reduce((s,p) => s + p.amount, 0);
+        if(total === 0){ drawWaitingWheel(); return; }
+
+        let startAngle = -Math.PI/2 + (rotation||0) * Math.PI/180;
+
+        players.forEach((p, i) => {
+            const slice = (p.amount / total) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.arc(CX, CY, R, startAngle, startAngle + slice);
+            ctx.closePath();
+            ctx.fillStyle = p.color || '#444';
+            ctx.fill();
+
+            // Divider line
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.lineTo(CX + R * Math.cos(startAngle), CY + R * Math.sin(startAngle));
+            ctx.strokeStyle = 'rgba(0,0,0,.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Avatar in slice center
+            const midAngle = startAngle + slice/2;
+            const avatarDist = R * 0.65;
+            const ax = CX + avatarDist * Math.cos(midAngle);
+            const ay = CY + avatarDist * Math.sin(midAngle);
+            const avatarR = Math.min(28, Math.max(14, slice * R * 0.15));
+
+            if(p.photo_url && avatarImages[p.telegram_id]){
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
+                ctx.closePath();
+                ctx.clip();
+                try{
+                    ctx.drawImage(avatarImages[p.telegram_id], ax-avatarR, ay-avatarR, avatarR*2, avatarR*2);
+                }catch(e){}
+                ctx.restore();
+                // Border
+                ctx.beginPath();
+                ctx.arc(ax, ay, avatarR+1, 0, Math.PI*2);
+                ctx.strokeStyle = 'rgba(255,255,255,.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            } else {
+                // Letter avatar
+                ctx.beginPath();
+                ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(0,0,0,.3)';
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.fillStyle = '#fff';
+                ctx.font = `bold ${avatarR}px sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText((p.first_name||p.username||'?')[0].toUpperCase(), ax, ay);
+            }
+
+            startAngle += slice;
+        });
+
+        // White ring border
+        ctx.beginPath();
+        ctx.arc(CX, CY, R, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(255,255,255,.15)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+    }
+
+    function drawWaitingWheel(){
+        // Gray striped segments
+        const segments = 8;
+        const sliceAngle = (Math.PI*2)/segments;
+        let start = -Math.PI/2;
+        for(let i=0; i<segments; i++){
+            ctx.beginPath();
+            ctx.moveTo(CX, CY);
+            ctx.arc(CX, CY, R, start, start + sliceAngle);
+            ctx.closePath();
+            ctx.fillStyle = i%2 === 0 ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.03)';
+            ctx.fill();
+            start += sliceAngle;
+        }
+        ctx.beginPath();
+        ctx.arc(CX, CY, R, 0, Math.PI*2);
+        ctx.strokeStyle = 'rgba(255,255,255,.08)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+    }
+
+    // ── Load avatar images ──
+    function loadAvatarImages(players){
+        players.forEach(p => {
+            if(p.photo_url && !avatarImages[p.telegram_id]){
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => { avatarImages[p.telegram_id] = img; };
+                img.src = p.photo_url;
+            }
+        });
+    }
+
+    // ── Spin animation ──
+    function spinWheel(targetAngle, players){
+        if(isSpinning) return;
+        isSpinning = true;
+        resultShown = false;
+
+        const duration = 6000;
+        const startTime = performance.now();
+        const startRot = 0;
+        const endRot = targetAngle;
+
+        function animate(now){
+            const elapsed = now - startTime;
+            const progress = Math.min(1, elapsed / duration);
+            // Cubic ease out
+            const eased = 1 - Math.pow(1 - progress, 3);
+            wheelRotation = startRot + eased * endRot;
+            drawWheel(players, wheelRotation);
+
+            if(progress < 1){
+                requestAnimationFrame(animate);
+            } else {
+                isSpinning = false;
+                wheelRotation = endRot;
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+
+    // ── Update UI from state ──
+    let prevStatus = '';
+    let prevGameId = 0;
+
+    function updatePvpUI(state){
+        if(!state) return;
+        pvpState = state;
+
+        const players = state.players || [];
+        const status = state.status;
+        const total = state.total_pot || 0;
+        const countdown = state.countdown || 0;
+
+        // Total
+        document.getElementById('pvpTotalAmount').textContent = total;
+
+        // Roll ID
+        document.getElementById('pvpRollId').textContent = state.game_id || 0;
+
+        // Hash
+        const h = state.hash || '';
+        document.getElementById('pvpHashVal').textContent = h ? h.slice(0,4)+'...'+h.slice(-4) : '';
+
+        // Player count
+        document.getElementById('pvpPlayerCount').textContent = players.length;
+        document.getElementById('pvpPlayerPlural').textContent = players.length === 1 ? '' : 's';
+
+        // Center text
+        const centerText = document.getElementById('pvpCenterText');
+        const centerTimer = document.getElementById('pvpCenterTimer');
+
+        if(status === 'waiting' || (status === 'betting' && players.length < 2)){
+            centerText.textContent = 'Waiting';
+            centerText.className = 'pvp-center-text';
+            centerText.style.display = '';
+            centerTimer.style.display = 'none';
+        } else if(status === 'betting' || status === 'countdown'){
+            if(countdown > 0){
+                centerText.style.display = 'none';
+                centerTimer.style.display = '';
+                const secs = Math.ceil(countdown);
+                centerTimer.textContent = String(Math.floor(secs/60)).padStart(2,'0')+':'+String(secs%60).padStart(2,'0');
+            } else {
+                centerText.textContent = 'LIVE';
+                centerText.className = 'pvp-center-text live';
+                centerText.style.display = '';
+                centerTimer.style.display = 'none';
+            }
+        } else if(status === 'spinning'){
+            centerText.textContent = 'LIVE';
+            centerText.className = 'pvp-center-text live';
+            centerText.style.display = '';
+            centerTimer.style.display = 'none';
+        } else if(status === 'result'){
+            centerText.style.display = 'none';
+            centerTimer.style.display = 'none';
+        }
+
+        // Load avatars
+        loadAvatarImages(players);
+
+        // Draw wheel (only if not currently spinning)
+        if(!isSpinning){
+            if(status === 'spinning' && prevStatus !== 'spinning'){
+                // Start spin
+                spinWheel(state.spin_angle, players);
+            } else if(status !== 'spinning'){
+                wheelRotation = 0;
+                drawWheel(players, 0);
+            }
+        }
+
+        // Result modal
+        if(status === 'result' && !resultShown && state.winner){
+            resultShown = true;
+            showPvpResult(state);
+        }
+
+        // New game reset
+        if(state.game_id !== prevGameId && prevGameId !== 0){
+            resultShown = false;
+            wheelRotation = 0;
+            closePvpResult();
+        }
+
+        // Info text
+        const info = document.getElementById('pvpInfoText');
+        if(players.length === 0){
+            info.textContent = 'Bet STARS. Be the first to enter the game';
+        } else if(players.length === 1){
+            info.textContent = 'Waiting for more players...';
+        } else if(status === 'countdown'){
+            info.textContent = 'PvP has started';
+        } else if(status === 'spinning'){
+            info.textContent = 'Spinning...';
+        } else {
+            info.textContent = '';
+        }
+
+        // Bet buttons state
+        const canBet = ['waiting','betting','countdown'].includes(status);
+        document.querySelectorAll('.pvp-bet-btn').forEach(b => b.disabled = !canBet);
+
+        // Player list
+        renderPvpPlayers(players);
+
+        prevStatus = status;
+        prevGameId = state.game_id;
+    }
+
+    function renderPvpPlayers(players){
+        const c = document.getElementById('pvpPlayersList');
+        if(!players.length){
+            c.innerHTML = '';
+            return;
+        }
+        // Sort by amount desc
+        const sorted = [...players].sort((a,b) => b.amount - a.amount);
+        c.innerHTML = sorted.map(p => {
+            const photoSrc = p.photo_url || '';
+            const avatarHtml = photoSrc
+                ? `<img class="pvp-player-avatar" src="${photoSrc}" alt="" onerror="this.src='/static/img/star.svg'">`
+                : `<div class="pvp-player-avatar" style="background:${p.color};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;color:#fff;">${(p.first_name||p.username||'?')[0].toUpperCase()}</div>`;
+            return `<div class="pvp-player-card">
+                <div class="left-border" style="background:${p.color}"></div>
+                ${avatarHtml}
+                <div class="pvp-player-info">
+                    <div class="pvp-player-name">@${p.username || p.first_name || 'Player'}</div>
+                    <div class="pvp-player-role">Player</div>
+                </div>
+                <div class="pvp-player-right">
+                    <div class="pvp-player-chance">${(p.chance||0).toFixed(1)}%</div>
+                    <div class="pvp-player-amount">${p.amount} <img src="/static/img/star.svg" alt=""></div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Place bet ──
+    async function placePvpBet(amount){
+        if(!currentUser){showNotification('Авторизуйтесь','error');return;}
+        if(!amount || amount < 1) return;
+
+        const btns = document.querySelectorAll('.pvp-bet-btn');
+        btns.forEach(b => b.disabled = true);
+
+        try{
+            const res = await fetch('/api/pvp/bet', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({telegram_id: currentUser.telegram_id, amount: amount})
+            });
+            const data = await res.json();
+            if(data.success){
+                currentUser.balance = data.new_balance;
+                updateUI();
+                showNotification('Ставка '+amount+' ⭐ принята!','success');
+                fetchPvpState(); // Immediate refresh
+            } else {
+                showNotification(data.error || 'Ошибка','error');
+            }
+        }catch(e){
+            showNotification('Ошибка соединения','error');
+        }
+
+        setTimeout(() => {
+            btns.forEach(b => b.disabled = false);
+        }, 1000);
+    }
+
+    function showCustomBet(){
+        openModal('customBetModal');
+        document.getElementById('customBetInput').focus();
+    }
+
+    function placeCustomBet(){
+        const val = parseInt(document.getElementById('customBetInput').value);
+        if(!val || val < 10){showNotification('Минимум 10 Stars','error');return;}
+        closeModal('customBetModal');
+        placePvpBet(val);
+    }
+
+    // ── Result modal ──
+    function showPvpResult(state){
+        const w = state.winner;
+        if(!w) return;
+        document.getElementById('pvpResultRoll').textContent = state.game_id;
+        document.getElementById('pvpWinnerName').textContent = '@'+(w.username || w.first_name || 'Player');
+        document.getElementById('pvpWinnerWon').textContent = 'Won '+state.total_pot+' ⭐';
+        document.getElementById('pvpWinnerChance').textContent = (w.chance||0).toFixed(2)+'%';
+        const avatarEl = document.getElementById('pvpWinnerAvatar');
+        if(w.photo_url) avatarEl.src = w.photo_url;
+        else avatarEl.src = '/static/img/star.svg';
+        document.getElementById('pvpResultOverlay').classList.add('active');
+
+        // Refresh balance if current user is winner
+        if(currentUser && w.telegram_id === currentUser.telegram_id){
+            setTimeout(async ()=>{
+                try{
+                    const r = await fetch('/api/balance/'+currentUser.telegram_id);
+                    const d = await r.json();
+                    currentUser.balance = d.balance;
+                    updateUI();
+                }catch(e){}
+            }, 1000);
+        }
+    }
+
+    function closePvpResult(){
+        document.getElementById('pvpResultOverlay').classList.remove('active');
+    }
+
+    // ── History ──
+    async function showPvpHistory(){
+        document.getElementById('pvpHistoryOverlay').classList.add('active');
+        try{
+            const res = await fetch('/api/pvp/history');
+            const data = await res.json();
+            const list = document.getElementById('pvpHistoryList');
+            if(!data.history || !data.history.length){
+                list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Пока нет игр</div>';
+                return;
+            }
+            list.innerHTML = data.history.map(h => `
+                <div class="pvp-hist-item">
+                    <img class="pvp-hist-avatar" src="${h.winner_photo||'/static/img/star.svg'}" alt="" onerror="this.src='/static/img/star.svg'">
+                    <div class="pvp-hist-name">${h.winner_name}</div>
+                    <div class="pvp-hist-pot">${h.total_pot} ⭐</div>
+                </div>
+            `).join('');
+        }catch(e){
+            document.getElementById('pvpHistoryList').innerHTML='<div style="text-align:center;color:rgba(255,255,255,.3);padding:20px;">Ошибка загрузки</div>';
+        }
+    }
+
+    // ── Polling ──
+    async function fetchPvpState(){
+        try{
+            const res = await fetch('/api/pvp/state');
+            const data = await res.json();
+            if(data.success) updatePvpUI(data);
+        }catch(e){}
+    }
+
+    function startPvpPolling(){
+        fetchPvpState();
+        pvpPolling = setInterval(fetchPvpState, 800);
+    }
+
+    // ── Init ──
+    document.addEventListener('DOMContentLoaded', async function(){
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(65, 'TON Connect...');
+        initTonConnect();
+        setLoadProgress(80, 'PVP...');
+
+        // Set user banner
+        if(currentUser){
+            document.getElementById('pvpUserBanner').style.display = 'flex';
+            document.getElementById('pvpUserName').textContent = '@'+(currentUser.username || currentUser.first_name || 'Player');
+            if(currentUser.photo_url) document.getElementById('pvpUserAvatar').src = currentUser.photo_url;
+            document.getElementById('pvpBalanceDisplay').textContent = Math.floor(currentUser.balance);
+        }
+
+        drawWheel([], 0);
+        startPvpPolling();
+        dismissLoading();
+    });
+
+    // Currency toggle (visual only for now)
+    document.querySelectorAll('.pvp-cur-btn').forEach(btn => {
+        btn.addEventListener('click', function(){
+            document.querySelectorAll('.pvp-cur-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+    </script>
+</body>
+</html>

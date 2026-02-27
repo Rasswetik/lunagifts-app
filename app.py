@@ -288,6 +288,178 @@ def start_crash_loop():
             _time.sleep(2)
 
 
+# ============ PVP WHEEL GAME ENGINE ============
+
+PVP_COLORS = ['#FF6B35', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F',
+              '#BB8FCE', '#85C1E9', '#F0B27A', '#82E0AA', '#F1948A', '#AED6F1', '#D5F5E3', '#FADBD8']
+
+_pvp_cache = {
+    'game_id': 0,
+    'status': 'waiting',       # waiting | betting | countdown | spinning | result
+    'players': [],              # [{telegram_id, username, first_name, photo_url, amount, color, chance}]
+    'total_pot': 0,
+    'countdown': 0,             # seconds remaining
+    'countdown_max': 30,
+    'winner': None,             # {telegram_id, username, ...}
+    'spin_angle': 0,            # final angle
+    'hash': '',
+    'currency': 'stars',
+}
+_pvp_lock = threading.Lock()
+
+
+def get_pvp_cache():
+    with _pvp_lock:
+        return dict(_pvp_cache)
+
+
+def update_pvp_cache(**kwargs):
+    with _pvp_lock:
+        _pvp_cache.update(kwargs)
+
+
+def _pvp_compute_chances(players):
+    """Compute chance percentages for all players based on their bets."""
+    total = sum(p['amount'] for p in players)
+    if total == 0:
+        return players
+    for p in players:
+        p['chance'] = round((p['amount'] / total) * 100, 2)
+    return players
+
+
+def _pvp_pick_winner(players):
+    """Pick a random winner weighted by bet amounts. Returns (winner, angle_degrees)."""
+    total = sum(p['amount'] for p in players)
+    if total == 0:
+        return None, 0
+    r = random.random() * total
+    cumulative = 0
+    winner = players[0]
+    winner_start = 0
+    for p in players:
+        if cumulative + p['amount'] >= r:
+            winner = p
+            winner_start = cumulative
+            break
+        cumulative += p['amount']
+    # Calculate angle within the winner's slice
+    slice_start_angle = (winner_start / total) * 360
+    slice_size_angle = (winner['amount'] / total) * 360
+    # Random angle within the winner's slice (avoid edges)
+    margin = min(slice_size_angle * 0.15, 10)
+    target_angle = slice_start_angle + margin + random.random() * max(1, slice_size_angle - 2 * margin)
+    return winner, target_angle
+
+
+def _pvp_generate_hash():
+    """Generate a provably fair game hash."""
+    import hashlib
+    seed = f"{_time.time()}{random.random()}"
+    return hashlib.sha256(seed.encode()).hexdigest()[:12]
+
+
+def start_pvp_loop():
+    """Background thread running the PVP wheel game loop."""
+    logging.info("PVP game loop started")
+
+    while True:
+        try:
+            db = connect_db()
+
+            # Create new game
+            game_hash = _pvp_generate_hash()
+            db.execute(
+                "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
+                ('waiting', 0, game_hash)
+            )
+            db.commit()
+            game = db.execute("SELECT * FROM pvp_games ORDER BY id DESC LIMIT 1").fetchone()
+            game_id = game['id']
+
+            update_pvp_cache(
+                game_id=game_id, status='waiting', players=[], total_pot=0,
+                countdown=0, winner=None, spin_angle=0, hash=game_hash
+            )
+            logging.info(f"PVP game #{game_id} created, hash={game_hash}")
+
+            # Wait for at least 2 players
+            while True:
+                _time.sleep(0.5)
+                with _pvp_lock:
+                    player_count = len(_pvp_cache['players'])
+                    status = _pvp_cache['status']
+                if player_count >= 2 and status == 'betting':
+                    break
+                if status == 'betting' and player_count < 2:
+                    continue
+
+            # Start countdown
+            update_pvp_cache(status='countdown', countdown=30)
+            db.execute("UPDATE pvp_games SET status='countdown' WHERE id=?", (game_id,))
+            db.commit()
+            logging.info(f"PVP game #{game_id} countdown started")
+
+            for i in range(60):  # 30 seconds, check every 0.5s
+                _time.sleep(0.5)
+                remaining = 30 - (i + 1) * 0.5
+                update_pvp_cache(countdown=max(0, remaining))
+                if remaining <= 0:
+                    break
+
+            # Spin phase
+            with _pvp_lock:
+                players = list(_pvp_cache['players'])
+                total_pot = _pvp_cache['total_pot']
+
+            if len(players) < 2:
+                # Not enough players, refund and restart
+                for p in players:
+                    db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
+                               (p['amount'], p['telegram_id']))
+                db.execute("UPDATE pvp_games SET status='cancelled' WHERE id=?", (game_id,))
+                db.commit()
+                db.close()
+                update_pvp_cache(status='waiting')
+                _time.sleep(2)
+                continue
+
+            winner, target_angle = _pvp_pick_winner(players)
+            # Spin angle = multiple full rotations + target
+            spin_angle = 360 * random.randint(5, 8) + target_angle
+
+            update_pvp_cache(status='spinning', spin_angle=spin_angle, winner=winner)
+            db.execute("UPDATE pvp_games SET status='spinning', winner_id=?, winner_angle=? WHERE id=?",
+                       (winner['telegram_id'], spin_angle, game_id))
+            db.commit()
+            logging.info(f"PVP game #{game_id} spinning, winner={winner['username']}, angle={spin_angle}")
+
+            # Wait for spin animation (6 seconds)
+            _time.sleep(6.5)
+
+            # Result phase — give winnings to winner
+            win_amount = total_pot
+            db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
+                       (win_amount, winner['telegram_id']))
+            db.execute("UPDATE pvp_games SET status='result', total_pot=? WHERE id=?",
+                       (total_pot, game_id))
+            db.commit()
+
+            update_pvp_cache(status='result')
+            logging.info(f"PVP game #{game_id} result: {winner['username']} won {win_amount}")
+
+            # Show result for 5 seconds
+            _time.sleep(5)
+
+            db.close()
+
+        except Exception as e:
+            logging.error(f"PVP loop error: {e}")
+            import traceback
+            traceback.print_exc()
+            _time.sleep(3)
+
+
 # ============ BOT SETUP ============
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -2462,6 +2634,128 @@ def api_crash_bets():
     return jsonify({'success': True, 'bets': bets})
 
 
+# ============ PVP WHEEL API ============
+
+@app.route('/api/pvp/state')
+def api_pvp_state():
+    """Polled by clients to get current PVP game state."""
+    c = get_pvp_cache()
+    return jsonify({
+        'success': True,
+        'game_id': c['game_id'],
+        'status': c['status'],
+        'players': c['players'],
+        'total_pot': c['total_pot'],
+        'countdown': c.get('countdown', 0),
+        'winner': c.get('winner'),
+        'spin_angle': c.get('spin_angle', 0),
+        'hash': c.get('hash', ''),
+    })
+
+
+@app.route('/api/pvp/bet', methods=['POST'])
+def api_pvp_bet():
+    data = request.json
+    telegram_id = data.get('telegram_id')
+    amount = data.get('amount', 0)
+    if not telegram_id or not amount or amount < 1:
+        return jsonify({'error': 'Invalid bet'}), 400
+
+    c = get_pvp_cache()
+    game_id = c['game_id']
+    status = c['status']
+
+    # Allow bets during waiting, betting, or countdown
+    if status not in ('waiting', 'betting', 'countdown'):
+        return jsonify({'error': 'Ставки закрыты'}), 400
+
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user['balance'] < amount:
+        return jsonify({'error': 'Недостаточно звёзд'}), 400
+
+    # Deduct balance
+    db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (amount, telegram_id))
+
+    # Check if player already in this game — add to their bet
+    with _pvp_lock:
+        existing_idx = None
+        for i, p in enumerate(_pvp_cache['players']):
+            if p['telegram_id'] == telegram_id:
+                existing_idx = i
+                break
+
+        if existing_idx is not None:
+            _pvp_cache['players'][existing_idx]['amount'] += amount
+            _pvp_cache['total_pot'] += amount
+            _pvp_cache['players'] = _pvp_compute_chances(_pvp_cache['players'])
+            # Update DB
+            db.execute(
+                "UPDATE pvp_bets SET amount = amount + ? WHERE game_id = ? AND user_id = ?",
+                (amount, game_id, telegram_id)
+            )
+        else:
+            color_idx = len(_pvp_cache['players']) % len(PVP_COLORS)
+            player = {
+                'telegram_id': telegram_id,
+                'username': user['username'] or '',
+                'first_name': user['first_name'] or user['username'] or 'Player',
+                'photo_url': user['photo_url'] or '',
+                'amount': amount,
+                'color': PVP_COLORS[color_idx],
+                'chance': 0,
+            }
+            _pvp_cache['players'].append(player)
+            _pvp_cache['total_pot'] += amount
+            _pvp_cache['players'] = _pvp_compute_chances(_pvp_cache['players'])
+
+            db.execute(
+                "INSERT INTO pvp_bets (game_id, user_id, username, first_name, photo_url, amount, color) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (game_id, telegram_id, player['username'], player['first_name'],
+                 player['photo_url'], amount, player['color'])
+            )
+
+        # Update game status
+        if len(_pvp_cache['players']) >= 2 and _pvp_cache['status'] == 'betting':
+            _pvp_cache['status'] = 'countdown'
+            _pvp_cache['countdown'] = 30
+        elif _pvp_cache['status'] == 'waiting':
+            _pvp_cache['status'] = 'betting'
+
+    db.execute("UPDATE pvp_games SET total_pot = total_pot + ? WHERE id = ?", (amount, game_id))
+    db.commit()
+
+    updated_user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    return jsonify({
+        'success': True,
+        'new_balance': updated_user['balance'],
+        'game_id': game_id
+    })
+
+
+@app.route('/api/pvp/history')
+def api_pvp_history():
+    db = get_db()
+    rows = db.execute(
+        "SELECT g.id, g.total_pot, g.winner_id, g.created_at, "
+        "b.username as winner_name, b.photo_url as winner_photo "
+        "FROM pvp_games g LEFT JOIN pvp_bets b ON g.winner_id = b.user_id AND g.id = b.game_id "
+        "WHERE g.status = 'result' ORDER BY g.id DESC LIMIT 10"
+    ).fetchall()
+    history = []
+    for r in rows:
+        history.append({
+            'game_id': r['id'],
+            'total_pot': r['total_pot'],
+            'winner_name': r['winner_name'] or 'Unknown',
+            'winner_photo': r['winner_photo'] or '',
+        })
+    return jsonify({'success': True, 'history': history})
+
+
 @app.route('/api/buy', methods=['POST'])
 def api_buy():
     data = request.json
@@ -4125,6 +4419,11 @@ def crash():
     return redirect('/games')
 
 
+@app.route('/pvp')
+def pvp():
+    return render_template('pvp.html')
+
+
 @app.route('/scratch')
 def scratch():
     return render_template('scratch.html')
@@ -4227,6 +4526,11 @@ if __name__ == '__main__':
     crash_thread = threading.Thread(target=start_crash_loop, daemon=True)
     crash_thread.start()
     logging.info("Crash game loop thread started")
+
+    # Start PVP game loop
+    pvp_thread = threading.Thread(target=start_pvp_loop, daemon=True)
+    pvp_thread.start()
+    logging.info("PVP game loop thread started")
 
     # Запуск бота в отдельном потоке
     if HAS_AIOGRAM:

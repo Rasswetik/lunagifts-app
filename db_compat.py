@@ -248,6 +248,27 @@ def _create_tables(db, flavour):
             final_multiplier DOUBLE PRECISION NOT NULL,
             finished_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS pvp_games (
+            id SERIAL PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'waiting',
+            total_pot DOUBLE PRECISION DEFAULT 0,
+            currency TEXT DEFAULT 'stars',
+            winner_id BIGINT DEFAULT 0,
+            winner_angle DOUBLE PRECISION DEFAULT 0,
+            hash TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS pvp_bets (
+            id SERIAL PRIMARY KEY,
+            game_id INTEGER NOT NULL,
+            user_id BIGINT NOT NULL,
+            username TEXT DEFAULT '',
+            first_name TEXT DEFAULT '',
+            photo_url TEXT DEFAULT '',
+            amount DOUBLE PRECISION NOT NULL,
+            color TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
     else:
         # SQLite DDL (original)
         db.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -360,6 +381,27 @@ def _create_tables(db, flavour):
             game_id INTEGER NOT NULL,
             final_multiplier REAL NOT NULL,
             finished_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS pvp_games (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            status TEXT NOT NULL DEFAULT 'waiting',
+            total_pot REAL DEFAULT 0,
+            currency TEXT DEFAULT 'stars',
+            winner_id INTEGER DEFAULT 0,
+            winner_angle REAL DEFAULT 0,
+            hash TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS pvp_bets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            game_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            username TEXT DEFAULT '',
+            first_name TEXT DEFAULT '',
+            photo_url TEXT DEFAULT '',
+            amount REAL NOT NULL,
+            color TEXT DEFAULT '',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
 
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+  <path d="M8 21h8M12 17v4" stroke="url(#trGrad)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M17 3H7v6a5 5 0 0010 0V3z" fill="url(#trGrad)"/>
+  <path d="M7 5H4a1 1 0 00-1 1v1a4 4 0 004 4M17 5h3a1 1 0 011 1v1a4 4 0 01-4 4" stroke="url(#trGrad)" stroke-width="1.8" fill="none"/>
+  <defs>
+    <linearGradient id="trGrad" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD700"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+</svg>

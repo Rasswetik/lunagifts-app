@@ -3115,43 +3115,52 @@ select {
 
 .task-card {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 14px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius);
-    margin-bottom: 8px;
+    flex-direction: column;
+    gap: 10px;
+    padding: 18px 16px;
+    background: rgba(20, 22, 35, .85);
+    border: 1px solid rgba(255, 255, 255, .06);
+    border-radius: 18px;
+    margin-bottom: 10px;
     cursor: pointer;
     transition: background .2s, transform .15s;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    position: relative;
+    overflow: hidden;
 }
 
 .task-card:active {
     transform: scale(.98);
-    background: var(--glass-bg-strong);
+    background: rgba(30, 32, 50, .9);
 }
 
 .task-card.completed {
-    opacity: .5;
+    opacity: .45;
     pointer-events: none;
 }
 
+.task-card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
 .task-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: var(--radius);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
     background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
 }
 
 .task-icon img {
-    width: 22px;
-    height: 22px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .task-info {
@@ -3160,8 +3169,9 @@ select {
 }
 
 .task-title {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 15px;
+    font-weight: 800;
+    line-height: 1.3;
 }
 
 .task-desc {
@@ -3184,18 +3194,57 @@ select {
 }
 
 .task-reward {
+    position: absolute;
+    top: 14px;
+    right: 14px;
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 800;
-    color: var(--gold);
+    color: #fff;
     flex-shrink: 0;
+    background: linear-gradient(135deg, #A855F7, #EC4899);
+    padding: 5px 12px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(168, 85, 247, .3);
 }
 
 .task-reward img {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
+}
+
+.task-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.task-action-btn {
+    padding: 8px 20px;
+    border-radius: 10px;
+    border: none;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .2s;
+}
+
+.task-action-btn:active {
+    transform: scale(.95);
+}
+
+.task-action-btn.start {
+    background: rgba(255, 255, 255, .1);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, .12);
+}
+
+.task-action-btn.check {
+    background: rgba(107, 138, 255, .15);
+    color: var(--accent);
+    border: 1px solid rgba(107, 138, 255, .2);
 }
 
 

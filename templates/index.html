@@ -44,9 +44,8 @@
             </div>
         </div>
 
-        <div class="section-header">
-            <h2><img class="section-icon" src="/static/img/task.png" alt=""> Задания</h2>
-            <p>Выполняйте задания и получайте звёзды</p>
+        <div class="section-header" style="margin-bottom:16px;">
+            <h2 style="font-size:24px;font-weight:900;">Tasks Hub</h2>
         </div>
 
         <div id="tasksList">
@@ -57,7 +56,7 @@
     <!-- Task Modal -->
     <div class="modal-overlay" id="taskModal">
         <div class="modal">
-            <button class="modal-close" onclick="closeModal('taskModal')"><img src="/static/img/exit.png" alt="✕"></button>
+            <button class="modal-close" onclick="closeModal('taskModal')"><img src="/static/img/exit.svg" alt="✕"></button>
             <div id="taskModalContent"></div>
         </div>
     </div>
@@ -80,7 +79,7 @@
             </div>
             <div class="tutorial-step" data-step="2">
                 <div class="tutorial-glow-orb orb-green"></div>
-                <img src="/static/img/task.png" class="tutorial-icon" alt="">
+                <img src="/static/img/task.svg" class="tutorial-icon" alt="">
                 <div class="tutorial-title">Выполняйте задания</div>
                 <div class="tutorial-text">Подписывайтесь на каналы, приглашайте друзей — получайте звёзды за каждое задание</div>
             </div>
@@ -158,7 +157,7 @@
             const tasks=await tR.json();
             if(currentUser){completedTasks=await cR.json();taskProgress=await pR.json();}
             renderTasks(tasks);
-        }catch(e){document.getElementById('tasksList').innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/task.png" alt=""></div><p>Заданий пока нет</p></div>';}
+        }catch(e){document.getElementById('tasksList').innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/task.svg" alt=""></div><p>Заданий пока нет</p></div>';}
     }
 
     function getTaskProgress(task){
@@ -175,7 +174,7 @@
 
     function renderTasks(tasks){
         const c=document.getElementById('tasksList');
-        if(!tasks.length){c.innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/task.png" alt=""></div><p>Заданий пока нет</p></div>';return;}
+        if(!tasks.length){c.innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/task.svg" alt=""></div><p>Заданий пока нет</p></div>';return;}
         c.innerHTML=tasks.map(t=>{
             const done=completedTasks.includes(t.id);
             const icon=TASK_ICONS[t.type]||'star';
@@ -183,15 +182,28 @@
             const isGoal=!!prog;
             const canClaim=isGoal?prog.done:true;
             let reward;
-            if(t.reward_type==='gift'&&t.gift_image)reward='<div class="task-reward"><img src="'+t.gift_image+'" style="width:28px;height:28px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'"></div>';
-            else reward='<div class="task-reward"><span>+'+t.reward+'</span><img src="/static/img/star.svg" alt=""></div>';
+            if(t.reward_type==='gift'&&t.gift_image)reward='<div class="task-reward"><img src="'+t.gift_image+'" style="width:16px;height:16px;object-fit:contain;border-radius:4px;" onerror="this.src=\'/static/img/star.svg\'"></div>';
+            else reward='<div class="task-reward">Reward: '+t.reward+' <img src="/static/img/star.svg" alt=""></div>';
             let progHtml='';
             if(isGoal&&!done)progHtml='<div style="width:100%;margin-top:6px;"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);margin-bottom:3px;"><span>'+Math.round(prog.current)+' / '+prog.goal+'</span><span>'+prog.pct+'%</span></div><div style="width:100%;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;"><div style="width:'+prog.pct+'%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:4px;transition:width .5s;"></div></div></div>';
+            const startClick=t.link?'window.open(\''+esc(t.link)+'\',\'_blank\')':'openTask('+JSON.stringify(t).replace(/"/g,'&quot;')+')';
+            const checkClick=done?'':'claimTask('+t.id+')';
+            let actionsHtml='';
+            if(!done){
+                actionsHtml='<div class="task-actions">';
+                if(t.link)actionsHtml+='<button class="task-action-btn start" onclick="event.stopPropagation();'+startClick+'">Start</button>';
+                actionsHtml+='<button class="task-action-btn check" onclick="event.stopPropagation();'+(isGoal?'openGoalTask('+JSON.stringify(t).replace(/"/g,'&quot;')+','+canClaim+')':checkClick)+'">Check</button>';
+                actionsHtml+='</div>';
+            }
             const click=done?'':(isGoal?'openGoalTask('+JSON.stringify(t).replace(/"/g,'&quot;')+','+canClaim+')':'openTask('+JSON.stringify(t).replace(/"/g,'&quot;')+')');
             return '<div class="task-card'+(done?' completed':'')+'" onclick="'+click+'">'
-            +'<div class="task-icon"><img src="/static/img/'+icon+'.png" alt=""></div>'
-            +'<div class="task-info"><div class="task-title">'+esc(t.title)+'</div><div class="task-desc">'+(done?'<span class="task-completed-label"><img src="/static/img/reward.png" alt=""> Выполнено</span>':esc(t.description))+'</div>'+progHtml+'</div>'
-            +reward+'</div>';
+            +reward
+            +'<div class="task-card-top">'
+            +'<div class="task-icon"><img src="/static/img/'+icon+'.svg" alt=""></div>'
+            +'<div class="task-info"><div class="task-title">'+esc(t.title)+'</div>'
+            +(done?'<div class="task-desc"><span class="task-completed-label"><img src="/static/img/reward.svg" alt=""> Выполнено</span></div>':'')
+            +progHtml+'</div></div>'
+            +actionsHtml+'</div>';
         }).join('');
     }
 
@@ -202,7 +214,7 @@
         if(task.reward_type==='gift'&&task.gift_image)rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px;"><img src="'+task.gift_image+'" style="width:40px;height:40px;object-fit:contain;" onerror="this.src=\'/static/img/star.svg\'"><span style="font-size:18px;font-weight:700;">'+(task.gift_name||'Подарок')+'</span></div>';
         else rewardD='<div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:24px;"><span style="font-size:24px;font-weight:800;color:var(--gold);">+'+task.reward+'</span><img src="/static/img/star.svg" style="width:24px;height:24px;" alt=""></div>';
         document.getElementById('taskModalContent').innerHTML='<div style="text-align:center;padding:10px 0;">'
-            +'<img src="/static/img/'+icon+'.png" style="width:64px;height:64px;margin:0 auto 16px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));" alt="">'
+            +'<img src="/static/img/'+icon+'.svg" style="width:64px;height:64px;margin:0 auto 16px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));" alt="">'
             +'<div style="font-size:20px;font-weight:800;margin-bottom:6px;">'+esc(task.title)+'</div>'
             +'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">'+(labels[task.type]||esc(task.description))+'</div>'
             +rewardD
@@ -223,7 +235,7 @@
         let progHtml='';
         if(prog)progHtml='<div style="margin-bottom:20px;"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary);margin-bottom:6px;"><span>'+Math.round(prog.current)+' / '+prog.goal+'</span><span>'+prog.pct+'%</span></div><div style="width:100%;height:8px;background:rgba(255,255,255,.08);border-radius:8px;overflow:hidden;"><div style="width:'+prog.pct+'%;height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:8px;"></div></div></div>';
         document.getElementById('taskModalContent').innerHTML='<div style="text-align:center;padding:10px 0;">'
-            +'<img src="/static/img/'+icon+'.png" style="width:64px;height:64px;margin:0 auto 16px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));" alt="">'
+            +'<img src="/static/img/'+icon+'.svg" style="width:64px;height:64px;margin:0 auto 16px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.4));" alt="">'
             +'<div style="font-size:20px;font-weight:800;margin-bottom:6px;">'+esc(task.title)+'</div>'
             +'<div style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;">'+(descs[task.goal_type]||esc(task.description))+'</div>'
             +progHtml+rewardD

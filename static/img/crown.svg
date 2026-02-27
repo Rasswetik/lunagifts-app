@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none">
+  <path d="M3 18h18v2H3v-2z" fill="url(#crownGrad)"/>
+  <path d="M3 16l3-8 4 4 2-8 2 8 4-4 3 8H3z" fill="url(#crownGrad)"/>
+  <defs>
+    <linearGradient id="crownGrad" x1="3" y1="4" x2="21" y2="20" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD700"/>
+      <stop offset="1" stop-color="#FFA500"/>
+    </linearGradient>
+  </defs>
+</svg>
