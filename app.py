@@ -776,7 +776,7 @@ def init_db():
 def load_gifts():
     """Загрузка подарков из gifts.json, поддержка обоих форматов"""
     path = os.path.join(os.path.dirname(__file__), 'data', 'gifts.json')
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, 'r', encoding='utf-8-sig') as f:
         data = json.load(f)
 
     # Поддержка формата {"gifts": [...]} и просто [...]
@@ -805,7 +805,7 @@ def save_gifts(gifts):
 
 def load_cases():
     path = os.path.join(os.path.dirname(__file__), 'data', 'cases.json')
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, 'r', encoding='utf-8-sig') as f:
         return json.load(f)
 
 
@@ -817,7 +817,7 @@ def save_cases(cases):
 
 def load_scratches():
     path = os.path.join(os.path.dirname(__file__), 'data', 'scratch.json')
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, 'r', encoding='utf-8-sig') as f:
         return json.load(f)
 
 

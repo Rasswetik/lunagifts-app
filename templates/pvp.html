@@ -146,6 +146,44 @@
     .pvp-progress-ring circle{fill:none;stroke-width:4;stroke-linecap:round;}
     .pvp-progress-ring .ring-bg{stroke:rgba(255,255,255,.06);}
     .pvp-progress-ring .ring-progress{stroke:var(--pvp-green);stroke-dasharray:282.6;stroke-dashoffset:282.6;transition:stroke-dashoffset .3s linear;filter:drop-shadow(0 0 8px rgba(0,210,160,.4));}
+
+    /* ── Desktop optimizations ── */
+    @media(min-width:768px){
+        .pvp-container{max-width:900px;padding:24px 32px 100px;display:grid;grid-template-columns:1fr 380px;gap:32px;}
+        .pvp-wheel-section{grid-column:1;order:1;}
+        .pvp-wheel-wrap{width:380px;height:380px;}
+        .pvp-center{width:100px;height:100px;}
+        .pvp-center-timer{font-size:32px;}
+        .pvp-bet-row{gap:14px;}
+        .pvp-bet-btn{max-width:140px;padding:16px 10px;font-size:17px;}
+        .pvp-custom-btn{max-width:450px;padding:16px;}
+        .pvp-players-section{grid-column:2;order:2;max-height:calc(100vh - 180px);overflow-y:auto;}
+        .pvp-player-card{padding:18px 20px;}
+        .pvp-player-avatar{width:48px;height:48px;}
+        .pvp-player-name{font-size:15px;}
+        .pvp-player-chance{font-size:18px;}
+        .pvp-top-bar{grid-column:1/-1;order:0;}
+        .pvp-total-pill{padding:14px 28px;font-size:18px;}
+        .pvp-total-pill img{width:22px;height:22px;}
+        .pvp-icon-btn{width:48px;height:48px;}
+        .pvp-icon-btn svg{width:22px;height:22px;}
+        .pvp-balance-badge span{font-size:18px;}
+        .pvp-balance-badge img{width:20px;height:20px;}
+        .pvp-info-text{font-size:15px;}
+        .pvp-hash{font-size:12px;}
+        .pvp-progress-ring{width:110px;height:110px;}
+        .bottom-nav{display:none;}
+        body:not(.is-tg-miniapp) .pvp-container{padding-bottom:40px;}
+    }
+
+    @media(min-width:1200px){
+        .pvp-container{max-width:1100px;grid-template-columns:1fr 440px;gap:48px;}
+        .pvp-wheel-wrap{width:450px;height:450px;}
+        .pvp-center{width:120px;height:120px;}
+        .pvp-center-timer{font-size:38px;}
+        .pvp-progress-ring{width:130px;height:130px;}
+        .pvp-bet-btn{max-width:160px;padding:18px 12px;font-size:18px;}
+    }
     </style>
 </head>
 <body>
@@ -217,7 +255,10 @@
 
         <!-- Info text -->
         <div class="pvp-info-text" id="pvpInfoText">Place your bet to enter the round</div>
+        </div><!-- end pvp-wheel-section -->
 
+        <!-- Players Section -->
+        <div class="pvp-players-section">
         <!-- Players list -->
         <div class="pvp-players-header">
             <h3><span id="pvpPlayerCount">0</span> Player<span id="pvpPlayerPlural">s</span></h3>
@@ -227,6 +268,7 @@
 
         <!-- Hash -->
         <div class="pvp-hash" id="pvpHash">HASH <span id="pvpHashVal"></span></div>
+        </div><!-- end pvp-players-section -->
     </div>
 
     <!-- Result Modal -->
@@ -352,47 +394,19 @@
             const ay = CY + avatarDist * Math.sin(midAngle);
             const avatarR = Math.min(32, Math.max(16, slice * R * 0.14));
 
-            if(p.photo_url && avatarImages[p.telegram_id]){
-                // Shadow behind avatar
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,.5)';
-                ctx.shadowBlur = 8;
-                ctx.beginPath();
-                ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(0,0,0,.3)';
-                ctx.fill();
-                ctx.restore();
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
-                ctx.closePath();
-                ctx.clip();
-                try{
-                    ctx.drawImage(avatarImages[p.telegram_id], ax-avatarR, ay-avatarR, avatarR*2, avatarR*2);
-                }catch(e){}
-                ctx.restore();
-                // White border
-                ctx.beginPath();
-                ctx.arc(ax, ay, avatarR+1.5, 0, Math.PI*2);
-                ctx.strokeStyle = 'rgba(255,255,255,.25)';
-                ctx.lineWidth = 2.5;
-                ctx.stroke();
-            } else {
-                // Letter avatar with glass effect
-                ctx.beginPath();
-                ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(0,0,0,.35)';
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(255,255,255,.2)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.fillStyle = '#fff';
-                ctx.font = `bold ${Math.round(avatarR*1.1)}px -apple-system,BlinkMacSystemFont,sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText((p.first_name||p.username||'?')[0].toUpperCase(), ax, ay);
-            }
+            // Letter avatar with colored background
+            ctx.beginPath();
+            ctx.arc(ax, ay, avatarR, 0, Math.PI*2);
+            ctx.fillStyle = p.color || 'rgba(0,0,0,.35)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${Math.round(avatarR*1.1)}px -apple-system,BlinkMacSystemFont,sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText((p.first_name||p.username||'?')[0].toUpperCase(), ax, ay);
 
             startAngle += slice;
         });
@@ -468,16 +482,10 @@
         if(waitingAnimFrame){ cancelAnimationFrame(waitingAnimFrame); waitingAnimFrame = null; }
     }
 
-    // ── Load avatar images ──
+    // ── Load avatar images ── (disabled due to CORS - using generated avatars instead)
     function loadAvatarImages(players){
-        players.forEach(p => {
-            if(p.photo_url && !avatarImages[p.telegram_id]){
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.onload = () => { avatarImages[p.telegram_id] = img; };
-                img.src = p.photo_url;
-            }
-        });
+        // CORS prevents loading Telegram userpics into canvas
+        // We use colored letter avatars which look better anyway
     }
 
     // ── Spin animation ──
