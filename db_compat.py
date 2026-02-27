@@ -60,12 +60,58 @@ class _PgConnWrapper:
         cur.execute(sql, params or ())
         return cur
 
+    def insert_returning_id(self, table, columns, values):
+        """Insert a row and return the auto-generated id (PostgreSQL RETURNING)."""
+        cols = ', '.join(columns)
+        placeholders = ', '.join(['%s'] * len(values))
+        sql = f"INSERT INTO {table} ({cols}) VALUES ({placeholders}) RETURNING id"
+        cur = self._conn.cursor()
+        cur.execute(sql, values)
+        return cur.fetchone()[0]
+
     def executemany(self, sql, params_list):
         sql = _pg_convert(sql)
         cur = self._conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
         for params in params_list:
             cur.execute(sql, params)
         return cur
+
+    def commit(self):
+        self._conn.commit()
+
+    def rollback(self):
+        self._conn.rollback()
+
+    def close(self):
+        self._conn.close()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        self.close()
+
+
+class _SqliteConnWrapper:
+    """Wrapper for SQLite to match PostgreSQL wrapper interface."""
+
+    def __init__(self, conn):
+        self._conn = conn
+        self._conn.row_factory = sqlite3.Row
+
+    def execute(self, sql, params=None):
+        return self._conn.execute(sql, params or ())
+
+    def executemany(self, sql, params_list):
+        return self._conn.executemany(sql, params_list)
+
+    def insert_returning_id(self, table, columns, values):
+        """Insert a row and return the auto-generated id (SQLite lastrowid)."""
+        cols = ', '.join(columns)
+        placeholders = ', '.join(['?'] * len(values))
+        sql = f"INSERT INTO {table} ({cols}) VALUES ({placeholders})"
+        cur = self._conn.execute(sql, values)
+        return cur.lastrowid
 
     def commit(self):
         self._conn.commit()
@@ -90,8 +136,7 @@ def connect_db():
         return _PgConnWrapper(conn)
     else:
         conn = sqlite3.connect(DATABASE_FILE)
-        conn.row_factory = sqlite3.Row
-        return conn
+        return _SqliteConnWrapper(conn)
 
 
 # --------------- Schema initialisation ---------------

@@ -388,13 +388,12 @@ def start_pvp_loop():
 
             # Create new game
             game_hash = _pvp_generate_hash()
-            db.execute(
-                "INSERT INTO pvp_games (status, total_pot, hash) VALUES (?, ?, ?)",
+            game_id = db.insert_returning_id(
+                'pvp_games',
+                ['status', 'total_pot', 'hash'],
                 ('waiting', 0, game_hash)
             )
             db.commit()
-            game = db.execute("SELECT * FROM pvp_games ORDER BY id DESC LIMIT 1").fetchone()
-            game_id = game['id']
 
             update_pvp_cache(
                 game_id=game_id, status='waiting', players=[], total_pot=0,
@@ -2157,6 +2156,25 @@ def api_admin_pvp_reset():
         _pvp_cache['spin_angle'] = 0
     
     return jsonify({'success': True, 'message': 'PVP games reset'})
+
+
+@app.route('/api/admin/pvp/debug')
+def api_admin_pvp_debug():
+    """Debug endpoint to view PVP cache and recent games."""
+    db = get_db()
+    # Get last 5 games from DB
+    games = db.execute(
+        "SELECT id, status, total_pot, hash, winner_id, created_at FROM pvp_games ORDER BY id DESC LIMIT 5"
+    ).fetchall()
+    
+    with _pvp_lock:
+        cache_copy = dict(_pvp_cache)
+    
+    return jsonify({
+        'cache': cache_copy,
+        'recent_games': [dict(g) for g in games],
+        'threads_started': _threads_started
+    })
 
 
 @app.route('/api/admin/maintenance', methods=['GET', 'POST'])
