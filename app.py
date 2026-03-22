@@ -3183,54 +3183,70 @@ def api_open_case():
             discount = promo['value']
             actual_price = max(0, round(case['price'] * (1 - discount / 100)))
 
+    # Validate balance
     if not from_inventory and user['balance'] < actual_price:
         return jsonify({'error': 'Недостаточно средств'}), 400
 
-    if not from_inventory:
-        db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (actual_price, telegram_id))
+    try:
+        # Begin transactional operations
+        if not from_inventory:
+            db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (actual_price, telegram_id))
 
-    # Remove case from inventory if opened from there
-    if from_inventory:
-        db.execute('DELETE FROM inventory WHERE id = ? AND user_id = ?', (inventory_id, telegram_id))
+        # Remove case from inventory if opened from there
+        if from_inventory:
+            db.execute('DELETE FROM inventory WHERE id = ? AND user_id = ?', (inventory_id, telegram_id))
 
-    # Roll drop
-    drops = case['drops']
-    total_chance = sum(d['chance'] for d in drops)
-    roll = random.uniform(0, total_chance)
-    cumulative = 0
-    won_drop = drops[0]
+        # Roll drop
+        drops = case['drops']
+        total_chance = sum(d.get('chance', 0) for d in drops)
+        if total_chance <= 0:
+            raise ValueError('Invalid drops for case')
+        roll = random.uniform(0, total_chance)
+        cumulative = 0
+        won_drop = drops[0]
+        for drop in drops:
+            cumulative += drop.get('chance', 0)
+            if roll <= cumulative:
+                won_drop = drop
+                break
 
-    for drop in drops:
-        cumulative += drop['chance']
-        if roll <= cumulative:
-            won_drop = drop
-            break
+        result = {}
+        if won_drop.get('type') == 'stars':
+            amount = int(won_drop.get('amount', 0))
+            db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (amount, telegram_id))
+            result = {'type': 'stars', 'amount': amount}
+        elif won_drop.get('type') == 'gift':
+            gifts = load_gifts()
+            gift = next((gi for gi in gifts if gi.get('id') == won_drop.get('gift_id')), None)
+            if gift:
+                price = gift.get('price', 0)
+                db.execute(
+                    'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, ?)',
+                    (telegram_id, gift.get('id'), gift.get('name'), gift.get('image', ''), price, 'gift')
+                )
+                # Add Fragment assets + ensure slug/item_count
+                slug = gift.get('slug', '')
+                gift['item_count'] = gift.get('item_count', 1000)
+                if slug:
+                    assets = get_fragment_assets(slug)
+                    gift.update({k: v for k, v in assets.items() if v})
+                result = {'type': 'gift', 'gift': gift}
+        else:
+            # Unknown drop type
+            raise ValueError('Unknown drop type')
 
-    result = {}
-    if won_drop['type'] == 'stars':
-        db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (won_drop['amount'], telegram_id))
-        result = {'type': 'stars', 'amount': won_drop['amount']}
-    elif won_drop['type'] == 'gift':
-        gifts = load_gifts()
-        gift = next((gi for gi in gifts if gi['id'] == won_drop['gift_id']), None)
-        if gift:
-            price = gift.get('price', 0)
-            db.execute(
-                'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, ?)',
-                (telegram_id, gift['id'], gift['name'], gift.get('image', ''), price, 'gift')
-            )
-            # Add Fragment assets + ensure slug/item_count
-            slug = gift.get('slug', '')
-            gift['item_count'] = gift.get('item_count', 1000)
-            if slug:
-                assets = get_fragment_assets(slug)
-                gift.update({k: v for k, v in assets.items() if v})
-            result = {'type': 'gift', 'gift': gift}
-
-    db.commit()
-    user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
-    result['new_balance'] = user['balance']
-    return jsonify(result)
+        db.commit()
+        user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        result['new_balance'] = user['balance'] if user else 0
+        result['success'] = True
+        return jsonify(result)
+    except Exception as e:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        logging.exception('Error opening case: %s', e)
+        return jsonify({'error': 'Ошибка открытия кейса'}), 500
 
 
 @app.route('/api/cases/drops/<int:case_id>')
