@@ -8,6 +8,12 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
     <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+    /* Market overrides: white buy button and Random label styling */
+    .modal-buy-btn.market-white{background:#fff;color:#131313;border:1px solid rgba(0,0,0,0.06)}
+    .modal-buy-btn.market-white img{filter:none}
+    .gift-random-label{font-size:11px;color:rgba(255,255,255,0.65);font-weight:700;margin-top:4px}
+    </style>
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
@@ -68,7 +74,8 @@
         renderGifts();
     }
 
-    function toTon(price){ return ((price/100)*1.1).toFixed(2); }
+    // Show prices in Stars (multiply by 100 as requested)
+    function toStars(price){ return Math.floor(price*100); }
 
     async function loadGifts(){
         try{
@@ -88,15 +95,15 @@
         c.innerHTML=items.map(g=>{
             const hasBg=g.bg_color&&!g.slug;
             const bg=g.slug?getNftBg(g.slug,g.item_count):'';
-            const tonPrice=toTon(g.price);
+            const starPrice=toStars(g.price);
             return '<div class="gift-card" onclick="openBuyModal('+g.id+')">'
             +'<div class="gift-visual">'
             +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'50 0%,'+g.bg_color+'20 60%,transparent 80%);"></div>':'')
             +(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+g.slug+'" data-count="'+(g.item_count||1000)+'" alt="">':'<img class="gift-img" src="'+imgSrc(g.image)+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.svg\'">')
             +'</div>'
             +'<div class="gift-name" style="font-size:13px;font-weight:600;color:#fff;margin-top:6px;">'+g.name+'</div>'
-            +'<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">random</div>'
-            +'<div class="gift-price-btn"><span>'+tonPrice+'</span><img src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"></div>'
+            +'<div class="gift-random-label">Random</div>'
+            +'<div class="gift-price-btn"><span>'+starPrice+'</span><img src="/static/img/star.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"></div>'
             +'</div>';
         }).join('');
     }
@@ -104,7 +111,7 @@
     function openBuyModal(id){
         const g=giftsData.find(x=>x.id===id);if(!g)return;
         const hasBg=g.bg_color&&!g.slug;
-        const tonPrice=toTon(g.price);
+        const starPrice=toStars(g.price);
         document.getElementById('buyModalContent').innerHTML=''
         +'<div class="modal-gift-visual">'
         +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'60 0%,'+g.bg_color+'25 50%,transparent 75%);"></div>':'')
@@ -112,7 +119,7 @@
         +'</div>'
         +'<div class="modal-gift-name">'+g.name+'</div>'
         +'<div class="modal-gift-type">'+(g.withdrawable?'Выводимый подарок':'Случайный')+'</div>'
-        +'<button class="modal-buy-btn" onclick="buyGift('+g.id+')">Купить за '+tonPrice+' <img src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"></button>';
+        +'<button class="modal-buy-btn market-white" onclick="buyGift('+g.id+')">Купить за '+starPrice+' <img src="/static/img/star.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"></button>';
         openModal('buyModal');
     }
 
