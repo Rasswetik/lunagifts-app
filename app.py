@@ -569,12 +569,34 @@ def _pvp_finalize_game(db, game_id):
         total_pot = _pvp_cache.get('total_pot', 0)
     
     if winner and total_pot > 0:
+        # Determine winner id reliably (support different key names)
+        winner_id = None
+        try:
+            if isinstance(winner, dict):
+                winner_id = winner.get('telegram_id') or winner.get('user_id') or winner.get('id')
+            else:
+                # Fallback if winner is a row-like object
+                winner_id = getattr(winner, 'telegram_id', None) or getattr(winner, 'user_id', None) or getattr(winner, 'id', None)
+        except Exception:
+            winner_id = None
+
+        if not winner_id:
+            logging.error(f"PVP finalize: no winner_id found for game {game_id}, winner={winner}")
+            return
+
+        # Ensure numeric type
+        try:
+            winner_id = int(winner_id)
+        except Exception:
+            logging.warning(f"PVP finalize: winner_id not int: {winner_id}")
+
+        # Credit user's balance and mark game as result
         db.execute("UPDATE users SET balance = balance + ? WHERE telegram_id = ?",
-                   (total_pot, winner['telegram_id']))
+                   (total_pot, winner_id))
         db.execute("UPDATE pvp_games SET status='result', winner_id=?, total_pot=? WHERE id=?",
-                   (winner['telegram_id'], total_pot, game_id))
+                   (winner_id, total_pot, game_id))
         db.commit()
-        logging.info(f"PVP game #{game_id}: {winner.get('username')} won {total_pot}")
+        logging.info(f"PVP game #{game_id}: winner_id={winner_id} won {total_pot}")
 
 
 def start_pvp_loop():
