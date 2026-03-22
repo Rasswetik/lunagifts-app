@@ -72,53 +72,6 @@
     </div>
 
     <div class="container" style="padding-top:14px;">
-        <!-- Profile Balance Section -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <img class="user-avatar" src="" alt="" style="width:40px;height:40px;border-radius:50%;">
-                <span class="user-name" style="font-size:16px;font-weight:700;color:#fff;">Загрузка...</span>
-            </div>
-            <button style="width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="window.location.href='/admin'" id="settingsBtn">
-                <img src="/static/img/settings.svg" alt="" style="width:18px;height:18px;opacity:0.6;">
-            </button>
-        </div>
-
-        <!-- Balances -->
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px 16px;">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <img src="/static/img/star.svg" alt="" style="width:28px;height:28px;">
-                    <div>
-                        <div style="font-size:12px;color:rgba(255,255,255,0.4);">Telegram Stars</div>
-                        <div style="font-size:18px;font-weight:700;color:#fff;" class="balance-amount">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- TON ↔ Stars Exchange -->
-        <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);border-radius:16px;padding:16px;margin-bottom:16px;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                <div style="font-size:15px;font-weight:700;color:#fff;">Обменник</div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.4);">1 TON = 100 ⭐</div>
-            </div>
-            <div style="display:flex;gap:8px;margin-bottom:10px;">
-                <button class="exchange-dir-btn active" id="exDirTonToStars" onclick="setExchangeDir('ton_to_stars')" style="flex:1;padding:10px;border-radius:10px;background:var(--accent);border:1px solid var(--accent);color:#fff;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">TON → Stars</button>
-                <button class="exchange-dir-btn" id="exDirStarsToTon" onclick="setExchangeDir('stars_to_ton')" style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.10);color:rgba(255,255,255,0.5);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;">Stars → TON</button>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
-                <div style="flex:1;position:relative;">
-                    <input type="number" id="exchangeInput" placeholder="0" min="0" step="any" style="width:100%;padding:12px 40px 12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);color:#fff;font-size:16px;font-weight:700;outline:none;" oninput="updateExchangePreview()">
-                    <img id="exchangeInputIcon" src="/static/img/ton.svg" alt="" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:18px;height:18px;pointer-events:none;" onerror="this.src='/static/img/star.svg'">
-                </div>
-                <div style="color:rgba(255,255,255,0.3);font-size:18px;">→</div>
-                <div style="flex:1;display:flex;align-items:center;gap:6px;padding:12px 14px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.10);min-height:46px;">
-                    <span id="exchangeOutput" style="font-size:16px;font-weight:700;color:var(--gold);">0</span>
-                    <img id="exchangeOutputIcon" src="/static/img/star.svg" alt="" style="width:18px;height:18px;">
-                </div>
-            </div>
-            <button id="exchangeBtn" onclick="doExchange()" disabled style="width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#4a6bd4);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;opacity:0.5;transition:all 0.2s;">Обменять</button>
-        </div>
 
         <!-- Action Buttons -->
         <div style="display:flex;gap:10px;margin-bottom:18px;">
@@ -147,28 +100,7 @@
             <div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
         </div>
 
-        <!-- Referral Section -->
-        <div class="referral-section" id="referralSection">
-            <h3>Реферальная программа</h3>
-            <p class="referral-desc">Приглашайте друзей и получайте бонусы!</p>
-            <div class="referral-stats" id="referralStats">
-                <div class="ref-stat"><span class="ref-stat-val" id="refCount">0</span><span class="ref-stat-label">Приглашено</span></div>
-                <div class="ref-stat"><span class="ref-stat-val" id="refEarnings">0 <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;"></span><span class="ref-stat-label">Заработано</span></div>
-            </div>
-            <div class="referral-link-wrap">
-                <input type="text" readonly class="referral-link-input" id="refLinkInput" value="">
-                <button class="referral-copy-btn" onclick="copyRefLink()">Копировать</button>
-            </div>
-        </div>
-
-        <!-- Promo Code Section -->
-        <div class="promo-section">
-            <h3>Промокод</h3>
-            <div class="promo-row">
-                <input type="text" class="promo-input" id="promoInput" placeholder="Введите промокод">
-                <button class="promo-btn" onclick="redeemPromo()">Активировать</button>
-            </div>
-        </div>
+        <!-- (Referral and promo sections removed to simplify profile UI) -->
 
         <!-- Admin link for admins -->
         <div id="adminLink" style="display:none;text-align:center;margin:20px 0;">
