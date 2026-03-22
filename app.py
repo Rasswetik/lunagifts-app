@@ -501,8 +501,11 @@ def _pvp_create_game(db):
     return game_id
 
 
-def _pvp_tick():
-    """Called on every /api/pvp/state request to advance game state."""
+def _pvp_tick(db=None):
+    """Called on every /api/pvp/state request to advance game state.
+    If `db` is provided, the function may create a new game immediately in DB
+    to avoid transient states (game_id == 0) when a round is cancelled.
+    """
     now = _time.time()
     
     with _pvp_lock:
@@ -543,11 +546,19 @@ def _pvp_tick():
                             logging.info(f"PVP game #{game_id} cancelled - not enough players, refunding")
                             _pvp_cache['refund_players'] = list(players)  # Copy before reset
                             _pvp_cache['needs_refund'] = True
+                        # Reset in-memory players/total
                         _pvp_cache['status'] = 'waiting'
                         _pvp_cache['countdown'] = 0
                         _pvp_cache['countdown_started_at'] = 0
                         _pvp_cache['players'] = []
                         _pvp_cache['total_pot'] = 0
+                        # Immediately create a fresh game in DB/cache if we have DB access
+                        if db is not None:
+                            try:
+                                new_id = _pvp_create_game(db)
+                                logging.info(f"PVP: Recreated game #{new_id} after cancellation")
+                            except Exception as e:
+                                logging.exception(f"PVP: failed to create new game after cancellation: {e}")
         
         # Spinning phase - wait 7 seconds
         elif status == 'spinning':
@@ -2934,8 +2945,8 @@ def api_pvp_state():
     # Sync cache from DB if needed (handles worker isolation)
     _pvp_sync_from_db(db)
     
-    # Tick the game state
-    _pvp_tick()
+    # Tick the game state (pass DB so we can create a new game immediately if needed)
+    _pvp_tick(db)
     
     # Sync status to DB (for other workers to see)
     with _pvp_lock:
