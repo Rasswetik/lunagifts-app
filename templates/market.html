@@ -74,8 +74,8 @@
         renderGifts();
     }
 
-    // Show prices in Stars (multiply by 100 as requested)
-    function toStars(price){ return Math.floor(price*100); }
+    // Show prices in Stars (original units)
+    function toStars(price){ return Math.floor(price); }
 
     async function loadGifts(){
         try{

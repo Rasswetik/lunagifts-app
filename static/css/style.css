@@ -798,6 +798,42 @@ select {
     flex-shrink: 0;
 }
 
+/* ================================================================
+   MARKET / GIFT CARD — theme adjustments to match cases look
+   ================================================================ */
+.gift-card {
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    align-items:flex-start;
+    transition:transform .14s var(--ease-out), box-shadow .14s var(--ease-out);
+}
+.gift-card:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(22,137,255,0.06); }
+.gift-visual{ width:100%; height:120px; display:flex;align-items:center;justify-content:center;border-radius:12px; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02)); }
+.gift-backdrop{ width:100%; height:100%; object-fit:cover; }
+.gift-img{ width:78px; height:78px; object-fit:contain; filter:drop-shadow(0 10px 30px rgba(22,137,255,0.14)); }
+.gift-name{ font-size:14px; font-weight:700; color:var(--text); }
+.gift-random-label{ font-size:11px; color:var(--text-secondary); font-weight:700; margin-top:4px }
+.gift-price-btn{ margin-top:8px; display:inline-flex; align-items:center; gap:8px; background:linear-gradient(90deg,var(--accent),#6b8aff); padding:8px 12px; border-radius:12px; color:#fff; font-weight:700; box-shadow:0 8px 30px rgba(22,137,255,0.12); }
+.gift-price-btn img{ width:16px; height:16px; }
+
+/* Modal buy button style — keep white theme but more prominent */
+.modal-buy-btn.market-white{ background: #fff; color:#131313; border-radius:12px; padding:12px 16px; font-weight:800; display:inline-flex; gap:8px; align-items:center; box-shadow:0 10px 36px rgba(0,0,0,0.35); }
+.modal-buy-btn.market-white img{ filter:none; width:16px; height:16px; }
+
+/* Ensure modal visual is large and centered */
+.modal-gift-visual{ width:100%; height:220px; display:flex;align-items:center;justify-content:center;border-radius:16px; overflow:hidden; background:linear-gradient(180deg, rgba(22,137,255,0.03), rgba(139,92,246,0.02)); margin-bottom:12px; }
+.modal-gift-image{ width:120px; height:120px; object-fit:contain; }
+
+@media (max-width:420px){
+    .gift-visual{ height:100px; }
+    .modal-gift-visual{ height:180px; }
+}
+
 .banner-slide img {
     width: 100%;
     height: 100%;
