@@ -101,6 +101,37 @@
             border:none; color:#fff; font-size:15px; font-weight:700; cursor:pointer;
             display:flex; align-items:center; justify-content:center; gap:8px;
         }
+
+        /* ── Mobile optimizations ── */
+        @media (max-width:380px) {
+            .ref-page { padding:12px 14px 110px; }
+            .ref-title-block h1 { font-size:19px; }
+            .ref-title-block p { font-size:12px; }
+            .ref-earned { padding:14px 14px; border-radius:14px; }
+            .ref-earned-val { font-size:20px; }
+            .ref-earned-val img { width:17px; height:17px; }
+            .ref-withdraw-btn { padding:9px 16px; font-size:12px; }
+            .ref-level-card { padding:12px 8px; border-radius:14px; }
+            .ref-level-name { font-size:13px; }
+            .ref-level-pct { font-size:20px; }
+            .ref-stat-box { padding:12px 10px; border-radius:12px; }
+            .ref-stat-box-val { font-size:17px; }
+            .ref-link-row { flex-wrap:wrap; }
+            .ref-link-input { min-width:0; font-size:11px; padding:10px 12px; }
+            .ref-copy-btn { padding:10px 16px; font-size:13px; }
+        }
+        @media (max-width:340px) {
+            .ref-page { padding:10px 12px 100px; }
+            .ref-levels { gap:8px; }
+            .ref-level-card { padding:10px 6px; }
+            .ref-level-name { font-size:12px; }
+            .ref-level-pct { font-size:18px; }
+            .ref-stats-grid { gap:8px; }
+            .ref-stat-box-val { font-size:15px; }
+            .ref-link-section { padding:12px; }
+            .ref-share-btn { padding:12px; font-size:14px; }
+            .ref-op-item { padding:10px 12px; }
+        }
     </style>
 </head>
 <body>

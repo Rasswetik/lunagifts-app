@@ -102,6 +102,34 @@
         .bet-btn.cashout{background:linear-gradient(135deg,#FFCC00,#E5B800);color:#131313;}
         .bet-btn.wait{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);pointer-events:none;}
         .bet-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
+
+        /* ── Mobile optimizations ── */
+        @media(max-width:380px){
+            .game-field{height:190px;margin:8px 0;border-radius:16px;}
+            .game-field-mult{font-size:48px;}
+            .game-field-mult.counting{font-size:40px;}
+            .rocket-wrap img{width:110px;height:110px;}
+            .boom-wrap img{width:130px;height:130px;}
+            .bet-panel{padding:10px 12px calc(10px + env(safe-area-inset-bottom));}
+            .bet-input{padding:9px 55px 9px 12px;font-size:14px;}
+            .currency-btn{padding:8px 10px;font-size:11px;}
+            .bet-btn{padding:12px;font-size:14px;border-radius:12px;}
+            .auto-cashout-wrap{padding:0 10px;}
+            .auto-cashout-input{font-size:13px;}
+            .crash-page{padding:0 10px 190px;}
+            .top-bar{padding:8px 12px;}
+        }
+        @media(max-width:340px){
+            .game-field{height:170px;border-radius:14px;}
+            .game-field-mult{font-size:42px;}
+            .rocket-wrap img{width:90px;height:90px;}
+            .boom-wrap img{width:110px;height:110px;}
+            .bet-input-row{gap:6px;}
+            .currency-btn{padding:7px 8px;font-size:10px;}
+            .currency-btn img{width:12px;height:12px;}
+            .bet-action-row{gap:6px;}
+            .bet-btn{padding:11px;font-size:13px;}
+        }
     </style>
 </head>
 <body>

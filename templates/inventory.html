@@ -58,6 +58,22 @@
         .confirm-box-btns button:active { transform: scale(0.96); }
         .confirm-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
         .confirm-action { background: #FFCC00; color: #131313; }
+
+        /* ── Mobile optimizations ── */
+        @media (max-width: 380px) {
+            .inv-action-btn { padding: 12px 12px; font-size: 13px; gap: 6px; border-radius: 14px; }
+            .inv-action-btn img { width: 14px; height: 14px; }
+            .confirm-box { padding: 22px 18px; border-radius: 20px; }
+            .confirm-box-title { font-size: 18px; }
+            .confirm-box-text { font-size: 13px; }
+            .confirm-box-btns button { padding: 12px; font-size: 13px; border-radius: 12px; }
+        }
+        @media (max-width: 340px) {
+            .inv-action-row { gap: 8px; }
+            .inv-action-btn { padding: 10px 10px; font-size: 12px; border-radius: 12px; }
+            .confirm-box { padding: 18px 14px; border-radius: 18px; max-width: 300px; }
+            .confirm-box-btns { gap: 8px; }
+        }
     </style>
 </head>
 <body>

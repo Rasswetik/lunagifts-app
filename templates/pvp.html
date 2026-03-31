@@ -27,8 +27,8 @@
 
     /* ── Wheel wrapper ── */
     .pvp-wheel-section{position:relative;margin:0 auto 20px;display:flex;flex-direction:column;align-items:center;}
-    .pvp-wheel-wrap{position:relative;width:290px;height:290px;margin:0 auto 0;}
-    @media(min-width:400px){.pvp-wheel-wrap{width:330px;height:330px;}}
+    .pvp-wheel-wrap{position:relative;width:min(290px, 78vw);height:min(290px, 78vw);margin:0 auto 0;}
+    @media(min-width:400px){.pvp-wheel-wrap{width:min(330px, 82vw);height:min(330px, 82vw);}}
 
     .pvp-wheel-ring{position:absolute;inset:-8px;border-radius:50%;border:none;pointer-events:none;z-index:1;}
     .pvp-wheel-ring.countdown-active{border:none;box-shadow:none;}
@@ -181,8 +181,27 @@
         .pvp-bet-row{flex-wrap:wrap;gap:8px;}
         .pvp-bet-btn{flex:1 1 45%;max-width:48%;padding:12px;font-size:14px;}
         .pvp-custom-btn{max-width:100%;padding:12px;font-size:15px;}
-        .pvp-wheel-wrap{width:260px;height:260px;}
-        .pvp-center{width:72px;height:72px}
+        .pvp-wheel-wrap{width:min(260px, 75vw);height:min(260px, 75vw);}
+        .pvp-center{width:min(72px, 24vw);height:min(72px, 24vw);}
+        .pvp-center-timer{font-size:22px;}
+        .pvp-center-text{font-size:11px;letter-spacing:1.5px;}
+        .pvp-progress-ring{width:min(94px, 26vw);height:min(94px, 26vw);}
+        .pvp-total-pill{padding:8px 14px;font-size:14px;}
+        .pvp-total-pill img{width:16px;height:16px;}
+        .pvp-player-card{padding:10px 12px;gap:10px;}
+        .pvp-player-avatar{width:36px;height:36px;}
+        .pvp-player-name{font-size:13px;}
+        .pvp-player-chance{font-size:14px;}
+    }
+    @media(max-width:340px){
+        .pvp-container{padding:10px 12px 100px;}
+        .pvp-wheel-wrap{width:min(230px, 72vw);height:min(230px, 72vw);}
+        .pvp-center{width:min(62px, 22vw);height:min(62px, 22vw);}
+        .pvp-center-timer{font-size:18px;}
+        .pvp-bet-btn{font-size:13px;padding:10px;}
+        .pvp-cur-btn{width:34px;height:34px;border-radius:10px;}
+        .pvp-cur-btn img,.pvp-cur-btn svg{width:17px;height:17px;}
+        .pvp-result-modal{padding:20px 16px 28px;}
     }
 
     @media(min-width:1200px){

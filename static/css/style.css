@@ -4843,6 +4843,8 @@ select {
     .popular-case-card {
         flex-direction: column;
         text-align: center;
+        padding: 16px;
+        min-height: auto;
     }
 
     .popular-case-img {
@@ -4853,11 +4855,57 @@ select {
     .popular-case-drops {
         justify-content: center;
     }
+
+    .container {
+        padding: 0 14px;
+    }
+
+    .header-v2 {
+        gap: 6px;
+        padding: 10px 0;
+    }
+
+    .header-avatar-wrap {
+        width: 34px;
+        height: 34px;
+    }
+
+    .balance-pill {
+        padding: 5px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    .nav-inner {
+        height: 58px;
+    }
+
+    .nav-label {
+        font-size: 9px;
+    }
+
+    .nav-icon img {
+        width: 18px;
+        height: 18px;
+    }
+
+    .section-title {
+        font-size: 16px;
+    }
+
+    .gift-card {
+        border-radius: 12px;
+    }
+
+    .modal-content {
+        padding: 18px 14px;
+        border-radius: 20px 20px 0 0;
+    }
 }
 
 @media (max-width: 320px) {
     :root {
-        --container-px: 12px;
+        --container-px: 10px;
     }
 
     .cases-grid-v2 {
@@ -4881,6 +4929,101 @@ select {
 
     .roulette-item {
         width: 100px;
+    }
+
+    .gifts-grid,
+    .inventory-grid {
+        gap: 8px;
+    }
+
+    .popular-case-card {
+        padding: 12px;
+        border-radius: 16px;
+        gap: 10px;
+    }
+
+    .popular-case-img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .task-card {
+        padding: 14px 12px;
+        gap: 8px;
+        border-radius: 14px;
+    }
+
+    .header-v2 {
+        gap: 5px;
+        padding: 8px 0;
+    }
+
+    .header-avatar-wrap {
+        width: 32px;
+        height: 32px;
+    }
+
+    .balance-pill {
+        padding: 4px 8px;
+        font-size: 11px;
+        border-radius: 8px;
+    }
+
+    .nav-inner {
+        height: 54px;
+    }
+
+    .nav-label {
+        font-size: 8px;
+    }
+
+    .nav-icon img {
+        width: 17px;
+        height: 17px;
+    }
+
+    .bottom-nav {
+        font-size: 12px;
+    }
+
+    .section-title {
+        font-size: 15px;
+    }
+
+    .case-sheet-items {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .topup-amounts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .gift-card {
+        border-radius: 10px;
+    }
+
+    .gift-info {
+        padding: 6px 8px;
+    }
+
+    .gift-name {
+        font-size: 11px;
+    }
+
+    .modal-content {
+        padding: 16px 12px;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .modal-gift-visual {
+        height: 160px;
+    }
+
+    .modal-gift-image {
+        width: 100px;
+        height: 100px;
     }
 }
 
