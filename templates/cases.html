@@ -7,7 +7,10 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
+    <style>body{background:#0E1621;}</style>
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
@@ -37,9 +40,9 @@
                     <img src="/static/img/star.svg" alt="⭐">
                 </div>
             </div>
-            <button class="balance-plus-btn" onclick="window.location.href='/topup'">+</button>
+            <button class="balance-plus-btn" onclick="openDepositModal()"><svg width="12" height="12" viewBox="0 0 14 13" fill="none"><path d="M7 0.25C7.41421 0.25 7.75 0.585786 7.75 1V5.75H12.5C12.9142 5.75 13.25 6.08579 13.25 6.5C13.25 6.91421 12.9142 7.25 12.5 7.25H7.75V12C7.75 12.4142 7.41421 12.75 7 12.75C6.58579 12.75 6.25 12.4142 6.25 12V7.25H1.5C1.08579 7.25 0.75 6.91421 0.75 6.5C0.75 6.08579 1.08579 5.75 1.5 5.75H6.25V1C6.25 0.585786 6.58579 0.25 7 0.25Z" fill="white"/></svg></button>
             <div class="online-badge" id="onlineBadge">
-                <span class="online-dot"></span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 6.375C8.8875 6.375 11.25 7.875 11.25 9.375C11.25 10.4105 10.4105 11.25 9.375 11.25H2.625C1.58947 11.25 0.750001 10.4105 0.75 9.375C0.75 7.875 3.1125 6.375 6 6.375ZM6 0.75C7.44975 0.750001 8.625 1.92525 8.625 3.375C8.625 4.82475 7.44975 6 6 6C4.55025 6 3.375 4.82475 3.375 3.375C3.375 1.92525 4.55025 0.75 6 0.75Z" fill="currentColor"/></svg>
                 <span class="online-count" id="onlineCount">...</span>
             </div>
         </div>
@@ -84,6 +87,11 @@
             <div class="case-sheet" id="caseSheet">
                 <div class="sheet-handle"></div>
 
+                <div class="case-sheet-topline">
+                    <div class="case-sheet-name" id="caseSheetName"></div>
+                    <div class="case-sheet-price" id="caseSheetPrice"><img src="/static/img/star.svg" alt=""> <span id="caseSheetPriceVal"></span></div>
+                </div>
+
                 <!-- Big case image + roulette animation zone -->
                 <div class="card-opening-area" id="cardOpeningArea">
                     <!-- Big case PNG (before opening) -->
@@ -99,24 +107,15 @@
                     <div class="won-display" id="wonDisplay">
                         <div class="won-display-visual" id="wonDisplayVisual"></div>
                         <div class="won-display-name" id="wonDisplayName"></div>
+                        <div class="won-display-actions" id="wonDisplayActions"></div>
                     </div>
                 </div>
 
-                <!-- Case header below cards -->
-                <div class="case-sheet-header">
-                    <div class="case-sheet-header-left">
-                        <div class="case-sheet-name" id="caseSheetName"></div>
-                        <div class="case-sheet-price" id="caseSheetPrice"><img src="/static/img/star.svg" alt=""> <span id="caseSheetPriceVal"></span></div>
-                        <div class="case-sheet-demo">
-                            <span>Демо</span>
-                            <button class="case-sheet-demo-toggle" id="caseSheetDemoToggle" onclick="this.classList.toggle('active')"></button>
-                        </div>
-                    </div>
-                    <img class="case-sheet-header-img" id="caseSheetHeaderImg" src="" alt="">
-                </div>
+                <button class="case-sheet-open-btn" id="caseSheetOpenBtn" onclick="openCaseFromSheet()">Открыть кейс</button>
+                <div class="case-sheet-sub" id="caseSheetSub">Один спин <img src="/static/img/star.svg" alt=""> <span id="caseSheetSubPrice">0</span></div>
 
                 <!-- Items grid -->
-                <div id="caseSheetContent">
+                <div id="caseSheetContent" class="case-sheet-content-wrap">
                     <div class="case-sheet-section-title">Что в кейсе?</div>
                     <div class="case-sheet-items" id="caseSheetItems">
                         <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:24px;height:24px;"></div>
@@ -125,9 +124,6 @@
 
                 <!-- Result area (hidden by default) -->
                 <div class="case-result-area" id="caseResultArea"></div>
-
-                <button class="case-sheet-open-btn" id="caseSheetOpenBtn" onclick="openCaseFromSheet()">Открыть кейс</button>
-                <div class="case-sheet-sub" id="caseSheetSub">Один спин <img src="/static/img/ton.svg" alt=""> <span id="caseSheetSubPrice">0</span></div>
             </div>
         </div>
     </div>
@@ -142,24 +138,58 @@
     .result-sub{font-family:'Inter',sans-serif;font-size:18px;font-weight:500;color:#fff;margin-bottom:12px;}
     .result-btn.sell{background:var(--gold);color:#131313;border-radius:12px;}
     .result-btn.next{background:var(--accent);color:#fff;border-radius:12px;}
+    .won-display-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;width:100%;padding:0 12px;}
+    .won-display-actions .result-btn{min-width:132px;}
     </style>
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
-    <script src="/static/js/case_example.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
+    <script src="/static/js/case_example.js?v=20260403h"></script>
     <script>
     let casesData=[];let currentCaseId=null;let currentCaseDrops=[];let selectedOpenCount=1;
     let activeDiscounts={};let _currentFilter='all';let _popularCase=null;let _isSpinning=false;
+    const _tgsCache={};
+    async function loadTgsCases(container,tgsUrl,autoplay){
+        if(!tgsUrl||!container)return null;
+        try{
+            let animData=_tgsCache[tgsUrl];
+            if(!animData){
+                const resp=await fetch(tgsUrl);
+                if(!resp.ok)return null;
+                const buf=await resp.arrayBuffer();
+                const dec=pako.inflate(new Uint8Array(buf),{to:'string'});
+                animData=JSON.parse(dec);
+                _tgsCache[tgsUrl]=animData;
+            }
+            container.innerHTML='';
+            return lottie.loadAnimation({container:container,renderer:'svg',loop:true,autoplay:!!autoplay,animationData:JSON.parse(JSON.stringify(animData))});
+        }catch(e){console.warn('TGS:',e);return null;}
+    }
+    function getFragTgs(slug,count){
+        if(!slug)return'';
+        const n=Math.floor(Math.random()*(count||1000))+1;
+        return'https://nft.fragment.com/gift/'+slug+'-'+n+'.tgs';
+    }
     function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+    function getCaseCurrencyIcon(cs){return cs&&cs.currency==='ton'?'/static/img/ton.svg':'/static/img/star.svg';}
+    function formatCasePrice(cs, price){return cs&&cs.currency==='ton'?(price/100).toFixed(2):price;}
+    function setCaseOpenButton(cs, price, isReplay=false){
+        const openBtn=document.getElementById('caseSheetOpenBtn');
+        const icon=getCaseCurrencyIcon(cs);
+        const label=isReplay?'Открыть ещё раз':'Открыть';
+        openBtn.innerHTML=label+' <span class="case-open-price"><img src="'+icon+'" alt=""> '+formatCasePrice(cs,price)+'</span>';
+        openBtn.disabled=false;
+        openBtn.onclick=function(){openCaseFromSheet();};
+    }
 
     async function loadCases(){
         try{
@@ -200,19 +230,11 @@
             const dp=getDiscountedPrice(cs);
             let priceHtml;
             if(dp!==null){
-                const dTon=(dp/100).toFixed(2);
-                priceHtml='<div class="case-card-v2-prices">'
-                    +'<span class="case-price-row"><img src="/static/img/ton.svg" alt=""> '+dTon+'</span>'
-                    +'<span class="case-price-row stars"><img src="/static/img/star.svg" alt=""> '+dp+'</span>'
-                    +'</div>';
+                priceHtml='<div class="case-card-v2-prices"><span class="case-price-row"><img src="/static/img/star.svg" alt=""> '+dp+'</span></div>';
             }else if(cs.price===0){
                 priceHtml='<span style="color:var(--green);">Бесплатно</span>';
             }else{
-                const tonPrice=(cs.price/100).toFixed(2);
-                priceHtml='<div class="case-card-v2-prices">'
-                    +'<span class="case-price-row"><img src="/static/img/ton.svg" alt=""> '+tonPrice+'</span>'
-                    +'<span class="case-price-row stars"><img src="/static/img/star.svg" alt=""> '+cs.price+'</span>'
-                    +'</div>';
+                priceHtml='<div class="case-card-v2-prices"><span class="case-price-row"><img src="/static/img/star.svg" alt=""> '+cs.price+'</span></div>';
             }
             return '<div class="case-card-v2" onclick="openCaseDetail('+cs.id+')">'
                 +'<div class="case-card-v2-visual"><img src="'+imgSrc(cs.image)+'" alt="'+cs.name+'" onerror="this.src=\'/static/img/star.svg\'"></div>'
@@ -269,10 +291,12 @@
         const heroImg=document.getElementById('caseHeroImg');
         const wrapper=document.getElementById('rouletteWrapper');
         const wonDisp=document.getElementById('wonDisplay');
+        const wonActions=document.getElementById('wonDisplayActions');
         hero.style.display='';
         heroImg.src=imgSrc(cs.image);
         wrapper.classList.remove('active');
         wonDisp.classList.remove('active');
+        wonActions.innerHTML='';
         document.getElementById('rouletteTrack').innerHTML='';
         document.getElementById('cardOpeningArea').classList.remove('is-lose');
     }
@@ -289,19 +313,16 @@
         const currIcon=isTon?'/static/img/ton.svg':'/static/img/star.svg';
         document.getElementById('caseSheetPriceVal').textContent=price;
         document.getElementById('caseSheetPrice').querySelector('img').src=currIcon;
-        document.getElementById('caseSheetSubPrice').textContent=price;
+        document.getElementById('caseSheetSubPrice').textContent=formatCasePrice(cs,price);
         document.getElementById('caseSheetSub').querySelector('img').src=currIcon;
-        document.getElementById('caseSheetHeaderImg').src=imgSrc(cs.image);
         document.getElementById('caseSheetItems').innerHTML='<div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:24px;height:24px;"></div>';
         // Reset state
         const openBtn=document.getElementById('caseSheetOpenBtn');
-        openBtn.disabled=false;openBtn.textContent='Открыть кейс';
-        openBtn.onclick=function(){openCaseFromSheet();};
+        setCaseOpenButton(cs, price, false);
         document.getElementById('caseSheetContent').style.display='';
         document.getElementById('caseResultArea').style.display='none';
         document.getElementById('caseResultArea').innerHTML='';
         document.getElementById('caseSheetSub').style.display='';
-        const demoRow=document.querySelector('.case-sheet-demo');if(demoRow)demoRow.style.display='';
         // Show big case PNG in blue box
         document.getElementById('cardOpeningArea').style.display='block';
         showCaseHero(cs);
@@ -331,11 +352,9 @@
                     +'</div>';
             }
             const starsPrice=d.price||0;
-            const tonPrice=(starsPrice/100).toFixed(2);
             return '<div class="case-sheet-item">'
                 +visualHtml
                 +'<div class="case-sheet-item-prices">'
-                +'<div class="case-sheet-item-price"><img src="/static/img/ton.svg" alt=""> '+tonPrice+'</div>'
                 +'<div class="case-sheet-item-price stars"><img src="/static/img/star.svg" alt=""> '+starsPrice+'</div>'
                 +'</div>'
                 +'</div>';
@@ -381,11 +400,10 @@
 
         area.classList.remove('is-lose');
         wonDisp.classList.remove('active');
+        document.getElementById('wonDisplayActions').innerHTML='';
 
-        // Hide sub text & items during animation
+        // Keep items visible during animation, hide only helper text.
         document.getElementById('caseSheetSub').style.display='none';
-        document.getElementById('caseSheetContent').style.display='none';
-        const demoRow=document.querySelector('.case-sheet-demo');if(demoRow)demoRow.style.display='none';
 
         // Build roulette strip: 50 cards, winner at random index 35-42
         const TOTAL=50;
@@ -435,7 +453,7 @@
         const CARD_W=90;const GAP=8;const SLOT=CARD_W+GAP;
         const wrapperWidth=wrapper.offsetWidth;
         const targetOffset=WIN_IDX*SLOT+(CARD_W/2)-(wrapperWidth/2);
-        const randOffset=(Math.random()-0.5)*30;
+        const randOffset=0;
 
         // Haptic start
         try{if(tg)tg.HapticFeedback.impactOccurred('medium');}catch(e){}
@@ -450,6 +468,7 @@
 
             // Animate with smooth deceleration (slightly shorter, smoother easing)
             await sleep(30);
+            try{LunaSound.spin();}catch(e){}
             track.style.transition='transform 4.8s cubic-bezier(0.22, 1, 0.36, 1)';
             track.style.transform='translateX(-'+(targetOffset+randOffset)+'px)';
 
@@ -475,7 +494,15 @@
         const wonVisual=document.getElementById('wonDisplayVisual');
         const wonName=document.getElementById('wonDisplayName');
         wonVisual.innerHTML='';
-        if(wonItem.backdrop){
+        /* Try TGS animation for NFT gifts */
+        const wonGiftData=data.type==='gift'?data.gift:null;
+        if(wonGiftData && wonGiftData.slug && wonGiftData.item_count){
+            const tgsUrl=getFragTgs(wonGiftData.slug, wonGiftData.item_count);
+            const tgsDiv=document.createElement('div');
+            tgsDiv.style.cssText='width:109px;height:109px;';
+            wonVisual.appendChild(tgsDiv);
+            loadTgsCases(tgsDiv, tgsUrl, true);
+        } else if(wonItem.backdrop){
             const bgImg=document.createElement('img');bgImg.className='won-bg';bgImg.src=wonItem.backdrop;bgImg.alt='';
             wonVisual.appendChild(bgImg);
         }else{
@@ -492,11 +519,7 @@
         resultArea.style.display='block';
         showSingleResult(data,wonItem);
 
-        // Change button
-        openBtn.style.display='';
-        openBtn.disabled=false;
-        openBtn.textContent='Ещё раз';
-        openBtn.onclick=function(){resetSheetToItems();};
+        setCaseOpenButton(cs, cs.price, true);
         _isSpinning=false;
     }
 
@@ -505,16 +528,22 @@
     }
 
     function showSingleResult(data,wonItem){
+        try{LunaSound.win();}catch(e){}
         const ra=document.getElementById('caseResultArea');
+        const actions=document.getElementById('wonDisplayActions');
+        actions.innerHTML='';
         if(data.type==='stars'){
             ra.innerHTML='<div class="result-title" style="color:var(--gold);">+'+data.amount+' <img src="/static/img/star.svg" alt="" style="width:18px;height:18px;vertical-align:middle;"></div>'
                 +'<div class="result-sub">Звёзды зачислены на баланс</div>';
+            actions.innerHTML='<button class="result-btn next" onclick="resetSheetToItems()">Снова</button>';
         }else{
             const sp=Math.floor(data.gift.price||0);const sn=data.gift.name.replace(/'/g,"\\'");
             const canW=data.gift.withdrawable&&data.gift.telegram_gift_id;
-            const wBtn=canW?'<button class="result-btn next" id="withdrawResultBtn" onclick="withdrawResult('+data.gift.id+',\''+sn+'\')" style="background:linear-gradient(135deg,#6B8AFF,#8B5CF6);">Вывести</button>':'';
-            ra.innerHTML='<div class="result-sub">Подарок добавлен в инвентарь</div>'
-                +'<div class="result-buttons"><button class="result-btn sell" id="sellResultBtn" onclick="sellResult('+data.gift.id+',\''+sn+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;"></button>'+wBtn+'</div>';
+            const takeLabel=canW?'Забрать':'Оставить';
+            ra.innerHTML='<div class="result-sub">Подарок выпал и уже добавлен в инвентарь</div>'
+                +'<div class="result-buttons"><button class="result-btn sell" id="sellResultBtn" onclick="sellResult('+data.gift.id+',\''+sn+'\','+sp+')">Продать за '+sp+' <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;"></button><button class="result-btn next" onclick="resetSheetToItems()">Снова</button></div>';
+            actions.innerHTML='<button class="result-btn next" id="withdrawResultBtn" onclick="'+(canW?('withdrawResult('+data.gift.id+',\''+sn+'\')'):('resetSheetToItems()'))+'">'+takeLabel+'</button>'
+                +'<button class="result-btn sell" id="sellResultBtnHero" onclick="sellResult('+data.gift.id+',\''+sn+'\','+sp+')">Продать</button>';
         }
     }
 
@@ -522,21 +551,22 @@
         document.getElementById('caseResultArea').style.display='none';
         document.getElementById('caseResultArea').innerHTML='';
         document.getElementById('caseSheetContent').style.display='';
-        const demoRow=document.querySelector('.case-sheet-demo');if(demoRow)demoRow.style.display='';
         document.getElementById('caseSheetSub').style.display='';
-        const openBtn=document.getElementById('caseSheetOpenBtn');
-        openBtn.textContent='Открыть кейс';
-        openBtn.onclick=function(){openCaseFromSheet();};
-        openBtn.disabled=false;
         // Reset roulette + won display, restore case hero
         document.getElementById('rouletteWrapper').classList.remove('active');
         document.getElementById('rouletteTrack').innerHTML='';
         document.getElementById('wonDisplay').classList.remove('active');
+        document.getElementById('wonDisplayActions').innerHTML='';
         document.getElementById('cardOpeningArea').classList.remove('is-lose');
         document.getElementById('cardOpeningArea').style.display='block';
         if(currentCaseId){
             const cs=casesData.find(c=>c.id===currentCaseId);
-            if(cs)showCaseHero(cs);
+            if(cs){
+                showCaseHero(cs);
+                const price=getDiscountedPrice(cs)??cs.price;
+                setCaseOpenButton(cs, price, false);
+                document.getElementById('caseSheetSubPrice').textContent=formatCasePrice(cs,price);
+            }
         }
     }
 
@@ -547,7 +577,7 @@
             const item=inv.find(i=>i.gift_id===giftId);if(!item){showNotification('Предмет не найден','error');return;}
             const res=await fetch('/api/inventory/sell',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,inventory_id:item.id})});
             const d=await res.json();
-            if(d.success){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();showNotification(giftName+' продан за '+Math.floor(d.sell_price)+' Stars','success');const btn=document.getElementById('sellResultBtn');if(btn){btn.disabled=true;btn.textContent='Продано ✓';}}
+            if(d.success){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();showNotification(giftName+' продан за '+Math.floor(d.sell_price)+' Stars','success');['sellResultBtn','sellResultBtnHero'].forEach(id=>{const btn=document.getElementById(id);if(btn){btn.disabled=true;btn.textContent='Продано ✓';}});}
             else showNotification(d.error||'Ошибка','error');
         }catch(e){showNotification('Ошибка соединения','error');}
     }

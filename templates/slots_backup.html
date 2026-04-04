@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts — Slots</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        body { background: #0E1621; overflow-x: hidden; }
+        .header { background: rgba(14, 22, 33, 0.85) !important; }
+        .user-avatar { border: 2px solid rgba(255,255,255,0.15); }
+
+        /* === SLOT SELECTION LIST === */
+        .slot-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 2px;
+        }
+        .slot-card {
+            background: linear-gradient(160deg, #1C2B3A 0%, #141E2B 100%);
+            border: 1px solid rgba(138,92,246,0.12);
+            border-radius: 20px;
+            padding: 18px 12px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(.175,.885,.32,1.275);
+            position: relative;
+            overflow: hidden;
+        }
+        .slot-card::after {
+            content: '';
+            position: absolute; inset: 0; border-radius: 20px;
+            background: radial-gradient(circle at 50% 0%, rgba(138,92,246,0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .slot-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(138,92,246,0.35);
+            box-shadow: 0 14px 35px rgba(138,92,246,0.12);
+        }
+        .slot-card:active { transform: translateY(-1px) scale(0.97); }
+        .slot-card-img {
+            width: 80px; height: 80px;
+            object-fit: contain;
+            margin: 0 auto 10px;
+            display: block;
+            border-radius: 16px;
+            filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+            transition: transform 0.35s;
+        }
+        .slot-card:hover .slot-card-img { transform: scale(1.08) rotate(-2deg); }
+        .slot-card-name {
+            font-size: 14px; font-weight: 700; color: #fff;
+            margin-bottom: 6px; letter-spacing: 0.3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .slot-card-price {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 14px; font-weight: 600; color: #F5A623;
+            background: rgba(245,166,35,0.08); padding: 4px 12px; border-radius: 20px;
+        }
+        .slot-card-price img { width: 14px; height: 14px; }
+        .slot-card-count { font-size: 11px; color: #6B7B8D; margin-top: 5px; }
+
+        /* === SLOT DETAIL === */
+        .slot-detail { display: none; flex-direction: column; align-items: center; padding-bottom: 20px; }
+        .slot-detail.active { display: flex; }
+        .slot-detail-back {
+            align-self: flex-start; background: none; border: none; color: #8A5CF6;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 0; margin-bottom: 10px;
+        }
+        .slot-detail-title {
+            font-size: 24px; font-weight: 800; color: #fff;
+            text-align: center; margin-bottom: 14px; letter-spacing: 0.5px;
+        }
+        .slot-detail-img {
+            width: 140px; height: 140px; object-fit: contain; border-radius: 24px;
+            filter: drop-shadow(0 8px 24px rgba(138,92,246,0.25));
+            margin-bottom: 16px; animation: floatImg 3.5s ease-in-out infinite;
+        }
+        @keyframes floatImg { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .slot-detail-price {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 20px; font-weight: 700; color: #F5A623; margin-bottom: 18px;
+        }
+        .slot-detail-price img { width: 18px; height: 18px; }
+        .slot-play-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg, #8A5CF6 0%, #6D28D9 50%, #8A5CF6 100%);
+            background-size: 200% 100%;
+            color: #fff; border: none; border-radius: 14px;
+            padding: 12px 40px; font-size: 15px; font-weight: 700;
+            cursor: pointer; letter-spacing: 0.5px; text-transform: uppercase; white-space: nowrap;
+            box-shadow: 0 4px 18px rgba(138,92,246,0.3);
+            transition: all 0.3s cubic-bezier(.175,.885,.32,1.275); margin-bottom: 20px;
+            position: relative; overflow: hidden;
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
+        .slot-play-btn::before {
+            content: '';
+            position: absolute; top: -50%; left: -60%; width: 40%; height: 200%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transform: skewX(-20deg);
+            animation: btnShine 3s ease-in-out infinite;
+        }
+        @keyframes btnShimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+        @keyframes btnShine { 0%{left:-60%} 100%{left:120%} }
+        .slot-play-btn:hover { transform: translateY(-2px) scale(1.02); }
+        .slot-play-btn:active { transform: translateY(-1px) scale(0.98); }
+        .slot-play-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none!important; box-shadow: none!important; animation: none; }
+        .slot-play-btn:disabled::before { animation: none; display: none; }
+
+        /* Drop grid */
+        .slot-drops { width: 100%; }
+        .slot-drops-title {
+            font-size: 15px; font-weight: 700; color: #6B7B8D;
+            margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .slot-drops-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+        }
+        .slot-drop-card {
+            background: linear-gradient(160deg, #1C2B3A, #141E2B);
+            border: 1px solid rgba(138,92,246,0.08);
+            border-radius: 16px; padding: 14px 10px 12px;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .slot-drop-card::after {
+            content: '';
+            position: absolute; inset: 0; border-radius: 16px;
+            background: radial-gradient(circle at 50% 0%, rgba(138,92,246,0.05) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .slot-drop-visual {
+            width: 90px; height: 90px;
+            margin: 0 auto 6px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .slot-drop-visual img {
+            max-width: 82px; max-height: 82px; object-fit: contain;
+            filter: drop-shadow(0 3px 10px rgba(0,0,0,0.35));
+        }
+        .slot-drop-name {
+            font-size: 12px; font-weight: 700; color: #fff;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+        .slot-drop-price {
+            font-size: 11px; font-weight: 700; color: #F5A623;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .slot-drop-price img { width: 11px; height: 11px; }
+
+        /* === FULLSCREEN SLOT GAME === */
+        .slot-game-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(10,14,26,0.97); z-index: 2000;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .slot-game-overlay.active { display: flex; }
+        .slot-game-title {
+            font-size: 22px; font-weight: 800; color: #fff;
+            margin-bottom: 6px; text-align: center;
+        }
+        .slot-game-price {
+            font-size: 15px; font-weight: 700; color: #F5A623;
+            display: flex; align-items: center; gap: 5px;
+            margin-bottom: 20px;
+        }
+        .slot-game-price img { width: 15px; height: 15px; }
+
+        /* Reels */
+        .slot-reels-wrap {
+            position: relative;
+            background: linear-gradient(160deg, #1C1B3A 0%, #12112B 100%);
+            border: 1px solid rgba(138,92,246,0.15);
+            border-radius: 20px; padding: 16px 12px;
+            margin-bottom: 20px;
+        }
+        .slot-reels-wrap::before {
+            content: ''; position: absolute; inset: 0; border-radius: 20px;
+            background: radial-gradient(circle at 50% -20%, rgba(138,92,246,0.08) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .slot-reels {
+            display: flex; gap: 8px; justify-content: center;
+            position: relative; z-index: 1;
+        }
+        .slot-reel {
+            width: 90px; height: 270px; overflow: hidden;
+            border-radius: 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.06);
+            position: relative;
+        }
+        .slot-reel-strip {
+            display: flex; flex-direction: column;
+            will-change: transform;
+        }
+        .slot-cell {
+            width: 90px; height: 90px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .slot-cell img {
+            width: 60px; height: 60px; object-fit: contain;
+            filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+        }
+        .slot-win-line {
+            position: absolute; top: 50%; left: 0; right: 0;
+            height: 90px; transform: translateY(-50%);
+            border-top: 2px solid rgba(138,92,246,0.25);
+            border-bottom: 2px solid rgba(138,92,246,0.25);
+            pointer-events: none; z-index: 2;
+        }
+        .slot-win-line.won {
+            border-color: #34D87A;
+            background: rgba(52,216,122,0.06);
+            box-shadow: 0 0 20px rgba(52,216,122,0.15);
+        }
+
+        .slot-spin-btn {
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            width: 100%; max-width: 300px; padding: 16px;
+            background: linear-gradient(135deg, #8A5CF6 0%, #6D28D9 50%, #8A5CF6 100%);
+            background-size: 200% 100%;
+            border: none; border-radius: 16px;
+            color: #fff; font-size: 17px; font-weight: 800;
+            cursor: pointer; letter-spacing: 0.5px;
+            box-shadow: 0 6px 24px rgba(138,92,246,0.35);
+            transition: all 0.3s;
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
+        .slot-spin-btn img { width: 18px; height: 18px; }
+        .slot-spin-btn:active { transform: scale(0.97); }
+        .slot-spin-btn:disabled {
+            opacity: 0.4; cursor: not-allowed; transform: none; animation: none;
+        }
+
+        .slot-game-back {
+            position: absolute; top: 16px; left: 16px;
+            background: rgba(255,255,255,0.08); border: none;
+            border-radius: 12px; padding: 8px 14px;
+            color: #8A5CF6; font-size: 14px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            z-index: 10;
+        }
+
+        /* === RESULT === */
+        .slot-result {
+            display: none; position: fixed; inset: 0;
+            background: rgba(10,16,26,0.96); z-index: 2100;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px 20px 32px;
+        }
+        .slot-result.active { display: flex; }
+        .slot-result-glow {
+            position: absolute; width: 260px; height: 260px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(138,92,246,0.2) 0%, transparent 70%);
+            animation: resultGlow 2s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        @keyframes resultGlow { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(1.2);opacity:1} }
+        .slot-result-img {
+            width: 100px; height: 100px; object-fit: contain;
+            margin-bottom: 14px; position: relative; z-index: 1;
+            animation: resBounce 0.6s ease;
+            filter: drop-shadow(0 8px 25px rgba(138,92,246,0.35));
+        }
+        @keyframes resBounce { 0%{transform:scale(0) rotate(-15deg)} 60%{transform:scale(1.15) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
+        .slot-result-name {
+            font-size: 22px; font-weight: 800; color: #fff;
+            text-align: center; margin-bottom: 4px; position: relative; z-index: 1;
+        }
+        .slot-result-price-row {
+            font-size: 16px; font-weight: 700; color: #F5A623;
+            display: flex; align-items: center; gap: 5px;
+            margin-bottom: 18px; position: relative; z-index: 1;
+        }
+        .slot-result-price-row img { width: 16px; height: 16px; }
+        .slot-result-btns {
+            display: flex; gap: 10px; width: 100%; max-width: 320px;
+            position: relative; z-index: 1;
+        }
+        .slot-result-btn {
+            flex: 1; padding: 15px;
+            border-radius: 16px; border: none;
+            font-size: 16px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .slot-result-btn.primary {
+            background: linear-gradient(135deg, #8A5CF6, #6D28D9);
+            color: #fff; box-shadow: 0 4px 18px rgba(138,92,246,0.3);
+        }
+        .slot-result-btn.secondary {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+        }
+        .slot-result-btn:active { transform: scale(0.97); }
+
+        @media (max-width: 380px) {
+            .slot-reel { width: 80px; height: 240px; }
+            .slot-cell { width: 80px; height: 80px; }
+            .slot-cell img { width: 50px; height: 50px; }
+            .slot-card-img { width: 66px; height: 66px; }
+            .slot-detail-img { width: 110px; height: 110px; }
+            .slot-detail-title { font-size: 20px; }
+            .slot-drop-visual { width: 74px; height: 74px; }
+            .slot-drop-visual img { max-width: 68px; max-height: 68px; }
+        }
+        @media (max-width: 340px) {
+            .slot-list { gap: 8px; }
+            .slot-card { padding: 14px 10px 12px; border-radius: 16px; }
+            .slot-card-img { width: 58px; height: 58px; }
+            .slot-reel { width: 72px; height: 216px; }
+            .slot-cell { width: 72px; height: 72px; }
+            .slot-cell img { width: 44px; height: 44px; }
+            .slot-detail-img { width: 90px; height: 90px; }
+            .slot-drop-visual { width: 64px; height: 64px; }
+            .slot-drop-visual img { max-width: 58px; max-height: 58px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <img class="loading-screen-logo" src="/static/img/load.png" alt="Luna Gifts">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap">
+            <div class="load-progress-bar" id="loadProgressBar"></div>
+        </div>
+        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <img class="user-avatar" src="" alt="" onclick="window.location.href='/inventory'">
+                <div class="user-info">
+                    <span class="user-name">Загрузка...</span>
+                    <div class="balance-row" onclick="openBalanceAction()">
+                        <span class="balance-amount">0</span>
+                        <img class="balance-icon" src="/static/img/star.svg" alt="">
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="topup-btn" onclick="window.location.href='/topup'"><img src="/static/img/plus.svg" alt="+"></button>
+            </div>
+        </div>
+
+        <!-- Slot List -->
+        <div id="slotListView">
+            <div class="section-header">
+                <h2><img class="section-icon" src="/static/gifs/mods/slots.gif" alt="" style="width:26px;height:26px;"> Luna Slots</h2>
+                <p>Выберите слот и испытайте удачу</p>
+            </div>
+            <div class="slot-list" id="slotList">
+                <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
+            </div>
+        </div>
+
+        <!-- Slot Detail -->
+        <div class="slot-detail" id="slotDetail">
+            <button class="slot-detail-back" onclick="backToList()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Назад
+            </button>
+            <div class="slot-detail-title" id="detailTitle"></div>
+            <img class="slot-detail-img" id="detailImg" src="" alt="">
+            <div class="slot-detail-price" id="detailPrice"></div>
+            <button class="slot-play-btn" id="playBtn" onclick="openGame()">
+                <img src="/static/img/star.svg" style="width:18px;height:18px;flex-shrink:0;">
+                <span id="playBtnText">Крутить</span>
+            </button>
+            <div class="slot-drops">
+                <div class="slot-drops-title">Дроп</div>
+                <div class="slot-drops-grid" id="dropsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fullscreen Game -->
+    <div class="slot-game-overlay" id="slotGameOverlay">
+        <button class="slot-game-back" onclick="closeGame()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Назад
+        </button>
+        <div class="slot-game-title" id="gameTitle"></div>
+        <div class="slot-game-price" id="gamePrice"></div>
+        <div class="slot-reels-wrap">
+            <div class="slot-reels" id="slotReels">
+                <div class="slot-reel"><div class="slot-reel-strip" id="strip0"></div></div>
+                <div class="slot-reel"><div class="slot-reel-strip" id="strip1"></div></div>
+                <div class="slot-reel"><div class="slot-reel-strip" id="strip2"></div></div>
+                <div class="slot-win-line" id="winLine"></div>
+            </div>
+        </div>
+        <button class="slot-spin-btn" id="spinBtn" onclick="spin()">
+            <img src="/static/img/star.svg" alt="">
+            <span id="spinBtnText">Крутить</span>
+        </button>
+    </div>
+
+    <!-- Result -->
+    <div class="slot-result" id="slotResult">
+        <div class="slot-result-glow"></div>
+        <img class="slot-result-img" id="resultImg" src="" alt="">
+        <div class="slot-result-name" id="resultName"></div>
+        <div class="slot-result-price-row" id="resultPrice"></div>
+        <div class="slot-result-btns">
+            <button class="slot-result-btn secondary" id="resultSellBtn" onclick="sellWonGift()" style="display:none;">Продать</button>
+            <button class="slot-result-btn primary" onclick="closeResult()">Продолжить</button>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+    let slotsData = [];
+    let tiers = {};
+    let currentSlot = null;
+    let isSpinning = false;
+    let lastWonGift = null;
+    const CELL_H = 90;
+
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    /* ---------- LOAD ---------- */
+    async function loadSlots() {
+        try {
+            const r = await fetch('/api/slots/gifts');
+            const d = await r.json();
+            if (!d.success) return;
+            slotsData = d.slots || [];
+            tiers = d.tiers || {};
+            renderList();
+        } catch(e) { console.error('loadSlots', e); }
+    }
+
+    /* ---------- LIST VIEW ---------- */
+    function renderList() {
+        const el = document.getElementById('slotList');
+        if (!slotsData.length) { el.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#6B7B8D;">Нет доступных слотов</div>'; return; }
+        let html = '';
+        slotsData.forEach(s => {
+            html += '<div class="slot-card" onclick="openDetail(' + s.bet + ')">' +
+                '<img class="slot-card-img" src="' + esc(s.gif) + '" alt="' + esc(s.name) + '" onerror="this.src=\'/static/img/star.svg\'">' +
+                '<div class="slot-card-name">' + esc(s.name) + '</div>' +
+                '<div class="slot-card-price"><img src="/static/img/star.svg" alt="">' + s.bet + '</div>' +
+                '<div class="slot-card-count">' + s.gift_count + ' подарков</div>' +
+                '</div>';
+        });
+        el.innerHTML = html;
+    }
+
+    /* ---------- DETAIL VIEW ---------- */
+    function openDetail(bet) {
+        const slot = slotsData.find(function(s) { return s.bet === bet; });
+        if (!slot) return;
+        currentSlot = slot;
+
+        document.getElementById('slotListView').style.display = 'none';
+        var detail = document.getElementById('slotDetail');
+        detail.classList.add('active');
+
+        document.getElementById('detailTitle').textContent = slot.name;
+        document.getElementById('detailImg').src = slot.gif;
+        document.getElementById('detailPrice').innerHTML =
+            '<img src="/static/img/star.svg" alt=""> ' + slot.bet;
+        document.getElementById('playBtnText').textContent = 'Крутить — ' + slot.bet;
+
+        var gifts = tiers[String(slot.bet)] || [];
+        var grid = document.getElementById('dropsGrid');
+        if (!gifts.length) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#6B7B8D;padding:20px;">Нет доступных подарков</div>';
+            return;
+        }
+        var html = '';
+        gifts.forEach(function(g) {
+            var img = g.image || '/static/img/star.svg';
+            html += '<div class="slot-drop-card">' +
+                '<div class="slot-drop-visual"><img src="' + esc(img) + '" alt="' + esc(g.name) + '" onerror="this.src=\'/static/img/star.svg\'"></div>' +
+                '<div class="slot-drop-name">' + esc(g.name) + '</div>' +
+                '<div class="slot-drop-price"><img src="/static/img/star.svg" alt="">' + g.price + '</div>' +
+                '</div>';
+        });
+        grid.innerHTML = html;
+        window.scrollTo(0, 0);
+    }
+
+    function backToList() {
+        document.getElementById('slotDetail').classList.remove('active');
+        document.getElementById('slotListView').style.display = '';
+        currentSlot = null;
+    }
+
+    /* ---------- GAME OVERLAY ---------- */
+    function openGame() {
+        if (!currentSlot || !currentUser) return;
+        if (currentUser.balance < currentSlot.bet) {
+            showNotification('Недостаточно звёзд', 'error');
+            return;
+        }
+        document.getElementById('gameTitle').textContent = currentSlot.name;
+        document.getElementById('gamePrice').innerHTML =
+            '<img src="/static/img/star.svg" alt=""> ' + currentSlot.bet;
+        document.getElementById('spinBtnText').textContent = 'Крутить — ' + currentSlot.bet;
+
+        populateReels();
+        document.getElementById('slotGameOverlay').classList.add('active');
+    }
+
+    function closeGame() {
+        if (isSpinning) return;
+        document.getElementById('slotGameOverlay').classList.remove('active');
+    }
+
+    /* ---------- REELS ---------- */
+    function getGifts() {
+        return tiers[String(currentSlot.bet)] || [];
+    }
+
+    function randGift() {
+        var g = getGifts();
+        if (!g.length) return {name:'?', image:'/static/img/star.svg', price:0};
+        return g[Math.floor(Math.random() * g.length)];
+    }
+
+    function cellHtml(g) {
+        var img = g.image || '/static/img/star.svg';
+        return '<div class="slot-cell"><img src="' + esc(img) + '" alt="' + esc(g.name) + '" onerror="this.src=\'/static/img/star.svg\'"></div>';
+    }
+
+    function populateReels() {
+        for (var c = 0; c < 3; c++) {
+            var strip = document.getElementById('strip' + c);
+            var html = '';
+            for (var r = 0; r < 3; r++) html += cellHtml(randGift());
+            strip.innerHTML = html;
+            strip.style.transition = 'none';
+            strip.style.transform = 'translateY(0)';
+        }
+        document.getElementById('winLine').classList.remove('won');
+    }
+
+    /* ---------- SPIN ---------- */
+    async function spin() {
+        if (isSpinning || !currentSlot || !currentUser) return;
+        if (currentUser.balance < currentSlot.bet) {
+            showNotification('Недостаточно звёзд', 'error');
+            return;
+        }
+
+        isSpinning = true;
+        lastWonGift = null;
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('winLine').classList.remove('won');
+        try { LunaSound.bet(); } catch(e) {}
+
+        var SPIN_N = 20;
+        for (var c = 0; c < 3; c++) {
+            var strip = document.getElementById('strip' + c);
+            var extra = '';
+            for (var i = 0; i < SPIN_N; i++) extra += cellHtml(randGift());
+            strip.innerHTML += extra;
+        }
+
+        var fetchPromise = fetch('/api/slots/spin', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({telegram_id: currentUser.telegram_id, bet_amount: currentSlot.bet})
+        }).then(function(r) { return r.json(); });
+
+        var delays = [0, 200, 400];
+        var durations = [1200, 1600, 2000];
+        for (var c2 = 0; c2 < 3; c2++) {
+            (function(col) {
+                var strip2 = document.getElementById('strip' + col);
+                setTimeout(function() {
+                    strip2.style.transition = 'transform ' + durations[col] + 'ms cubic-bezier(0.15, 0.85, 0.35, 1)';
+                    strip2.style.transform = 'translateY(-' + (SPIN_N * CELL_H) + 'px)';
+                }, delays[col]);
+            })(c2);
+        }
+
+        var result = await fetchPromise;
+        await new Promise(function(resolve) { setTimeout(resolve, 2300); });
+
+        if (!result.success) {
+            showNotification(result.error || 'Ошибка', 'error');
+            populateReels();
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+            return;
+        }
+
+        currentUser.balance = result.new_balance;
+        if (typeof updateUI === 'function') updateUI();
+
+        var grid = result.grid;
+        for (var c3 = 0; c3 < 3; c3++) {
+            var s = document.getElementById('strip' + c3);
+            s.style.transition = 'none';
+            var h = '';
+            for (var r2 = 0; r2 < 3; r2++) h += cellHtml(grid[c3][r2]);
+            s.innerHTML = h;
+            s.style.transform = 'translateY(0)';
+        }
+
+        if (result.won && result.prize) {
+            document.getElementById('winLine').classList.add('won');
+            try { tg.HapticFeedback.impactOccurred('heavy'); } catch(e) {}
+            try { LunaSound.win(); } catch(e) {}
+            setTimeout(function() { showResult(result.prize); }, 600);
+        } else {
+            try { tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
+        }
+
+        isSpinning = false;
+        document.getElementById('spinBtn').disabled = false;
+    }
+
+    /* ---------- RESULT ---------- */
+    function showResult(prize) {
+        var img = document.getElementById('resultImg');
+        var name = document.getElementById('resultName');
+        var price = document.getElementById('resultPrice');
+        var sellBtn = document.getElementById('resultSellBtn');
+
+        if (prize.type === 'stars') {
+            img.src = '/static/img/star.png';
+            name.textContent = prize.name;
+            price.innerHTML = '<img src="/static/img/star.svg" alt=""> ' + prize.price + ' звёзд';
+            sellBtn.style.display = 'none';
+        } else {
+            img.src = prize.image || '/static/img/star.svg';
+            name.textContent = prize.name;
+            price.innerHTML = '<img src="/static/img/star.svg" alt=""> ' + prize.price;
+            sellBtn.style.display = 'block';
+            lastWonGift = prize;
+        }
+
+        document.getElementById('slotResult').classList.add('active');
+    }
+
+    function closeResult() {
+        document.getElementById('slotResult').classList.remove('active');
+        lastWonGift = null;
+    }
+
+    async function sellWonGift() {
+        if (!lastWonGift || !currentUser) return;
+        try {
+            var invRes = await fetch('/api/inventory/' + currentUser.telegram_id);
+            var inv = await invRes.json();
+            var items = Array.isArray(inv) ? inv : inv.items || [];
+            var match = items.find(function(i) { return (i.gift_id || i.id) === lastWonGift.id && (i.type === 'gift' || i.item_type === 'gift'); });
+            if (match) {
+                var r = await fetch('/api/inventory/sell', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({telegram_id: currentUser.telegram_id, inventory_id: match.id})
+                });
+                var d = await r.json();
+                if (d.success || d.new_balance) {
+                    currentUser.balance = d.new_balance || currentUser.balance;
+                    if (typeof updateUI === 'function') updateUI();
+                    showNotification('Продано!', 'success');
+                }
+            }
+        } catch(e) {}
+        closeResult();
+    }
+
+    /* ---------- INIT ---------- */
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Инициализация...');
+        await initApp();
+        setLoadProgress(50, 'Загрузка слотов...');
+        await loadSlots();
+        setLoadProgress(100, 'Готово!');
+        dismissLoading();
+    });
+    </script>
+</body>
+</html>

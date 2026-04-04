@@ -7,7 +7,7 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
     <style>
         body {
             background: var(--bg);
@@ -322,20 +322,71 @@
                 </div>
                 <div style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#4ECDC4,#45B7D1);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.5px;z-index:5;">LIVE</div>
             </div>
+
+            <div class="game-card display-box" onclick="window.location.href='/crash'" style="background:radial-gradient(136.32% 93.18% at 70.03% 11.93%, #af5500, #482200 45.34%, #351a00);">
+                <div class="grill-animation">
+                    <div class="grill-bars">
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                    </div>
+                    <div class="grid-overlay">
+                        <div class="grid-track"></div>
+                    </div>
+                </div>
+                <div class="game-card-content">
+                    <div class="game-card-info">
+                        <span class="game-card-text">Crash</span>
+                        <div class="game-card-badges">
+                            <div class="game-card-badge"><img src="/static/img/star.svg" alt=""></div>
+                            <div class="game-card-badge"><img src="/static/img/gift.png" alt="" style="width:12px;height:12px;"></div>
+                        </div>
+                    </div>
+                    <img src="/static/gifs/mods/crash.gif" alt="Crash" class="game-card-gif" loading="lazy" style="filter:drop-shadow(0 8px 24px rgba(255,140,0,0.5));">
+                </div>
+                <div style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#FF8C00,#FF6B00);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.5px;z-index:5;">LIVE</div>
+            </div>
+
+            <div class="game-card display-box" onclick="window.location.href='/slots'" style="background:radial-gradient(136.32% 93.18% at 70.03% 11.93%, #6B21A8, #3B0764 45.34%, #1E0038);position:relative;">
+                <div class="grill-animation">
+                    <div class="grill-bars">
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                        <div class="grill-bar"></div><div class="grill-bar"></div><div class="grill-bar"></div>
+                    </div>
+                    <div class="grid-overlay">
+                        <div class="grid-track"></div>
+                    </div>
+                </div>
+                <div class="game-card-content">
+                    <div class="game-card-info">
+                        <span class="game-card-text">Luna Slots</span>
+                        <div class="game-card-badges">
+                            <div class="game-card-badge"><img src="/static/img/star.svg" alt=""></div>
+                        </div>
+                    </div>
+                    <img src="/static/gifs/mods/slots.gif" alt="Slots" class="game-card-gif" loading="lazy" style="filter:drop-shadow(0 8px 24px rgba(138,92,246,0.5));">
+                </div>
+                <div style="position:absolute;top:12px;right:12px;background:linear-gradient(135deg,#8A5CF6,#6D28D9);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700;color:#fff;letter-spacing:0.5px;z-index:5;">NEW</div>
+            </div>
         </div>
     </div>
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
     <script>
     // Generate SVG grid pattern for grill animation
     (function() {
@@ -369,6 +420,8 @@
         initTonConnect();
         loadBanners();
         dismissLoading();
+        // First-visit tutorial
+        setTimeout(()=>{ showTutorial('games', buildGamesTutorialSteps()); }, 600);
     });
 
     // ── Banners Carousel ──

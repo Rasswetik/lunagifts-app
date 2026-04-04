@@ -4,6 +4,122 @@ let currentUser = null;
 let authKey = null;
 let authPollInterval = null;
 
+// ============ SOUND SYSTEM ============
+const LunaSound = (function(){
+    let _enabled = localStorage.getItem('luna_sounds') !== 'off';
+    const _ctx = (typeof AudioContext !== 'undefined') ? new AudioContext() : null;
+
+    function _beep(freq, dur, vol, type){
+        if(!_enabled || !_ctx) return;
+        if(_ctx.state === 'suspended') _ctx.resume();
+        const o = _ctx.createOscillator();
+        const g = _ctx.createGain();
+        o.type = type || 'sine';
+        o.frequency.value = freq;
+        g.gain.value = vol || 0.12;
+        g.gain.exponentialRampToValueAtTime(0.001, _ctx.currentTime + (dur || 0.15));
+        o.connect(g); g.connect(_ctx.destination);
+        o.start(); o.stop(_ctx.currentTime + (dur || 0.15));
+    }
+
+    return {
+        get enabled(){ return _enabled; },
+        toggle(){ _enabled = !_enabled; localStorage.setItem('luna_sounds', _enabled ? 'on' : 'off'); return _enabled; },
+        set(val){ _enabled = !!val; localStorage.setItem('luna_sounds', _enabled ? 'on' : 'off'); },
+        bet()   { _beep(520, 0.08, 0.1); },
+        win()   { _beep(660, 0.1, 0.14); setTimeout(()=>_beep(880, 0.15, 0.14), 100); setTimeout(()=>_beep(1100, 0.2, 0.12), 220); },
+        lose()  { _beep(220, 0.2, 0.1, 'triangle'); },
+        click() { _beep(800, 0.04, 0.06); },
+        scratch(){ _beep(400 + Math.random()*200, 0.06, 0.06, 'sawtooth'); },
+        spin()  { _beep(440, 0.1, 0.08); setTimeout(()=>_beep(550, 0.08, 0.08), 80); },
+        reveal(){ _beep(700, 0.08, 0.1); setTimeout(()=>_beep(900, 0.1, 0.1), 80); },
+    };
+})();
+
+// ============ INTERNATIONALIZATION (i18n) ============
+const _i18n = {
+    en: {
+        // Loading
+        'loading': 'Loading...', 'ready': 'Ready!', 'connecting': 'Connecting...',
+        'loading_gifts': 'Loading gifts...', 'loading_inventory': 'Loading inventory...',
+        // Crash page
+        'waiting': 'WAITING', 'next_game_in': 'NEXT GAME IN', 'game_in_progress': 'GAME IN PROGRESS',
+        'bet': 'Bet', 'cash_out': 'Cash Out', 'waiting_dots': 'Waiting...',
+        'join_game': 'Join the game', 'choose_gift': 'Choose a gift', 'select_plus': 'Select +',
+        'bet_amount': 'Bet amount', 'auto_cashout': 'Auto cashout:', 'players_in_round': 'Players in round',
+        'choose_a_gift': 'Choose a gift', 'victory': 'Victory!', 'collect': 'Collect',
+        'hash_copied': 'Hash copied', 'crash_text': 'Crash', 'playing': 'Playing', 'player': 'Player',
+        'you_got_gift': 'You received gift', 'stars_to_balance': 'stars to balance',
+        'bet_label': 'Bet', 'win_label': 'Win',
+        // Notifications
+        'authorize': 'Please authorize', 'enter_bet': 'Enter bet amount',
+        'min_1_star': 'Minimum 1 star', 'insufficient_funds': 'Insufficient funds',
+        'select_gift': 'Select a gift', 'cashout_error': 'Cashout error',
+        'connection_error': 'Connection error', 'no_gifts': 'No gifts in inventory',
+        // Nav
+        'nav_market': 'Market', 'nav_quests': 'Quests', 'nav_games': 'Games',
+        'nav_referrals': 'Referrals', 'nav_profile': 'Profile',
+        // General
+        'settings': 'Settings', 'language': 'Language', 'sounds': 'Sounds',
+        'back': 'Back', 'parameters': 'PARAMETERS',
+    },
+    ru: {
+        'loading': 'Загрузка...', 'ready': 'Готово!', 'connecting': 'Подключение...',
+        'loading_gifts': 'Загрузка подарков...', 'loading_inventory': 'Загрузка инвентаря...',
+        'waiting': 'ОЖИДАНИЕ', 'next_game_in': 'СЛЕДУЮЩАЯ ИГРА ЧЕРЕЗ', 'game_in_progress': 'ИГРА ИДЕТ',
+        'bet': 'Ставка', 'cash_out': 'Забрать', 'waiting_dots': 'Ожидание...',
+        'join_game': 'Вступить в игру', 'choose_gift': 'Выберите подарок', 'select_plus': 'Выбрать +',
+        'bet_amount': 'Сумма ставки', 'auto_cashout': 'Авто кешаут:', 'players_in_round': 'Игроки в раунде',
+        'choose_a_gift': 'Выберите подарок', 'victory': 'Победа!', 'collect': 'Получить',
+        'hash_copied': 'Hash скопирован', 'crash_text': 'Crash', 'playing': 'Играет', 'player': 'Игрок',
+        'you_got_gift': 'Вы получили подарок', 'stars_to_balance': 'звёзд на баланс',
+        'bet_label': 'Ставка', 'win_label': 'Выигрыш',
+        'authorize': 'Авторизуйтесь', 'enter_bet': 'Введите ставку',
+        'min_1_star': 'Минимум 1 ⭐', 'insufficient_funds': 'Недостаточно средств',
+        'select_gift': 'Выберите подарок', 'cashout_error': 'Ошибка кешаута',
+        'connection_error': 'Ошибка соединения', 'no_gifts': 'У вас нет подарков в инвентаре',
+        'nav_market': 'Маркет', 'nav_quests': 'Задания', 'nav_games': 'Игры',
+        'nav_referrals': 'Рефералы', 'nav_profile': 'Профиль',
+        'settings': 'Настройки', 'language': 'Язык', 'sounds': 'Звуки',
+        'back': 'Назад', 'parameters': 'ПАРАМЕТРЫ',
+    }
+};
+
+function getLang() {
+    return localStorage.getItem('luna_lang') || 'en';
+}
+
+function t(key) {
+    const lang = getLang();
+    return (_i18n[lang] && _i18n[lang][key]) || (_i18n['en'] && _i18n['en'][key]) || key;
+}
+
+function applyLang() {
+    const lang = getLang();
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const val = t(key);
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = val;
+        } else {
+            el.textContent = val;
+        }
+    });
+    // Update lang buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim().toLowerCase() === lang);
+    });
+}
+
+function setLang(lang, btn) {
+    localStorage.setItem('luna_lang', lang);
+    if (btn) {
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+    applyLang();
+}
+
 // ============ LOADING SCREEN ============
 let _loadEl = null, _loadBar = null, _loadPct = null, _loadStatus = null;
 let _loadProgress = 0;
@@ -160,6 +276,101 @@ function getNftBg(slug,count){
     return 'https://nft.fragment.com/gift/'+slug+'-'+n+'.medium.jpg';
 }
 
+const TG_GIFT_SHOWCASES={
+    vicecream:{
+        tgUrl:'https://t.me/nft/ViceCream-1',
+        badge:'TG preview',
+        frames:[
+            {src:'/static/img/gifts/vicecream.jpg',pose:'showcase-pose-a'},
+            {src:'/static/img/gifts/vicecream.jpg',pose:'showcase-pose-b'},
+            {src:'/static/img/gifts/vicecream.jpg',pose:'showcase-pose-c'}
+        ]
+    },
+    chillflame:{
+        tgUrl:'https://t.me/nft/ChillFlame-1',
+        badge:'TG preview',
+        frames:[
+            {src:'/static/img/gifts/chillflame.jpg',pose:'showcase-pose-a'},
+            {src:'/static/img/gifts/chillflame.jpg',pose:'showcase-pose-b'},
+            {src:'/static/img/gifts/chillflame.jpg',pose:'showcase-pose-c'}
+        ]
+    },
+    timelessbook:{
+        tgUrl:'https://t.me/nft/TimelessBook-1',
+        badge:'TG preview',
+        frames:[
+            {src:'/static/img/gifts/timelessbook.jpg',pose:'showcase-pose-a'},
+            {src:'/static/img/gifts/timelessbook.jpg',pose:'showcase-pose-b'},
+            {src:'/static/img/gifts/timelessbook.jpg',pose:'showcase-pose-c'}
+        ]
+    },
+    poolfloat:{
+        tgUrl:'https://t.me/nft/PoolFloat-1',
+        badge:'TG preview',
+        frames:[
+            {src:'/static/img/gifts/poolfloat.jpg',pose:'showcase-pose-a'},
+            {src:'/static/img/gifts/poolfloat.jpg',pose:'showcase-pose-b'},
+            {src:'/static/img/gifts/poolfloat.jpg',pose:'showcase-pose-c'}
+        ]
+    },
+    moodpack:{
+        tgUrl:'https://t.me/nft/MoodPack-1',
+        badge:'TG preview',
+        frames:[
+            {src:'/static/img/gifts/moodpack.jpg',pose:'showcase-pose-a'},
+            {src:'/static/img/gifts/moodpack.jpg',pose:'showcase-pose-b'},
+            {src:'/static/img/gifts/moodpack.jpg',pose:'showcase-pose-c'}
+        ]
+    },
+    rarebird:{
+        tgUrl:'https://t.me/nft/RareBird-1',
+        badge:'TG preview',
+        frames:[
+            {src:'/static/img/gifts/rarebird.jpg',pose:'showcase-pose-a'},
+            {src:'/static/img/gifts/rarebird.jpg',pose:'showcase-pose-b'},
+            {src:'/static/img/gifts/rarebird.jpg',pose:'showcase-pose-c'}
+        ]
+    }
+};
+
+function getGiftShowcase(slug){
+    if(!slug)return null;
+    return TG_GIFT_SHOWCASES[String(slug).toLowerCase()]||null;
+}
+
+function renderGiftShowcase(slug, variant='card'){
+    const showcase=getGiftShowcase(slug);
+    if(!showcase)return '';
+    const frames=showcase.frames||[];
+    const slides=frames.map((frame,index)=>'<div class="gift-showcase-slide '+(frame.pose||'')+(index===0?' is-active':'')+'">'
+        +'<img src="'+imgSrc(frame.src)+'" alt="" loading="lazy">'
+        +'</div>').join('');
+    const badge=showcase.badge?'<div class="gift-showcase-badge">'+showcase.badge+'</div>':'';
+    const link=showcase.tgUrl?'<a class="gift-showcase-link" href="'+showcase.tgUrl+'" target="_blank" rel="noreferrer noopener" onclick="event.stopPropagation()">Открыть в Telegram</a>':'';
+    return '<div class="gift-showcase '+(variant==='modal'?'is-modal':'is-card')+'" data-showcase-track>'
+        +slides
+        +badge
+        +(variant==='modal'?link:'')
+        +'</div>';
+}
+
+let _giftShowcaseTimer=null;
+function startGiftShowcases(){
+    const tracks=document.querySelectorAll('[data-showcase-track]');
+    if(!tracks.length)return;
+    if(_giftShowcaseTimer)clearInterval(_giftShowcaseTimer);
+    _giftShowcaseTimer=setInterval(()=>{
+        tracks.forEach(track=>{
+            const slides=track.querySelectorAll('.gift-showcase-slide');
+            if(slides.length<2)return;
+            let activeIndex=0;
+            slides.forEach((slide,index)=>{if(slide.classList.contains('is-active'))activeIndex=index;});
+            slides[activeIndex].classList.remove('is-active');
+            slides[(activeIndex+1)%slides.length].classList.add('is-active');
+        });
+    },1600);
+}
+
 let _nftRotating=false;
 function startNftRotation(){
     setInterval(()=>{
@@ -219,28 +430,32 @@ let _topupMode = ''; // 'stars' or 'ton'
 
 function injectTopupModals(){
     if(document.getElementById('topupModal'))return;
-    const html = ''
+    var cryptoBotSvg='<svg width="20" height="20" viewBox="0 0 12 18" fill="none"><path d="M1.80259 5.9082H7.40306C7.8043 5.9082 8.17352 6.12728 8.36579 6.47945L10.0578 9.57852L7.10951 15.0427C6.97011 15.3011 6.74445 15.5023 6.47187 15.6113C6.21173 15.6113 5.97229 15.4695 5.84731 15.2413L1.24761 6.84505C1.01658 6.42334 1.32174 5.9082 1.80259 5.9082Z" fill="#0098EA"/></svg>';
+    var usdtSvg='<svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M11.2659 10.6029C11.1952 10.6082 10.8299 10.63 10.015 10.63C9.36686 10.63 8.90667 10.6106 8.74523 10.6029C6.24044 10.4927 4.37083 10.0567 4.37083 9.53465C4.37083 9.0126 6.24044 8.57716 8.74523 8.46521V10.1687C8.90903 10.1804 9.37805 10.2081 10.0262 10.2081C10.804 10.2081 11.1934 10.1757 11.2636 10.1692V8.46639C13.7631 8.57775 15.6285 9.01378 15.6285 9.53465C15.6285 10.0555 13.7636 10.4915 11.2636 10.6023L11.2659 10.6029ZM11.2659 8.29021V6.76589H14.7541V4.44141H5.25703V6.76589H8.74464V8.28962C5.90988 8.41984 3.77808 8.98137 3.77808 9.65426C3.77808 10.3272 5.90988 10.8881 8.74464 11.0189V15.9036H11.2653V11.0171C14.0936 10.8869 16.2219 10.326 16.2219 9.65367C16.2219 8.98137 14.0954 8.42043 11.2653 8.28962L11.2659 8.29021Z" fill="#26A17B"/></svg>';
+    var giftSvg='<svg width="16" height="16" viewBox="0 0 15 16" fill="none"><path d="M8.53475 4.36305L8.71714 3.0863C8.77664 2.66982 9.11403 2.34578 9.53478 2.30371C10.1326 2.24392 10.6236 2.7659 10.5306 3.35511C10.4709 3.73289 10.1823 4.03354 9.80725 4.10855L8.53475 4.36305ZM6.75 5.99971V6.24971V7.99971H3L2.5 7.99971C2.22386 7.99971 2 7.77585 2 7.49971V6.49971C2 6.22356 2.22386 5.99971 2.5 5.99971L6.75 5.99971ZM7.5 2.06423C7.12621 1.37572 6.42913 0.892618 5.61447 0.811153C4.04079 0.653784 2.74113 2.02688 2.98779 3.58906C3.04 3.91973 3.15863 4.22804 3.32996 4.49971H2.5C1.39543 4.49971 0.5 5.39514 0.5 6.49971V7.49971C0.5 8.23999 0.902199 8.88633 1.5 9.23214V9.49971V12.4997C1.5 14.1566 2.84315 15.4997 4.5 15.4997H10.5C12.1569 15.4997 13.5 14.1566 13.5 12.4997V9.49971V9.23214C14.0978 8.88633 14.5 8.23999 14.5 7.49971V6.49971C14.5 5.39514 13.6046 4.49971 12.5 4.49971H11.67C11.8414 4.22804 11.96 3.91973 12.0122 3.58906C12.2589 2.02688 10.9592 0.653784 9.38553 0.811153C8.57087 0.892618 7.87379 1.37572 7.5 2.06423ZM8.25 6.24971V7.99971H12L12.5 7.99971C12.7761 7.99971 13 7.77585 13 7.49971V6.49971C13 6.22356 12.7761 5.99971 12.5 5.99971L8.25 5.99971V6.24971ZM6.75 9.49971H3V12.4997C3 13.3281 3.67157 13.9997 4.5 13.9997H6.75V9.49971ZM8.25 13.9997V9.49971H12V12.4997C12 13.3281 11.3284 13.9997 10.5 13.9997H8.25ZM6.28286 3.0863L6.46525 4.36305L5.19275 4.10855C4.81772 4.03354 4.52909 3.73289 4.46944 3.35511C4.3764 2.7659 4.86736 2.24392 5.46522 2.30371C5.88597 2.34578 6.22336 2.66982 6.28286 3.0863Z" fill="#FFCC00"/></svg>';
+    var plusSvg='<svg width="14" height="13" viewBox="0 0 14 13" fill="none"><path d="M7 0.25C7.41421 0.25 7.75 0.585786 7.75 1V5.75H12.5C12.9142 5.75 13.25 6.08579 13.25 6.5C13.25 6.91421 12.9142 7.25 12.5 7.25H7.75V12C7.75 12.4142 7.41421 12.75 7 12.75C6.58579 12.75 6.25 12.4142 6.25 12V7.25H1.5C1.08579 7.25 0.75 6.91421 0.75 6.5C0.75 6.08579 1.08579 5.75 1.5 5.75H6.25V1C6.25 0.585786 6.58579 0.25 7 0.25Z" fill="white"/></svg>';
+    var html = ''
     +'<div class="modal-overlay" id="topupModal"><div class="modal">'
     +'<div class="sheet-handle"></div>'
     +'<div style="font-size:18px;font-weight:800;margin-bottom:16px;">Пополнение</div>'
-    +'<div class="topup-row" onclick="showNotification(\'Отправьте подарок боту @lunagifts_robot\',\'info\')">'
-    +'<img class="topup-row-icon" src="/static/img/gift.png" alt="">'
+    +'<div class="topup-row" onclick="openGiftDeposit()">'
+    +'<div class="topup-row-icon" style="background:linear-gradient(135deg,#FFD74A,#FFB800);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="/static/img/gifts/timelessbook.jpg" style="width:40px;height:40px;object-fit:contain;border-radius:10px;" alt="" onerror="this.parentElement.innerHTML=\''+giftSvg+'\'"></div>'
     +'<div class="topup-row-info"><div class="topup-row-title">Депозит подарками</div><div class="topup-row-desc">Отправьте подарок боту</div></div>'
-    +'<span class="topup-row-badge">TopGift</span></div>'
+    +'<span class="topup-row-arrow">›</span></div>'
     +'<div class="topup-row" onclick="openCryptoBotTopup()">'
-    +'<img class="topup-row-icon" src="/static/img/star.svg" alt="">'
+    +'<div class="topup-row-icon" style="background:#26A17B;border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+usdtSvg+'</div>'
     +'<div class="topup-row-info"><div class="topup-row-title">USDT (CryptoBot)</div><div class="topup-row-desc">5% бонус звёздами</div></div>'
     +'<span class="topup-row-badge">от 1</span></div>'
     +'<div class="topup-row" onclick="openTopupSheet(\'ton\')">'
-    +'<img class="topup-row-icon" src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'">'
+    +'<div class="topup-row-icon" style="background:#0098EA;border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="/static/img/ton.svg" alt="" style="width:24px;height:24px;" onerror="this.src=\'/static/img/star.svg\'"></div>'
     +'<div class="topup-row-info"><div class="topup-row-title">Toncoin</div><div class="topup-row-desc">Без комиссии</div></div>'
     +'<span class="topup-row-badge">от 0.4</span></div>'
-    +'<div class="topup-row" onclick="openTopupSheet(\'stars\')">'
-    +'<img class="topup-row-icon" src="/static/img/star.svg" alt="">'
+    +'<div class="topup-row topup-row-stars" onclick="openTopupSheet(\'stars\')">'
+    +'<div class="topup-row-icon" style="background:linear-gradient(135deg,#FFD74A,#FFB800);border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><img src="/static/img/star.png" alt="" style="width:28px;height:28px;object-fit:contain;"></div>'
     +'<div class="topup-row-info"><div class="topup-row-title">Telegram Stars</div><div class="topup-row-desc">Без комиссии</div></div>'
     +'<span class="topup-row-badge">от 1</span></div>'
     +'<div class="topup-row" onclick="openCryptoBotTopup()">'
-    +'<img class="topup-row-icon" src="/static/img/ton.svg" alt="" onerror="this.src=\'/static/img/star.svg\'">'
+    +'<div class="topup-row-icon" style="background:#0098EA;border-radius:12px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'+cryptoBotSvg+'</div>'
     +'<div class="topup-row-info"><div class="topup-row-title">Crypto Bot</div><div class="topup-row-desc">TON, USDT, BTC</div></div>'
     +'<span class="topup-row-badge">Crypto</span></div>'
     +'<button class="sheet-continue-btn active" style="margin-top:14px;width:100%;" onclick="closeModal(\'topupModal\')">Закрыть</button>'
@@ -354,6 +569,20 @@ async function confirmStarsTopupDirect(amount){
 function showStarsTopup(){
     injectTopupModals();
     openTopupSheet('stars');
+}
+
+function openDepositModal(){
+    injectTopupModals();
+    openModal('topupModal');
+}
+
+function openGiftDeposit(){
+    closeModal('topupModal');
+    showNotification('Отправьте подарок боту @lunagifts_robot','info');
+    try{
+        if(tg&&tg.openTelegramLink)tg.openTelegramLink('https://t.me/lunagifts_robot');
+        else window.open('https://t.me/lunagifts_robot','_blank');
+    }catch(e){window.open('https://t.me/lunagifts_robot','_blank');}
 }
 
 function selectTopupAmount(amount,el){
@@ -610,8 +839,8 @@ async function confirmWithdraw(){
 }
 
 // ============ INIT ============
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();initBtnRipple();});}
-else{startNftRotation();injectDesktopNav();injectMobileHeader();upgradeNavIcons();initBtnRipple();}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>{startNftRotation();startGiftShowcases();injectDesktopNav();injectMobileHeader();upgradeNavIcons();initBtnRipple();});}
+else{startNftRotation();startGiftShowcases();injectDesktopNav();injectMobileHeader();upgradeNavIcons();initBtnRipple();}
 
 // ============ BUTTON RIPPLE EFFECT ============
 function initBtnRipple(){
@@ -725,9 +954,9 @@ function injectMobileHeader(){
         +'<div class="balance-section star-balance" onclick="openBalanceAction()">'
         +'<span class="balance-val balance-amount" style="color:var(--gold)">0</span>'
         +'<img src="/static/img/star.svg" alt="⭐"></div></div>'
-        +'<button class="balance-plus-btn" onclick="window.location.href=\'/topup\'">+</button>'
+        +'<button class="balance-plus-btn" onclick="window.location.href=\'/topup\'"><svg width="12" height="12" viewBox="0 0 14 13" fill="none"><path d="M7 0.25C7.41421 0.25 7.75 0.585786 7.75 1V5.75H12.5C12.9142 5.75 13.25 6.08579 13.25 6.5C13.25 6.91421 12.9142 7.25 12.5 7.25H7.75V12C7.75 12.4142 7.41421 12.75 7 12.75C6.58579 12.75 6.25 12.4142 6.25 12V7.25H1.5C1.08579 7.25 0.75 6.91421 0.75 6.5C0.75 6.08579 1.08579 5.75 1.5 5.75H6.25V1C6.25 0.585786 6.58579 0.25 7 0.25Z" fill="white"/></svg></button>'
         +'<div class="online-badge" id="onlineBadge">'
-        +'<span class="online-dot"></span>'
+        +'<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 6.375C8.8875 6.375 11.25 7.875 11.25 9.375C11.25 10.4105 10.4105 11.25 9.375 11.25H2.625C1.58947 11.25 0.750001 10.4105 0.75 9.375C0.75 7.875 3.1125 6.375 6 6.375ZM6 0.75C7.44975 0.750001 8.625 1.92525 8.625 3.375C8.625 4.82475 7.44975 6 6 6C4.55025 6 3.375 4.82475 3.375 3.375C3.375 1.92525 4.55025 0.75 6 0.75Z" fill="currentColor"/></svg>'
         +'<span class="online-count" id="onlineCount">...</span></div>';
     container.insertBefore(hdr,container.firstChild);
 }
@@ -801,4 +1030,260 @@ async function fetchOnlineCount(){
         document.querySelectorAll('#onlineCount').forEach(el=>{el.textContent='—';});
     }
     setTimeout(()=>{_onlineFetched=false;},30000);
+}
+
+// ============ TUTORIAL / ONBOARDING SYSTEM ============
+const TUTORIAL_STORAGE_KEY = 'luna_tutorials_seen';
+
+function getTutorialsSeen(){
+    try { return JSON.parse(localStorage.getItem(TUTORIAL_STORAGE_KEY)) || {}; }
+    catch(e) { return {}; }
+}
+
+function markTutorialSeen(id){
+    const seen = getTutorialsSeen();
+    seen[id] = Date.now();
+    localStorage.setItem(TUTORIAL_STORAGE_KEY, JSON.stringify(seen));
+}
+
+function hasTutorialSeen(id){
+    return !!getTutorialsSeen()[id];
+}
+
+/**
+ * Show a multi-step tutorial overlay.
+ * @param {string} tutorialId - unique id for localStorage
+ * @param {Array} steps - [{title, text, image, animation?, lottie?}]
+ * @param {Object} opts - {force: bool, onFinish: fn}
+ */
+function showTutorial(tutorialId, steps, opts){
+    opts = opts || {};
+    if(!opts.force && hasTutorialSeen(tutorialId)) return;
+    if(!steps || !steps.length) return;
+
+    let currentStep = 0;
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'tut-overlay';
+    overlay.innerHTML = `
+        <div class="tut-card">
+            <button class="tut-skip" id="tutSkip">Пропустить</button>
+            <div class="tut-visual" id="tutVisual"></div>
+            <div class="tut-title" id="tutTitle"></div>
+            <div class="tut-text" id="tutText"></div>
+            <div class="tut-dots" id="tutDots"></div>
+            <button class="tut-btn" id="tutNext">Далее</button>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    // Animate in
+    requestAnimationFrame(()=>{ overlay.classList.add('active'); });
+
+    const elVisual = overlay.querySelector('#tutVisual');
+    const elTitle = overlay.querySelector('#tutTitle');
+    const elText = overlay.querySelector('#tutText');
+    const elDots = overlay.querySelector('#tutDots');
+    const elNext = overlay.querySelector('#tutNext');
+    const elSkip = overlay.querySelector('#tutSkip');
+
+    // Build dots
+    function buildDots(){
+        elDots.innerHTML = steps.map((_,i)=>
+            '<span class="tut-dot'+(i===currentStep?' active':'')+'"></span>'
+        ).join('');
+    }
+
+    function renderStep(){
+        const step = steps[currentStep];
+        elTitle.textContent = step.title || '';
+        elText.innerHTML = step.text || '';
+
+        // Visual
+        elVisual.innerHTML = '';
+        elVisual.className = 'tut-visual';
+        if(step.animation){
+            // Custom HTML animation (slot reels, etc)
+            elVisual.innerHTML = step.animation;
+            elVisual.classList.add('tut-anim');
+            // Auto-run animation funcs if defined
+            if(step.onShow) setTimeout(()=>step.onShow(elVisual), 100);
+        } else if(step.image){
+            const img = document.createElement('img');
+            img.src = step.image;
+            img.className = 'tut-img';
+            img.alt = '';
+            elVisual.appendChild(img);
+            elVisual.classList.add('tut-glow');
+        }
+
+        // Button text
+        elNext.textContent = currentStep === steps.length - 1 ? 'Понятно!' : 'Далее';
+        buildDots();
+
+        // Entrance animation
+        elVisual.style.opacity = '0';
+        elVisual.style.transform = 'scale(0.8) translateY(10px)';
+        requestAnimationFrame(()=>{
+            elVisual.style.transition = 'all 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+            elVisual.style.opacity = '1';
+            elVisual.style.transform = 'scale(1) translateY(0)';
+        });
+    }
+
+    elNext.addEventListener('click', ()=>{
+        if(currentStep < steps.length - 1){
+            currentStep++;
+            renderStep();
+        } else {
+            closeTutorial();
+        }
+    });
+
+    elSkip.addEventListener('click', closeTutorial);
+
+    function closeTutorial(){
+        markTutorialSeen(tutorialId);
+        overlay.classList.remove('active');
+        setTimeout(()=>overlay.remove(), 400);
+        if(opts.onFinish) opts.onFinish();
+    }
+
+    renderStep();
+}
+
+/**
+ * Build a mini slot reel animation HTML for tutorial
+ */
+function buildTutorialSlotAnim(symbols, winRow){
+    winRow = winRow !== undefined ? winRow : 1;
+    const reelH = 210;
+    const cellH = 70;
+    let html = '<div class="tut-slot-machine">';
+    for(let c = 0; c < 3; c++){
+        const shuffled = symbols.slice().sort(()=>Math.random()-0.5);
+        // 8 filler + 3 final
+        let cells = '';
+        for(let i = 0; i < 8; i++){
+            cells += '<div class="tut-slot-cell"><img src="'+shuffled[i % shuffled.length]+'" alt=""></div>';
+        }
+        // Final 3 — middle row (winRow=1) gets the win symbol
+        for(let r = 0; r < 3; r++){
+            const sym = (r === winRow) ? symbols[0] : shuffled[(r + c + 3) % shuffled.length];
+            cells += '<div class="tut-slot-cell"><img src="'+sym+'" alt=""></div>';
+        }
+        html += '<div class="tut-slot-reel"><div class="tut-slot-strip" data-col="'+c+'">'+cells+'</div></div>';
+    }
+    html += '<div class="tut-slot-winline"></div>';
+    html += '</div>';
+    return html;
+}
+
+function runTutorialSlotSpin(container){
+    if(!container) return;
+    const strips = container.querySelectorAll('.tut-slot-strip');
+    const cellH = 70;
+    const spinDist = 8 * cellH; // scroll past 8 fillers
+    strips.forEach((strip, i)=>{
+        strip.style.transition = 'none';
+        strip.style.transform = 'translateY(0)';
+        setTimeout(()=>{
+            strip.style.transition = 'transform '+(1800 + i*300)+'ms cubic-bezier(0.15, 0.85, 0.35, 1)';
+            strip.style.transform = 'translateY(-'+spinDist+'px)';
+        }, 50 + i * 150);
+    });
+    // Show win line after all reels stop
+    setTimeout(()=>{
+        const winline = container.querySelector('.tut-slot-winline');
+        if(winline) winline.classList.add('won');
+    }, 2800);
+}
+
+/**
+ * Tutorial step presets for reuse
+ */
+function buildSlotsTutorialSteps(){
+    const symbols = [
+        '/static/img/slots/diamond.png',
+        '/static/img/slots/bear.png',
+        '/static/img/slots/rocket.png',
+        '/static/img/slots/book.png',
+        '/static/img/slots/candle.png',
+        '/static/img/slots/clown.png',
+        '/static/img/slots/calendar.png'
+    ];
+    return [
+        {
+            title: 'Luna Slots',
+            text: 'Крутите барабаны и выигрывайте <b>NFT подарки</b> и <b>звёзды</b>.<br><span class="tut-hl purple">Выбери слот — поставь — крути!</span>',
+            image: '/static/gifs/mods/slots.gif'
+        },
+        {
+            title: 'Как выиграть',
+            text: '<b>3 одинаковых символа</b> в среднем ряду — выигрыш!<br>Чем реже символ, тем выше множитель:<br><span class="tut-hl gold">Свеча x10 — Книга x7 — Алмаз x2.5</span>',
+            animation: buildTutorialSlotAnim(symbols, 1),
+            onShow: function(el){ runTutorialSlotSpin(el); }
+        },
+        {
+            title: 'Спец. расположения',
+            text: 'Бонусные паттерны в <b>Custom Slot</b>:<br><span class="tut-hl purple">Диагональ</span> — бонус x1.5<br><span class="tut-hl purple">Верх / Низ</span> — бонус x1.3<br><span class="tut-hl gold">Все 9 клеток</span> — бонус x3',
+            image: '/static/img/slots/diamond.png'
+        },
+        {
+            title: 'Призы',
+            text: 'Обычные слоты — <b>NFT подарки</b> и <b>звёзды</b>.<br>Custom слот — множитель от ставки.<br>Без комбинации — <span class="tut-hl">возврат 30%</span>.',
+            image: '/static/img/star.png'
+        }
+    ];
+}
+
+function buildCrashTutorialSteps(){
+    return [
+        {
+            title: 'Crash',
+            text: 'Множитель растёт — <b>успей забрать</b>!<br><span class="tut-hl gold">Чем выше множитель, тем больше приз.</span><br>Краш — ставка сгорает.',
+            image: '/static/gifs/mods/slots.gif'
+        },
+        {
+            title: 'Конвейер подарков',
+            text: 'По мере роста множителя подарки <b>заполняются</b>.<br>Полностью заполненный = <b>выигран</b>.<br>Забери кнопкой <span class="tut-hl green">Cashout</span>.',
+            image: '/static/img/slots/diamond.png'
+        },
+        {
+            title: 'Авто-кешаут',
+            text: 'Установи порог (напр. <b>2.00x</b>) — система сама заберёт выигрыш.<br>Играй <span class="tut-hl purple">подарками</span> или <span class="tut-hl gold">звёздами</span>.',
+            image: '/static/img/star.png'
+        }
+    ];
+}
+
+function buildScratchTutorialSteps(){
+    return [
+        {
+            title: 'Moon Scratch',
+            text: 'Стирай поле и находи <b>одинаковые символы</b>.<br><span class="tut-hl purple">3 совпадения — выигрыш!</span>',
+            image: '/static/img/quest.png'
+        },
+        {
+            title: 'Как играть',
+            text: 'Водите пальцем по карточке чтобы <b>стереть покрытие</b>.<br>Под ним — звёзды и подарки.<br><span class="tut-hl green">Бесплатные карточки каждый день!</span>',
+            image: '/static/img/star.png'
+        }
+    ];
+}
+
+function buildGamesTutorialSteps(){
+    return [
+        {
+            title: 'Игры Luna Gifts',
+            text: 'Здесь <b>5 режимов</b>:<br><span class="tut-hl purple">Slots</span> — крути барабаны<br><span class="tut-hl gold">Crash</span> — успей забрать<br><span class="tut-hl green">Scratch</span> — стирай и выигрывай',
+            image: '/static/img/games.png'
+        },
+        {
+            title: 'Ещё режимы',
+            text: '<span class="tut-hl purple">Cases</span> — открывай кейсы с подарками<br><span class="tut-hl gold">PVP Wheel</span> — крути колесо против других!<br><br>Выбери режим и начни играть.',
+            image: '/static/img/gift.png'
+        }
+    ];
 }

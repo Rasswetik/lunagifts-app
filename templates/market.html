@@ -7,12 +7,88 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
     <style>
-    /* Market overrides: white buy button and Random label styling */
+    /* Market redesign: clean card style */
+    .market-card{
+        border-radius:16px;overflow:hidden;cursor:pointer;
+        background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);
+        transition:transform 0.2s ease,box-shadow 0.2s ease;
+        display:flex;flex-direction:column;align-items:center;
+        padding:16px 10px 12px;
+    }
+    .market-card:active{transform:scale(0.97);}
+    .market-card-img-wrap{
+        width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+        position:relative;overflow:hidden;border-radius:12px;margin-bottom:8px;
+    }
+    .market-card-img{
+        width:85%;height:85%;object-fit:contain;
+        transition:transform 0.4s ease,filter 0.3s ease;
+    }
+    /* Fragment NFT gifts: rounded square frame */
+    .market-card.is-nft .market-card-img-wrap{
+        border:2px solid rgba(255,180,50,0.25);
+        border-radius:16px;
+        background:rgba(255,180,50,0.04);
+    }
+    .market-card.is-nft .market-card-img{
+        border-radius:12px;
+    }
+    /* NFT hover: gentle glow + subtle scale */
+    .market-card.is-nft:hover .market-card-img-wrap{
+        border-color:rgba(255,180,50,0.5);
+        box-shadow:0 0 18px rgba(255,180,50,0.15);
+    }
+    .market-card.is-nft:hover .market-card-img{
+        transform:scale(1.06);
+        filter:brightness(1.05);
+    }
+    /* Non-NFT / Telegram gifts: just zoom on hover */
+    .market-card:not(.is-nft):hover .market-card-img{
+        transform:scale(1.08);
+    }
+    /* Modal TGS */
+    .modal-tgs-wrap{width:160px;height:160px;margin:0 auto;position:relative;}
+    .modal-tgs-wrap svg,.modal-tgs-wrap canvas{width:100%!important;height:100%!important;}
+    .market-card-name{
+        font-size:12px;font-weight:600;color:#fff;text-align:center;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
+    }
+    .market-card-price{
+        display:flex;align-items:center;justify-content:center;gap:4px;
+        margin-top:4px;font-size:13px;font-weight:700;color:#FFCC00;
+    }
+    .market-card-price img{width:14px;height:14px;}
+    /* Modal clean */
     .modal-buy-btn.market-white{background:#fff;color:#131313;border:1px solid rgba(0,0,0,0.06)}
     .modal-buy-btn.market-white img{filter:none}
-    .gift-random-label{font-size:11px;color:rgba(255,255,255,0.65);font-weight:700;margin-top:4px}
+    /* Filter overlay */
+    .filter-overlay{position:fixed;inset:0;z-index:1100;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;}
+    .filter-overlay.active{display:flex;}
+    .filter-container{max-width:480px;margin:0 auto;padding:14px 16px 120px;width:100%;}
+    .filter-back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 0;margin-bottom:12px;}
+    .filter-title{font-size:28px;font-weight:900;color:#fff;margin-bottom:16px;}
+    .filter-section{margin-bottom:20px;}
+    .filter-section-label{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:10px;}
+    .filter-price-row{display:flex;gap:10px;margin-bottom:12px;}
+    .filter-price-input{flex:1;padding:12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:#fff;font-size:14px;font-weight:600;outline:none;}
+    .filter-price-input::placeholder{color:rgba(255,255,255,0.25);}
+    .filter-price-input:focus{border-color:var(--accent);}
+    .filter-collection-list{display:flex;flex-direction:column;gap:4px;max-height:360px;overflow-y:auto;}
+    .filter-collection-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;cursor:pointer;transition:background 0.15s;}
+    .filter-collection-item:active,.filter-collection-item.selected{background:rgba(255,255,255,0.06);}
+    .filter-collection-item img{width:32px;height:32px;border-radius:8px;object-fit:cover;}
+    .filter-collection-name{font-size:14px;font-weight:600;color:#fff;flex:1;}
+    .filter-collection-radio{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .filter-collection-item.selected .filter-collection-radio{border-color:var(--accent);}
+    .filter-collection-item.selected .filter-collection-radio::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--accent);}
+    .filter-apply-btn{position:fixed;bottom:90px;left:16px;right:16px;max-width:448px;margin:0 auto;padding:14px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;z-index:1101;transition:transform 0.2s;}
+    .filter-apply-btn:active{transform:scale(0.97);}
+    .filter-btn{width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+    .filter-btn.has-filter::after{content:'';position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--accent);}
     </style>
 </head>
 <body>
@@ -30,9 +106,14 @@
         <!-- Market Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;">
             <div style="font-size:20px;font-weight:800;color:#fff;">Подарки</div>
-            <button style="width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="toggleSort()">
-                <svg width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><path d="M3 6h12M5 10h8M7 14h4"/></svg>
-            </button>
+            <div style="display:flex;gap:8px;">
+                <div class="filter-btn" id="filterBtn" onclick="openFilters()">
+                    <svg width="18" height="18" viewBox="0 0 18 16" fill="none"><path d="M15.625 5.5H10.375C10.0298 5.5 9.75 5.22018 9.75 4.875C9.75 4.52982 10.0298 4.25 10.375 4.25H15.625C15.9702 4.25 16.25 4.52982 16.25 4.875C16.25 5.22018 15.9702 5.5 15.625 5.5ZM7.625 5.5H2.375C2.02982 5.5 1.75 5.22018 1.75 4.875C1.75 4.52982 2.02982 4.25 2.375 4.25H7.625C7.97018 4.25 8.25 4.52982 8.25 4.875C8.25 5.22018 7.97018 5.5 7.625 5.5ZM15.625 13.375H10.375C10.0298 13.375 9.75 13.0952 9.75 12.75C9.75 12.4048 10.0298 12.125 10.375 12.125H15.625C15.9702 12.125 16.25 12.4048 16.25 12.75C16.25 13.0952 15.9702 13.375 15.625 13.375ZM7.625 13.375H2.375C2.02982 13.375 1.75 13.0952 1.75 12.75C1.75 12.4048 2.02982 12.125 2.375 12.125H7.625C7.97018 12.125 8.25 12.4048 8.25 12.75C8.25 13.0952 7.97018 13.375 7.625 13.375Z" fill="rgba(255,255,255,0.6)"/></svg>
+                </div>
+                <button style="width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="toggleSort()">
+                    <svg width="18" height="18" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><path d="M3 6h12M5 10h8M7 14h4"/></svg>
+                </button>
+            </div>
         </div>
 
         <!-- Sort -->
@@ -43,6 +124,28 @@
         <div class="gifts-grid" id="giftsGrid">
             <div class="loading" style="grid-column:1/-1;"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
         </div>
+    </div>
+
+    <!-- Filter Overlay -->
+    <div class="filter-overlay" id="filterOverlay">
+        <div class="filter-container">
+            <button class="filter-back" onclick="closeFilters()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Назад</button>
+            <div class="filter-title">Фильтры</div>
+            <div class="filter-section">
+                <div class="filter-section-label">ДИАПАЗОН ЦЕН (Stars)</div>
+                <div class="filter-price-row">
+                    <input class="filter-price-input" id="filterPriceFrom" type="number" placeholder="От" min="0">
+                    <input class="filter-price-input" id="filterPriceTo" type="number" placeholder="До" min="0">
+                </div>
+            </div>
+            <div class="filter-section">
+                <div class="filter-section-label">КОЛЛЕКЦИЯ</div>
+                <div class="filter-collection-list" id="filterCollections">
+                    <div style="text-align:center;padding:20px;color:rgba(255,255,255,0.3);">Загрузка...</div>
+                </div>
+            </div>
+        </div>
+        <button class="filter-apply-btn" id="filterApplyBtn" onclick="applyFilters()">Показать подарки</button>
     </div>
 
     <!-- Buy Modal -->
@@ -63,10 +166,65 @@
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
     <script>
     let giftsData=[];
     let sortDir='desc';
+    const tgsCache={};
+    let filterPriceFrom=null;
+    let filterPriceTo=null;
+    let filterCollection=null;
+    let collections=[];
+
+    function openFilters(){
+        document.getElementById('filterOverlay').classList.add('active');
+        loadCollections();
+    }
+    function closeFilters(){document.getElementById('filterOverlay').classList.remove('active');}
+
+    async function loadCollections(){
+        try{
+            const res=await fetch('/api/market/collections');
+            collections=await res.json();
+            const list=document.getElementById('filterCollections');
+            let html='<div class="filter-collection-item'+(filterCollection===null?' selected':'')+'" onclick="selectCollection(null,this)"><div style="width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:14px;">✦</div><div class="filter-collection-name">Все коллекции</div><div class="filter-collection-radio"></div></div>';
+            html+=collections.map(c=>{
+                const thumb=c.thumb_url||imgSrc(c.image||'');
+                return '<div class="filter-collection-item'+(filterCollection===c.slug?' selected':'')+'" onclick="selectCollection(\''+c.slug+'\',this)"><img src="'+thumb+'" alt="" onerror="this.src=\'/static/img/star.svg\'"><div class="filter-collection-name">'+c.name+'</div><div class="filter-collection-radio"></div></div>';
+            }).join('');
+            list.innerHTML=html;
+            updateFilterCount();
+        }catch(e){console.error(e);}
+    }
+
+    function selectCollection(slug,el){
+        filterCollection=slug;
+        document.querySelectorAll('.filter-collection-item').forEach(i=>i.classList.remove('selected'));
+        el.classList.add('selected');
+        updateFilterCount();
+    }
+
+    function updateFilterCount(){
+        const from=parseFloat(document.getElementById('filterPriceFrom').value)||null;
+        const to=parseFloat(document.getElementById('filterPriceTo').value)||null;
+        let count=giftsData.filter(g=>{
+            const p=Math.floor(g.price);
+            if(from!==null&&p<from)return false;
+            if(to!==null&&p>to)return false;
+            if(filterCollection&&g.slug!==filterCollection)return false;
+            return true;
+        }).length;
+        document.getElementById('filterApplyBtn').textContent='Показать '+count+' подар'+(count===1?'ок':(count>=2&&count<=4?'ка':'ков'));
+    }
+
+    function applyFilters(){
+        filterPriceFrom=parseFloat(document.getElementById('filterPriceFrom').value)||null;
+        filterPriceTo=parseFloat(document.getElementById('filterPriceTo').value)||null;
+        const hasFilter=filterPriceFrom!==null||filterPriceTo!==null||filterCollection!==null;
+        document.getElementById('filterBtn').classList.toggle('has-filter',hasFilter);
+        closeFilters();
+        renderGifts();
+    }
 
     function toggleSort(){
         sortDir=sortDir==='desc'?'asc':'desc';
@@ -74,8 +232,60 @@
         renderGifts();
     }
 
-    // Show prices in Stars (original units)
     function toStars(price){ return Math.floor(price); }
+
+    /* Fragment NFT image URL */
+    function getFragmentImg(slug, count){
+        if(!slug) return '';
+        const n=Math.floor(Math.random()*(count||1000))+1;
+        return 'https://nft.fragment.com/gift/'+slug+'-'+n+'.medium.jpg';
+    }
+
+    /* Fragment TGS animation URL */
+    function getFragmentTgs(slug, count){
+        if(!slug) return '';
+        const n=Math.floor(Math.random()*(count||1000))+1;
+        return 'https://nft.fragment.com/gift/'+slug+'-'+n+'.tgs';
+    }
+
+    /* Load and play TGS in a container */
+    async function loadTgs(container, tgsUrl, autoplay){
+        if(!tgsUrl || !container) return null;
+        try{
+            const cached = tgsCache[tgsUrl];
+            let animData;
+            if(cached){
+                animData = cached;
+            } else {
+                const resp = await fetch(tgsUrl);
+                if(!resp.ok) return null;
+                const buf = await resp.arrayBuffer();
+                const decompressed = pako.inflate(new Uint8Array(buf), {to:'string'});
+                animData = JSON.parse(decompressed);
+                tgsCache[tgsUrl] = animData;
+            }
+            container.innerHTML = '';
+            const anim = lottie.loadAnimation({
+                container: container,
+                renderer: 'svg',
+                loop: true,
+                autoplay: !!autoplay,
+                animationData: JSON.parse(JSON.stringify(animData))
+            });
+            return anim;
+        } catch(e){ console.warn('TGS load failed:', e); return null; }
+    }
+
+    /* Check if gift is a real fragment NFT (not new/local gift) */
+    function isRealNft(g){
+        return !!(g.slug && g.item_count && !g.withdrawable && !g.telegram_gift_id
+            && g.image && !g.image.includes('/base/'));
+    }
+
+    /* Card image source: always use local image */
+    function cardImgUrl(g){
+        return imgSrc(g.image);
+    }
 
     async function loadGifts(){
         try{
@@ -90,35 +300,39 @@
     function renderGifts(){
         const c=document.getElementById('giftsGrid');
         let items=[...giftsData];
+        // Apply filters
+        if(filterPriceFrom!==null) items=items.filter(g=>Math.floor(g.price)>=filterPriceFrom);
+        if(filterPriceTo!==null) items=items.filter(g=>Math.floor(g.price)<=filterPriceTo);
+        if(filterCollection) items=items.filter(g=>g.slug===filterCollection);
         items.sort((a,b)=>sortDir==='desc'?b.price-a.price:a.price-b.price);
         if(!items.length){c.innerHTML='<div class="empty-state" style="grid-column:1/-1;"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Подарков пока нет</p></div>';return;}
         c.innerHTML=items.map(g=>{
-            const hasBg=g.bg_color&&!g.slug;
-            const bg=g.slug?getNftBg(g.slug,g.item_count):'';
             const starPrice=toStars(g.price);
-            return '<div class="gift-card" onclick="openBuyModal('+g.id+')">'
-            +'<div class="gift-visual">'
-            +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'50 0%,'+g.bg_color+'20 60%,transparent 80%);"></div>':'')
-            +(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+g.slug+'" data-count="'+(g.item_count||1000)+'" alt="">':'<img class="gift-img" src="'+imgSrc(g.image)+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.svg\'">')
+            const cImg=cardImgUrl(g);
+            const nft=isRealNft(g);
+            return '<div class="market-card'+(nft?' is-nft':'')+'" onclick="openBuyModal('+g.id+')">'
+            +'<div class="market-card-img-wrap">'
+            +'<img class="market-card-img" src="'+cImg+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.svg\'">'
             +'</div>'
-            +'<div class="gift-name" style="font-size:13px;font-weight:600;color:#fff;margin-top:6px;">'+g.name+'</div>'
-            +'<div class="gift-random-label">Random</div>'
-            +'<div class="gift-price-btn"><span>'+starPrice+'</span><img src="/static/img/star.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"></div>'
+            +'<div class="market-card-name">'+g.name+'</div>'
+            +'<div class="market-card-price"><span>'+starPrice+'</span><img src="/static/img/star.svg" alt=""></div>'
             +'</div>';
         }).join('');
+
+        /* No TGS on hover — just CSS animations */
     }
 
     function openBuyModal(id){
         const g=giftsData.find(x=>x.id===id);if(!g)return;
-        const hasBg=g.bg_color&&!g.slug;
         const starPrice=toStars(g.price);
+        const cImg=imgSrc(g.image);
+
         document.getElementById('buyModalContent').innerHTML=''
         +'<div class="modal-gift-visual">'
-        +(hasBg?'<div class="gift-color-bg" style="background:radial-gradient(circle,'+g.bg_color+'60 0%,'+g.bg_color+'25 50%,transparent 75%);"></div>':'')
-        +(g.slug?'<img class="gift-backdrop" src="'+getNftBg(g.slug,g.item_count)+'" data-slug="'+g.slug+'" data-count="'+(g.item_count||1000)+'" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">':'<img class="modal-gift-image" src="'+imgSrc(g.image)+'" alt="'+g.name+'" onerror="this.src=\'/static/img/star.svg\'">')
+        +'<img class="modal-gift-image" src="'+cImg+'" alt="'+g.name+'" style="width:160px;height:160px;object-fit:contain;border-radius:20px;" onerror="this.src=\'/static/img/star.svg\'">'
         +'</div>'
         +'<div class="modal-gift-name">'+g.name+'</div>'
-        +'<div class="modal-gift-type">'+(g.withdrawable?'Выводимый подарок':'Случайный')+'</div>'
+        +'<div class="modal-gift-type" style="font-size:12px;color:rgba(255,255,255,0.4);margin:4px 0 16px;">Подарок</div>'
         +'<button class="modal-buy-btn market-white" onclick="buyGift('+g.id+')">Купить за '+starPrice+' <img src="/static/img/star.svg" alt="" onerror="this.src=\'/static/img/star.svg\'"></button>';
         openModal('buyModal');
     }
@@ -140,6 +354,9 @@
         initTonConnect();
         setLoadProgress(75, 'Загрузка подарков...');
         await loadGifts();
+        // Filter price inputs: update count on change
+        document.getElementById('filterPriceFrom').addEventListener('input',updateFilterCount);
+        document.getElementById('filterPriceTo').addEventListener('input',updateFilterCount);
         dismissLoading();
     });
     </script>

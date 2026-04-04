@@ -314,6 +314,41 @@ def _create_tables(db, flavour):
             color TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS deposit_history (
+            id SERIAL PRIMARY KEY,
+            telegram_id BIGINT NOT NULL,
+            method TEXT NOT NULL,
+            amount DOUBLE PRECISION NOT NULL,
+            stars_amount DOUBLE PRECISION NOT NULL,
+            usd_amount DOUBLE PRECISION DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS leaderboard_seasons (
+            id SERIAL PRIMARY KEY,
+            start_time DOUBLE PRECISION NOT NULL,
+            end_time DOUBLE PRECISION NOT NULL,
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS leaderboard_prizes (
+            id SERIAL PRIMARY KEY,
+            season_id INTEGER NOT NULL,
+            place INTEGER NOT NULL,
+            gift_id INTEGER DEFAULT 0,
+            gift_name TEXT DEFAULT '',
+            gift_image TEXT DEFAULT '',
+            gift_value DOUBLE PRECISION DEFAULT 0
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS leaderboard_results (
+            id SERIAL PRIMARY KEY,
+            season_id INTEGER NOT NULL,
+            place INTEGER NOT NULL,
+            user_id BIGINT NOT NULL,
+            turnover DOUBLE PRECISION DEFAULT 0,
+            prize_gift_id INTEGER DEFAULT 0,
+            prize_given INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
     else:
         # SQLite DDL (original)
         db.execute('''CREATE TABLE IF NOT EXISTS users (
@@ -463,6 +498,41 @@ def _create_tables(db, flavour):
             color TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS deposit_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            telegram_id INTEGER NOT NULL,
+            method TEXT NOT NULL,
+            amount REAL NOT NULL,
+            stars_amount REAL NOT NULL,
+            usd_amount REAL DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS leaderboard_seasons (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            start_time REAL NOT NULL,
+            end_time REAL NOT NULL,
+            status TEXT DEFAULT 'active',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS leaderboard_prizes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            season_id INTEGER NOT NULL,
+            place INTEGER NOT NULL,
+            gift_id INTEGER DEFAULT 0,
+            gift_name TEXT DEFAULT '',
+            gift_image TEXT DEFAULT '',
+            gift_value REAL DEFAULT 0
+        )''')
+        db.execute('''CREATE TABLE IF NOT EXISTS leaderboard_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            season_id INTEGER NOT NULL,
+            place INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            turnover REAL DEFAULT 0,
+            prize_gift_id INTEGER DEFAULT 0,
+            prize_given INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )''')
 
 
 def _run_migrations(db, flavour):
@@ -485,6 +555,13 @@ def _run_migrations(db, flavour):
         ('promo_uses', 'discount_applied', 'INTEGER DEFAULT 0'),
         ('users', 'last_active', 'REAL DEFAULT 0' if flavour == 'sqlite' else 'DOUBLE PRECISION DEFAULT 0'),
         ('withdrawals', 'retry_count', 'INTEGER DEFAULT 0'),
+        ('crash_bets', 'bet_type', "TEXT DEFAULT 'stars'"),
+        ('crash_bets', 'gift_image', "TEXT DEFAULT ''"),
+        ('crash_bets', 'won_gift_image', "TEXT DEFAULT ''"),
+        ('crash_bets', 'auto_cashout_at', 'REAL DEFAULT 0' if flavour == 'sqlite' else 'DOUBLE PRECISION DEFAULT 0'),
+        ('users', 'crash_net_profit', 'REAL DEFAULT 0' if flavour == 'sqlite' else 'DOUBLE PRECISION DEFAULT 0'),
+        ('crash_games', 'game_hash', "TEXT DEFAULT ''"),
+        ('crash_games', 'server_seed', "TEXT DEFAULT ''"),
     ]
 
     if flavour == 'postgres':

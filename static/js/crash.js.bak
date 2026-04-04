@@ -1,0 +1,616 @@
+/* ═══════════════════════════════════════════
+   CRASH GAME — Luna Gifts
+   Client-side logic
+   ═══════════════════════════════════════════ */
+
+/* ─── Gift data for conveyor (sorted cheapest→expensive) ─── */
+let CRASH_GIFTS = [];
+let sortedGifts = [];
+
+/* ─── State ─── */
+let betTab = 'gift';          // 'gift' | 'stars'
+let selectedGift = null;       // {id, name, image, value}
+let gameState = { status: 'waiting', multiplier: 1.00, game_id: 0, hash: '', countdown: 0 };
+let prevGameId = 0;
+let myBet = null;              // {game_id, amount, type:'stars'|'gift', gift_id?}
+let smoothMult = 1.00;
+let targetMult = 1.00;
+let statusPollTimer = null;
+let betsPollTimer = null;
+let historyTimer = null;
+let rafId = null;
+let crashDone = false;
+let lastPollTime = 0;
+let pingMs = 0;
+let conveyorOffset = 0;        // which gift index we're currently filling
+let conveyorFill = 0;          // 0-1 fill progress of current gift
+let userInventory = [];
+
+/* ─── Load gifts data ─── */
+async function loadCrashGifts() {
+    try {
+        const r = await fetch('/api/gifts');
+        const data = await r.json();
+        CRASH_GIFTS = (data.gifts || data || []).filter(g => g.value && g.image);
+        sortedGifts = [...CRASH_GIFTS].sort((a, b) => a.value - b.value);
+    } catch (e) {
+        console.error('Failed to load gifts:', e);
+    }
+}
+
+/* ─── Load user inventory for gift betting ─── */
+async function loadUserInventory() {
+    if (!currentUser) return;
+    try {
+        const r = await fetch('/api/inventory/' + currentUser.telegram_id);
+        const data = await r.json();
+        userInventory = (data.items || []).filter(i => i.item_type === 'gift');
+    } catch (e) {
+        userInventory = [];
+    }
+}
+
+/* ─── Build gift conveyor ─── */
+function buildConveyor() {
+    const container = document.getElementById('giftsConveyor');
+    if (!sortedGifts.length) return;
+
+    // Show ~5 gifts at a time, repeat pattern for scrolling
+    const displayGifts = [];
+    for (let i = 0; i < Math.min(sortedGifts.length, 30); i++) {
+        displayGifts.push(sortedGifts[i % sortedGifts.length]);
+    }
+
+    container.innerHTML = displayGifts.map((g, idx) => `
+        <div class="crash-gift-item" data-idx="${idx}" data-value="${g.value}">
+            <img src="${g.image}" alt="${g.name}" loading="lazy">
+            <div class="gift-fill-mask">
+                <img src="${g.image}" alt="" loading="lazy">
+            </div>
+        </div>
+    `).join('');
+}
+
+/* ─── Update conveyor based on multiplier ─── */
+function updateConveyor(mult) {
+    if (!sortedGifts.length) return;
+    const items = document.querySelectorAll('.crash-gift-item');
+    if (!items.length) return;
+
+    // Calculate which gift the current bet amount * multiplier corresponds to
+    const betAmount = myBet ? myBet.amount : 100; // default 100 stars for display
+    const currentValue = betAmount * mult;
+
+    // Find which gift we're at
+    let activeIdx = 0;
+    for (let i = 0; i < sortedGifts.length && i < items.length; i++) {
+        if (currentValue >= sortedGifts[i].value) {
+            activeIdx = i;
+        } else {
+            break;
+        }
+    }
+
+    // Calculate fill of next gift
+    let fillPct = 0;
+    if (activeIdx < sortedGifts.length - 1) {
+        const curVal = activeIdx > 0 ? sortedGifts[activeIdx].value : 0;
+        const nextVal = sortedGifts[activeIdx + 1].value;
+        fillPct = Math.min(1, (currentValue - curVal) / (nextVal - curVal));
+    } else {
+        fillPct = 1;
+    }
+
+    items.forEach((item, idx) => {
+        const fillMask = item.querySelector('.gift-fill-mask');
+        item.classList.remove('active', 'passed', 'filling');
+
+        if (idx < activeIdx) {
+            item.classList.add('passed');
+            if (fillMask) fillMask.style.height = '100%';
+        } else if (idx === activeIdx) {
+            item.classList.add('active', 'filling');
+            if (fillMask) fillMask.style.height = (fillPct * 100) + '%';
+        } else if (idx === activeIdx + 1) {
+            item.classList.add('filling');
+            if (fillMask) fillMask.style.height = Math.max(0, (fillPct - 0.5) * 200) + '%';
+        } else {
+            if (fillMask) fillMask.style.height = '0%';
+        }
+    });
+
+    // Scroll conveyor to center active gift
+    const container = document.getElementById('giftsConveyor');
+    const activeItem = items[activeIdx];
+    if (activeItem && container) {
+        const containerW = container.offsetWidth;
+        const itemLeft = activeItem.offsetLeft;
+        const itemW = activeItem.offsetWidth;
+        const scrollTo = itemLeft - containerW / 2 + itemW / 2;
+        container.style.transform = `translateX(${-Math.max(0, scrollTo)}px)`;
+        container.style.transition = 'transform 0.3s ease';
+    }
+}
+
+/* ─── Reset conveyor ─── */
+function resetConveyor() {
+    const container = document.getElementById('giftsConveyor');
+    if (container) {
+        container.style.transform = 'translateX(0)';
+    }
+    document.querySelectorAll('.crash-gift-item').forEach(item => {
+        item.classList.remove('active', 'passed', 'filling');
+        const fm = item.querySelector('.gift-fill-mask');
+        if (fm) fm.style.height = '0%';
+    });
+}
+
+/* ─── Tab switching ─── */
+function setBetTab(tab) {
+    betTab = tab;
+    document.querySelectorAll('.crash-bet-tab').forEach(t =>
+        t.classList.toggle('active', t.dataset.tab === tab)
+    );
+    document.getElementById('betBodyGift').style.display = tab === 'gift' ? 'block' : 'none';
+    document.getElementById('betBodyStars').style.display = tab === 'stars' ? 'block' : 'none';
+}
+
+/* ─── Stars bet helpers ─── */
+function setMaxStarsBet() {
+    if (!currentUser) return;
+    document.getElementById('starsBetInput').value = Math.floor(currentUser.balance);
+}
+
+function quickStarsBet(val) {
+    document.getElementById('starsBetInput').value = val;
+}
+
+/* ─── Gift picker ─── */
+function openGiftPicker() {
+    const grid = document.getElementById('giftPickerGrid');
+    // Show inventory items
+    if (!userInventory.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:rgba(255,255,255,0.3);font-size:14px;">У вас нет подарков в инвентаре</div>';
+    } else {
+        grid.innerHTML = userInventory.map(item => `
+            <div class="crash-gift-pick-item" onclick="selectInventoryGift(${item.id}, '${(item.gift_name || '').replace(/'/g, "\\'")}', '${item.gift_image}', ${item.gift_price})">
+                <img src="${item.gift_image}" alt="${item.gift_name}" loading="lazy">
+                <div class="gift-pick-name">${item.gift_name}</div>
+                <div class="gift-pick-val"><img src="/static/img/star.svg" alt="">${item.gift_price}</div>
+            </div>
+        `).join('');
+    }
+    document.getElementById('giftPickerModal').classList.add('show');
+}
+
+function closeGiftPicker() {
+    document.getElementById('giftPickerModal').classList.remove('show');
+}
+
+function selectInventoryGift(id, name, image, value) {
+    selectedGift = { id, name, image, value };
+    document.getElementById('selectedGiftImg').src = image;
+    document.getElementById('selectedGiftName').textContent = name;
+    document.getElementById('selectedGiftVal').textContent = value;
+    document.getElementById('selectedGiftPreview').style.display = 'flex';
+    document.getElementById('selectGiftBtn').style.display = 'none';
+    document.querySelector('.crash-bet-gift-row').style.display = 'none';
+    closeGiftPicker();
+}
+
+function removeSelectedGift() {
+    selectedGift = null;
+    document.getElementById('selectedGiftPreview').style.display = 'none';
+    document.getElementById('selectGiftBtn').style.display = 'inline-flex';
+    document.querySelector('.crash-bet-gift-row').style.display = 'flex';
+}
+
+/* ─── Update top bar ─── */
+function updateCrashTopBar() {
+    if (!currentUser) return;
+    document.getElementById('crashBalVal').textContent = Math.floor(currentUser.balance);
+    const avatarImg = document.getElementById('crashAvatarImg');
+    if (currentUser.photo_url && avatarImg) {
+        avatarImg.src = currentUser.photo_url;
+    } else if (avatarImg) {
+        avatarImg.style.display = 'none';
+        const wrap = document.getElementById('crashAvatar');
+        if (wrap && !wrap.querySelector('.crash-avatar-letter')) {
+            const letter = document.createElement('div');
+            letter.className = 'crash-avatar-letter';
+            letter.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;';
+            letter.textContent = (currentUser.first_name || '?')[0];
+            wrap.appendChild(letter);
+        }
+    }
+}
+
+/* ─── Time display ─── */
+function updateTimeDisplay() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const el = document.getElementById('crashTime');
+    if (el) el.textContent = h + ':' + m + ':' + s;
+}
+
+/* ─── Copy hash ─── */
+function copyHash() {
+    const hash = document.getElementById('crashHash').textContent;
+    if (hash && hash !== '—') {
+        navigator.clipboard.writeText(hash).then(() => {
+            showNotification('Hash скопирован', 'success');
+        }).catch(() => {});
+    }
+}
+
+/* ─── History colors ─── */
+function getHistColor(mult) {
+    if (mult <= 1.1) return 'gray';
+    if (mult <= 1.7) return 'green';
+    if (mult <= 2.5) return 'blue';
+    if (mult <= 4) return 'purple';
+    return 'gold';
+}
+
+/* ─── Load history ─── */
+async function loadHistory() {
+    try {
+        const r = await fetch('/api/crash/history');
+        const d = await r.json();
+        if (!d.success) return;
+        const bar = document.getElementById('crashHistory');
+        bar.innerHTML = (d.history || []).map(h => {
+            const m = h.multiplier;
+            return `<div class="crash-hist-pill ${getHistColor(m)}">${m.toFixed(2)}x</div>`;
+        }).join('');
+    } catch (e) {}
+}
+
+/* ─── Load bets / players ─── */
+async function loadBets() {
+    try {
+        const r = await fetch('/api/crash/bets');
+        const d = await r.json();
+        if (!d.success) return;
+        const list = document.getElementById('playersList');
+        const bets = d.bets || [];
+        document.getElementById('playersCount').textContent = bets.length;
+
+        list.innerHTML = bets.map(b => {
+            const avatar = b.photo_url
+                ? `<img src="${b.photo_url}" alt="">`
+                : `<div style="width:100%;height:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border-radius:10px;color:#fff;">${(b.first_name || '?')[0]}</div>`;
+
+            let resultHtml = '';
+            if (b.status === 'won') {
+                resultHtml = `<div class="crash-player-win"><img src="/static/img/star.svg" alt="">+${Math.floor(b.win_amount)}</div>`;
+            } else if (b.status === 'lost') {
+                resultHtml = `<div class="crash-player-win lost">Краш</div>`;
+            } else {
+                resultHtml = `<div class="crash-player-win playing">Играет</div>`;
+            }
+
+            return `
+                <div class="crash-player-row ${b.status === 'won' ? 'won' : ''}">
+                    <div class="crash-player-avatar">${avatar}</div>
+                    <div class="crash-player-info">
+                        <div class="crash-player-name">${b.first_name || 'Игрок'}</div>
+                        <div class="crash-player-bet"><img src="/static/img/star.svg" alt="">${Math.floor(b.bet_amount)}</div>
+                    </div>
+                    <div class="crash-player-result">${resultHtml}</div>
+                </div>
+            `;
+        }).join('');
+    } catch (e) {}
+}
+
+/* ─── Poll status ─── */
+async function pollStatus() {
+    const t0 = performance.now();
+    try {
+        const r = await fetch('/api/crash/status');
+        const d = await r.json();
+        pingMs = Math.round(performance.now() - t0);
+        document.getElementById('pingMs').textContent = pingMs;
+
+        if (!d.success) return;
+
+        const prevStatus = gameState.status;
+        const prevId = gameState.game_id;
+        gameState = d;
+        targetMult = d.multiplier || 1.00;
+
+        // Hash
+        if (d.hash) {
+            const hashEl = document.getElementById('crashHash');
+            const shortened = d.hash.substring(0, 10) + '...' + d.hash.substring(d.hash.length - 10);
+            hashEl.textContent = shortened;
+            hashEl.title = d.hash;
+        }
+
+        // New round detection
+        if (prevId !== 0 && d.game_id !== prevId) {
+            crashDone = false;
+            smoothMult = 1.00;
+            targetMult = 1.00;
+            resetConveyor();
+            if (myBet && myBet.game_id !== d.game_id) {
+                myBet = null;
+            }
+        }
+
+        updateGameUI();
+    } catch (e) {}
+}
+
+/* ─── Update game UI ─── */
+function updateGameUI() {
+    const st = gameState.status;
+    const multEl = document.getElementById('crashMult');
+    const statusEl = document.getElementById('crashStatusText');
+    const field = document.getElementById('crashField');
+    const btn = document.getElementById('crashActionBtn');
+    const btnText = document.getElementById('crashActionText');
+
+    field.classList.remove('flying', 'crashed', 'counting');
+
+    if (st === 'waiting' || st === 'counting') {
+        if (st === 'counting') {
+            field.classList.add('counting');
+            const sec = Math.ceil(gameState.countdown || 0);
+            multEl.textContent = '00 : ' + String(sec).padStart(2, '0');
+            multEl.className = 'crash-mult';
+            statusEl.textContent = 'СЛЕДУЮЩАЯ ИГРА ЧЕРЕЗ';
+            statusEl.className = 'crash-status-text';
+        } else {
+            multEl.textContent = '00 : 10';
+            multEl.className = 'crash-mult';
+            statusEl.textContent = 'СЛЕДУЮЩАЯ ИГРА ЧЕРЕЗ';
+            statusEl.className = 'crash-status-text';
+        }
+
+        resetConveyor();
+
+        if (!myBet) {
+            btn.className = 'crash-action-btn';
+            btn.disabled = false;
+            btnText.textContent = 'Ставка';
+        } else {
+            btn.className = 'crash-action-btn waiting';
+            btn.disabled = true;
+            btnText.textContent = 'Ожидание...';
+        }
+
+    } else if (st === 'flying') {
+        field.classList.add('flying');
+        multEl.className = 'crash-mult flying';
+        statusEl.textContent = 'ИГРА ИДЕТ';
+        statusEl.className = 'crash-status-text flying';
+        crashDone = false;
+
+        if (myBet && myBet.game_id === gameState.game_id) {
+            btn.className = 'crash-action-btn cashout';
+            btn.disabled = false;
+            btnText.textContent = 'Забрать';
+        } else {
+            btn.className = 'crash-action-btn waiting';
+            btn.disabled = true;
+            btnText.textContent = 'Ожидание...';
+        }
+
+    } else if (st === 'crashed') {
+        field.classList.add('crashed');
+        multEl.textContent = 'x' + (gameState.multiplier || 1).toFixed(2);
+        multEl.className = 'crash-mult crashed';
+        statusEl.textContent = 'CRASH!';
+        statusEl.className = 'crash-status-text crashed';
+        smoothMult = gameState.multiplier || 1;
+
+        if (!crashDone) {
+            crashDone = true;
+            try { tg.HapticFeedback.impactOccurred('heavy'); } catch (e) {}
+        }
+
+        if (myBet && myBet.game_id === gameState.game_id) {
+            myBet = null;
+        }
+        btn.className = 'crash-action-btn';
+        btn.disabled = false;
+        btnText.textContent = 'Ставка';
+    }
+}
+
+/* ─── Render loop (smooth multiplier) ─── */
+function renderLoop() {
+    if (gameState.status === 'flying') {
+        smoothMult += (targetMult - smoothMult) * 0.15;
+        if (smoothMult < 1) smoothMult = 1;
+
+        const multEl = document.getElementById('crashMult');
+        multEl.textContent = 'x' + smoothMult.toFixed(2);
+
+        // Auto cashout
+        const autoVal = parseFloat(document.getElementById('autoCashoutInput').value);
+        if (autoVal && autoVal > 1 && smoothMult >= autoVal && myBet && myBet.game_id === gameState.game_id) {
+            doCashout();
+        }
+
+        // Update conveyor
+        updateConveyor(smoothMult);
+    }
+    rafId = requestAnimationFrame(renderLoop);
+}
+
+/* ─── Place bet ─── */
+async function crashAction() {
+    // If flying and have bet — cashout
+    if (gameState.status === 'flying' && myBet && myBet.game_id === gameState.game_id) {
+        doCashout();
+        return;
+    }
+
+    if (myBet) return;
+    if (!currentUser) { showNotification('Авторизуйтесь', 'error'); return; }
+
+    let starsAmount = 0;
+
+    if (betTab === 'stars') {
+        const amount = parseFloat(document.getElementById('starsBetInput').value);
+        if (!amount || amount <= 0) { showNotification('Введите ставку', 'error'); return; }
+        starsAmount = Math.floor(amount);
+        if (starsAmount < 1) { showNotification('Минимум 1 ⭐', 'error'); return; }
+        if (currentUser.balance < starsAmount) { showNotification('Недостаточно средств', 'error'); return; }
+    } else {
+        // Gift bet
+        if (!selectedGift) { showNotification('Выберите подарок', 'error'); return; }
+        starsAmount = selectedGift.value;
+    }
+
+    const btn = document.getElementById('crashActionBtn');
+    btn.disabled = true;
+
+    try {
+        const body = {
+            telegram_id: currentUser.telegram_id,
+            bet: starsAmount,
+            bet_type: betTab,
+        };
+        if (betTab === 'gift' && selectedGift) {
+            body.gift_inventory_id = selectedGift.id;
+        }
+
+        const r = await fetch('/api/crash/bet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const d = await r.json();
+        if (!d.success) {
+            showNotification(d.error || 'Ошибка', 'error');
+            btn.disabled = false;
+            return;
+        }
+        currentUser.balance = d.new_balance;
+        updateCrashTopBar();
+        if (typeof updateUI === 'function') updateUI();
+        myBet = {
+            game_id: d.game_id,
+            amount: starsAmount,
+            type: betTab,
+            gift: betTab === 'gift' ? selectedGift : null
+        };
+
+        if (betTab === 'gift') {
+            removeSelectedGift();
+            loadUserInventory(); // refresh
+        }
+
+        btn.className = 'crash-action-btn waiting';
+        btn.disabled = true;
+        document.getElementById('crashActionText').textContent = 'Ожидание...';
+        try { tg.HapticFeedback.impactOccurred('medium'); } catch (e) {}
+    } catch (e) {
+        showNotification('Ошибка соединения', 'error');
+        btn.disabled = false;
+    }
+}
+
+/* ─── Cashout ─── */
+async function doCashout() {
+    if (!myBet) return;
+    const btn = document.getElementById('crashActionBtn');
+    btn.disabled = true;
+
+    try {
+        const r = await fetch('/api/crash/cashout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                telegram_id: currentUser.telegram_id,
+                game_id: myBet.game_id
+            })
+        });
+        const d = await r.json();
+        if (d.success) {
+            currentUser.balance = d.new_balance;
+            updateCrashTopBar();
+            if (typeof updateUI === 'function') updateUI();
+
+            // Show win popup
+            showWinPopup(myBet, d.winnings, d.multiplier);
+
+            try { tg.HapticFeedback.impactOccurred('light'); } catch (e) {}
+        } else {
+            showNotification(d.error || 'Ошибка кешаута', 'error');
+        }
+    } catch (e) {
+        showNotification('Ошибка соединения', 'error');
+    }
+
+    myBet = null;
+    btn.disabled = false;
+    btn.className = 'crash-action-btn';
+    document.getElementById('crashActionText').textContent = 'Ставка';
+}
+
+/* ─── Win popup ─── */
+function showWinPopup(bet, winnings, multiplier) {
+    const overlay = document.getElementById('winOverlay');
+    const giftImg = document.getElementById('winGiftImg');
+    const multEl = document.getElementById('winMult');
+    const details = document.getElementById('winDetails');
+    const breakdown = document.getElementById('winBreakdown');
+
+    if (bet.type === 'gift' && bet.gift) {
+        giftImg.src = bet.gift.image;
+        giftImg.style.display = 'block';
+        multEl.textContent = multiplier.toFixed(2) + 'x';
+        multEl.style.display = 'inline-block';
+        details.innerHTML = `Ставка <img src="/static/img/star.svg" alt=""> <b>${bet.amount}</b> &gt; Выигрыш <img src="/static/img/star.svg" alt=""> <b>${Math.floor(winnings)}</b>`;
+        breakdown.innerHTML = `<img src="/static/img/star.svg" alt=""> ${Math.floor(winnings)} в подарках и <img src="/static/img/star.svg" alt=""> 0 на баланс`;
+        breakdown.style.display = 'flex';
+    } else {
+        giftImg.style.display = 'none';
+        multEl.style.display = 'none';
+        details.innerHTML = `Ставка <img src="/static/img/star.svg" alt=""> <b>${bet.amount}</b> &gt; Выигрыш <img src="/static/img/star.svg" alt=""> <b>${Math.floor(winnings)}</b>`;
+        breakdown.style.display = 'none';
+    }
+
+    overlay.classList.add('show');
+}
+
+function closeWinPopup() {
+    document.getElementById('winOverlay').classList.remove('show');
+}
+
+/* ─── Init ─── */
+document.addEventListener('DOMContentLoaded', async function () {
+    setLoadProgress(5, 'Инициализация...');
+    await initApp();
+    setLoadProgress(40, 'Загрузка подарков...');
+    await loadCrashGifts();
+    buildConveyor();
+    setLoadProgress(60, 'Загрузка инвентаря...');
+    await loadUserInventory();
+    updateCrashTopBar();
+    loadHistory();
+    loadBets();
+
+    setLoadProgress(80, 'Подключение...');
+
+    // Start polling
+    pollStatus();
+    statusPollTimer = setInterval(pollStatus, 800);
+    betsPollTimer = setInterval(loadBets, 3000);
+    historyTimer = setInterval(loadHistory, 10000);
+    setInterval(updateTimeDisplay, 1000);
+    updateTimeDisplay();
+
+    // Start render loop
+    rafId = requestAnimationFrame(renderLoop);
+
+    setLoadProgress(100, 'Готово!');
+    dismissLoading();
+});

@@ -7,9 +7,11 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
     <style>
         body { background: #0E1621; overflow-x: hidden; }
+        .header { background: rgba(14, 22, 33, 0.85) !important; }
+        .user-avatar { border: 2px solid rgba(255,255,255,0.15); }
 
         .scratch-list {
             display: grid;
@@ -55,6 +57,7 @@
         .scratch-card-name {
             font-size: 14px; font-weight: 700; color: #fff;
             margin-bottom: 6px; letter-spacing: 0.3px;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .scratch-card-price {
             display: inline-flex; align-items: center; gap: 4px;
@@ -345,14 +348,14 @@
                 </div>
             </div>
             <div class="header-right">
-                <button class="topup-btn" onclick="window.location.href='/topup'"><img src="/static/img/plus.svg" alt="+"></button>
+                <button class="topup-btn" onclick="openDepositModal()"><img src="/static/img/plus.svg" alt="+"></button>
             </div>
         </div>
 
         <!-- Scratch List -->
         <div id="scratchListView">
             <div class="section-header">
-                <h2><img class="section-icon" src="/static/gifs/moon.gif" alt="" style="width:26px;height:26px;"> Moon Scratch</h2>
+                <h2><img class="section-icon" src="/static/gifs/scratch/moon.gif" alt="" style="width:26px;height:26px;"> Moon Scratch</h2>
                 <p>Выберите скретч и испытайте удачу</p>
             </div>
             <div class="scratch-list" id="scratchList">
@@ -400,15 +403,15 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
     <script>
     let scratches = [];
     let currentScratch = null;
@@ -478,7 +481,7 @@
             else priceHtml = s.price + ' <img src="/static/img/star.svg" alt="">';
             return `<div class="scratch-card${isFreeTarget?' free-glow':''}${hasDisc?' disc-glow':''}" onclick="openScratchDetail(${s.id})">
                 ${isFreeTarget?'<div class="free-badge">FREE</div>':''}${hasDisc?'<div class="disc-badge">-'+activeScratchDiscount.percent+'%</div>':''}
-                <img class="scratch-card-img" src="${s.image}" alt="${esc(s.name)}" onerror="this.src='/static/gifs/moon.gif'">
+                <img class="scratch-card-img" src="${s.image}" alt="${esc(s.name)}" onerror="this.src='/static/gifs/scratch/moon.gif'">
                 <div class="scratch-card-name">${esc(s.name)}</div>
                 <div class="scratch-card-price">${priceHtml}</div>
                 <div class="scratch-card-cells">${s.cells} ячеек${s.picks && s.picks > 1 ? ' · x' + s.picks : ''}</div>
@@ -493,7 +496,7 @@
         document.getElementById('detailTitle').textContent = s.name;
         const dImg = document.getElementById('detailImg');
         dImg.src = s.image;
-        dImg.onerror = function() { this.src = '/static/gifs/moon.gif'; };
+        dImg.onerror = function() { this.src = '/static/gifs/scratch/moon.gif'; };
         // Check if this scratch is the free one
         const sorted = [...scratches].sort((a,b) => b.price - a.price);
         const cheapestId = sorted.length ? sorted[sorted.length-1].id : -1;
@@ -614,12 +617,26 @@
         const prizesList = picks > 1 ? (gameResult.prizes || []) : [gameResult];
         prizeQueue = [...prizesList];
 
+        // Adapt grid for different cell counts
+        if (cells >= 7) {
+            grid.style.maxWidth = '340px';
+            grid.style.gap = '10px';
+            const cellSize = cells >= 9 ? '78px' : '82px';
+            grid.dataset.cellSize = cellSize;
+        } else {
+            grid.style.maxWidth = '340px';
+            grid.style.gap = '14px';
+            grid.dataset.cellSize = '92px';
+        }
+
         // All cells get filler visuals (real prize swapped on scratch)
         for (let i = 0; i < cells; i++) {
             cellPrizes[i] = getRandomFillerPrize();
         }
 
         let html = '';
+        const cellSize = grid.dataset.cellSize || '92px';
+        const canvasRes = cells >= 7 ? 164 : 184;
         for (let i = 0; i < cells; i++) {
             const cp = cellPrizes[i];
             let prizeImg, prizeIsNft = false;
@@ -633,9 +650,9 @@
             }
             const imgStyle = prizeIsNft ? 'width:100%;height:100%;object-fit:cover;border-radius:16px;opacity:0.7;' : '';
             const fallbackImg = cp.prize_image || '/static/img/gift.png';
-            html += `<div class="scratch-cell" id="sc${i}" data-idx="${i}">
+            html += `<div class="scratch-cell" id="sc${i}" data-idx="${i}" style="width:${cellSize};height:${cellSize};">
                 <div class="scratch-cell-prize"><img src="${prizeImg}" alt="" ${prizeIsNft ? `style="${imgStyle}" data-slug="${cp.prize_slug}" data-count="${cp.prize_item_count||1000}"` : ''} onerror="this.style='';this.src='${fallbackImg}'"></div>
-                <canvas id="cv${i}" width="184" height="184"></canvas>
+                <canvas id="cv${i}" width="${canvasRes}" height="${canvasRes}"></canvas>
             </div>`;
         }
         grid.innerHTML = html;
@@ -695,7 +712,7 @@
             ctx.arc(W/2, H/2, 40, 0, Math.PI*2);
             ctx.fill();
         };
-        coverImg.src = currentScratch.image || '/static/gifs/moon.gif';
+        coverImg.src = currentScratch.image || '/static/gifs/scratch/moon.gif';
 
         // Scratch interaction
         let isDown = false;
@@ -782,6 +799,7 @@
                 }
             }
             if (Math.random() < 0.08) {
+                try { LunaSound.scratch(); } catch(e) {}
                 try { if(tg) tg.HapticFeedback.impactOccurred('light'); } catch(e) {}
             }
         }
@@ -832,6 +850,7 @@
         setTimeout(() => { canvas.style.display = 'none'; }, 400);
 
         try { if(tg) tg.HapticFeedback.impactOccurred('heavy'); } catch(e) {}
+        try { LunaSound.reveal(); } catch(e) {}
 
         revealedCount++;
         scratchingCell = null;
@@ -949,6 +968,7 @@
         document.getElementById('resultGreyDrops').innerHTML = '';
 
         resultDiv.classList.add('active');
+        try { LunaSound.win(); } catch(e) {}
         try { if(tg) tg.HapticFeedback.notificationOccurred('success'); } catch(e) {}
     }
 
@@ -1013,6 +1033,8 @@
         setLoadProgress(75, 'Загрузка скретчей...');
         await loadScratches();
         dismissLoading();
+        // First-visit tutorial
+        setTimeout(()=>{ showTutorial('scratch', buildScratchTutorialSteps()); }, 600);
     });
     </script>
 </body>

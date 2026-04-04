@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luna Gifts &mdash; Leaderboard</title>
+    <link rel="icon" href="/static/img/logo.png" type="image/png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403n">
+    <style>
+    body{background:var(--bg);overflow-x:hidden;}
+
+    .lb-container{max-width:480px;margin:0 auto;padding:0 16px calc(var(--nav-h,64px)+var(--safe-bottom,0px)+20px);min-height:100vh;}
+
+    /* Header */
+    .lb-header{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px;position:sticky;top:0;z-index:50;background:rgba(14,14,26,.95);backdrop-filter:blur(20px);margin:0 -16px;padding-left:16px;padding-right:16px;}
+    .lb-title{font-size:20px;font-weight:900;color:#fff;}
+    .lb-header-right{display:flex;align-items:center;gap:8px;}
+    .lb-results-btn{display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);font-size:12px;font-weight:700;color:rgba(255,255,255,.6);cursor:pointer;}
+    .lb-results-btn img{width:14px;height:14px;}
+    .lb-timer{display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:10px;background:rgba(255,140,0,.1);border:1px solid rgba(255,140,0,.15);font-size:12px;font-weight:700;color:#FF8C00;}
+    .lb-timer img{width:14px;height:14px;}
+
+    /* Podium */
+    .lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;padding:24px 0 16px;position:relative;}
+    .lb-podium-item{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+    .lb-podium-item.place-1{order:2;}
+    .lb-podium-item.place-2{order:1;}
+    .lb-podium-item.place-3{order:3;}
+
+    .lb-podium-avatar{width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid #888;position:relative;background:rgba(255,255,255,.1);}
+    .lb-podium-item.place-1 .lb-podium-avatar{width:80px;height:80px;border-color:#FFD700;box-shadow:0 0 20px rgba(255,215,0,.3);}
+    .lb-podium-item.place-2 .lb-podium-avatar{border-color:#C0C0C0;box-shadow:0 0 16px rgba(192,192,192,.2);}
+    .lb-podium-item.place-3 .lb-podium-avatar{border-color:#CD7F32;box-shadow:0 0 16px rgba(205,127,50,.2);}
+    .lb-podium-avatar img{width:100%;height:100%;object-fit:cover;}
+    .lb-podium-badge{position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:#fff;z-index:2;}
+    .lb-podium-item.place-1 .lb-podium-badge{background:linear-gradient(135deg,#FFD700,#FFA500);width:28px;height:28px;font-size:14px;}
+    .lb-podium-item.place-2 .lb-podium-badge{background:linear-gradient(135deg,#C0C0C0,#A0A0A0);}
+    .lb-podium-item.place-3 .lb-podium-badge{background:linear-gradient(135deg,#CD7F32,#A0652A);}
+
+    .lb-podium-nick{font-size:12px;font-weight:700;color:#fff;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;}
+    .lb-podium-turnover{display:flex;align-items:center;gap:3px;font-size:11px;font-weight:700;color:#FFD74A;}
+    .lb-podium-turnover img{width:12px;height:12px;}
+
+    /* Podium bar */
+    .lb-podium-bar{width:100%;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:center;margin-top:4px;}
+    .lb-podium-item.place-1 .lb-podium-bar{height:120px;background:linear-gradient(180deg,#FFD700,#B8860B);width:120px;}
+    .lb-podium-item.place-2 .lb-podium-bar{height:90px;background:linear-gradient(180deg,#C0C0C0,#808080);width:110px;}
+    .lb-podium-item.place-3 .lb-podium-bar{height:70px;background:linear-gradient(180deg,#CD7F32,#8B5A2B);width:110px;}
+
+    /* Prize on podium bar */
+    .lb-podium-prize{width:60px;height:60px;object-fit:contain;cursor:pointer;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));transition:transform .2s;}
+    .lb-podium-prize:active{transform:scale(.9);}
+    .lb-podium-item.place-1 .lb-podium-prize{width:70px;height:70px;}
+
+    /* Special rows (places 4-5) */
+    .lb-special-row{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:6px;}
+    .lb-special-rank{width:28px;height:28px;position:relative;flex-shrink:0;}
+    .lb-special-rank svg{width:28px;height:28px;}
+    .lb-special-rank span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:900;color:#fff;}
+    .lb-special-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.15);flex-shrink:0;background:rgba(255,255,255,.1);}
+    .lb-special-avatar img{width:100%;height:100%;object-fit:cover;}
+    .lb-special-info{flex:1;min-width:0;}
+    .lb-special-name{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .lb-special-turnover{display:flex;align-items:center;gap:3px;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);margin-top:1px;}
+    .lb-special-turnover img{width:11px;height:11px;}
+    .lb-special-prize{width:44px;height:44px;object-fit:contain;cursor:pointer;flex-shrink:0;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3));transition:transform .2s;}
+    .lb-special-prize:active{transform:scale(.9);}
+
+    /* Regular rows (6-10) */
+    .lb-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.02);margin-bottom:4px;}
+    .lb-row-rank{font-size:14px;font-weight:800;color:rgba(255,255,255,.4);width:24px;text-align:center;flex-shrink:0;}
+    .lb-row-avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;background:rgba(255,255,255,.1);}
+    .lb-row-avatar img{width:100%;height:100%;object-fit:cover;}
+    .lb-row-info{flex:1;min-width:0;}
+    .lb-row-name{font-size:13px;font-weight:700;color:rgba(255,255,255,.7);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .lb-row-turnover{display:flex;align-items:center;gap:3px;font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;}
+    .lb-row-turnover img{width:10px;height:10px;}
+
+    /* Your rank bar */
+    .lb-your-rank{display:flex;align-items:center;gap:10px;padding:14px;border-radius:16px;background:rgba(255,140,0,.08);border:2px solid rgba(255,140,0,.2);margin:16px 0 12px;}
+    .lb-your-rank-num{font-size:18px;font-weight:900;color:#FF8C00;width:32px;text-align:center;}
+    .lb-your-avatar{width:40px;height:40px;border-radius:50%;overflow:hidden;border:2px solid #FF8C00;flex-shrink:0;background:rgba(255,255,255,.1);}
+    .lb-your-avatar img{width:100%;height:100%;object-fit:cover;}
+    .lb-your-info{flex:1;min-width:0;}
+    .lb-your-name{font-size:14px;font-weight:800;color:#FF8C00;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .lb-your-turnover{display:flex;align-items:center;gap:3px;font-size:12px;color:rgba(255,140,0,.6);margin-top:1px;}
+    .lb-your-turnover img{width:11px;height:11px;}
+
+    /* Empty state */
+    .lb-empty{text-align:center;padding:60px 20px;color:rgba(255,255,255,.3);font-size:15px;font-weight:600;}
+
+    /* Prize modal */
+    .lb-prize-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.8);backdrop-filter:blur(12px);}
+    .lb-prize-overlay.show{display:flex;}
+    .lb-prize-popup{position:relative;width:90%;max-width:360px;text-align:center;padding:24px 20px 28px;}
+    .lb-prize-title{font-size:22px;font-weight:900;color:#FF8C00;margin-bottom:6px;}
+    .lb-prize-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px;}
+    .lb-prize-card{background:linear-gradient(180deg,rgba(52,216,122,.15) 0%,rgba(52,216,122,.05) 100%);border:1px solid rgba(52,216,122,.2);border-radius:20px;padding:20px;display:inline-block;position:relative;margin-bottom:12px;}
+    .lb-prize-card-close{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .lb-prize-card-close svg{width:14px;height:14px;stroke:rgba(255,255,255,.5);}
+    .lb-prize-card img{width:140px;height:140px;object-fit:contain;display:block;margin:0 auto;}
+    .lb-prize-name{font-size:18px;font-weight:800;color:#fff;margin-top:12px;text-align:left;}
+    .lb-prize-value{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:8px;background:rgba(255,140,0,.15);border:1px solid rgba(255,140,0,.25);font-size:14px;font-weight:700;color:#FF8C00;margin-top:6px;float:right;}
+    .lb-prize-value img{width:14px;height:14px;}
+
+    /* Confetti particles (decorative) */
+    .lb-confetti{position:fixed;top:0;left:0;right:0;height:50%;pointer-events:none;z-index:301;overflow:hidden;}
+    .lb-confetti span{position:absolute;width:8px;height:8px;border-radius:2px;opacity:.7;animation:confettiFall 3s linear forwards;}
+    @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1;}100%{transform:translateY(60vh) rotate(720deg);opacity:0;}}
+
+    /* Results overlay */
+    .lb-results-overlay{position:fixed;top:0;left:0;right:0;bottom:0;z-index:200;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(10px);}
+    .lb-results-overlay.show{display:flex;}
+    .lb-results-sheet{width:100%;max-width:480px;max-height:80vh;background:#1a1a2e;border-radius:20px 20px 0 0;overflow-y:auto;padding:20px;animation:slideUp .3s ease-out;}
+    @keyframes slideUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+    .lb-results-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+    .lb-results-title{font-size:18px;font-weight:800;color:#fff;}
+    .lb-results-close{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .lb-results-close img{width:14px;height:14px;}
+
+    @media(max-width:360px){
+        .lb-podium-item.place-1 .lb-podium-bar{height:100px;width:100px;}
+        .lb-podium-item.place-2 .lb-podium-bar{height:75px;width:95px;}
+        .lb-podium-item.place-3 .lb-podium-bar{height:60px;width:95px;}
+        .lb-podium-item.place-1 .lb-podium-avatar{width:68px;height:68px;}
+        .lb-podium-avatar{width:56px;height:56px;}
+        .lb-podium-prize{width:50px;height:50px;}
+        .lb-podium-item.place-1 .lb-podium-prize{width:56px;height:56px;}
+        .lb-title{font-size:17px;}
+    }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
+        <div class="loading-text">Luna Gifts</div>
+        <div class="load-progress-wrap"><div class="load-progress-bar" id="loadProgressBar"></div></div>
+        <div class="load-status" id="loadStatus" data-i18n="loading">Loading...</div>
+        <div class="load-percent" id="loadPercent">0%</div>
+    </div>
+
+    <div class="lb-container">
+        <!-- Header -->
+        <div class="lb-header">
+            <div class="lb-title">Лидерборд</div>
+            <div class="lb-header-right">
+                <div class="lb-results-btn" onclick="showResults()">
+                    <img src="/static/img/star.png" alt="">
+                    <span>Результаты</span>
+                </div>
+                <div class="lb-timer" id="lbTimer">
+                    <img src="/static/img/star.png" alt="">
+                    <span id="lbTimerText">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content -->
+        <div id="lbContent">
+            <div class="lb-empty" id="lbEmpty" style="display:none;">Нет активного сезона</div>
+
+            <!-- Podium (top 3) -->
+            <div class="lb-podium" id="lbPodium" style="display:none;"></div>
+
+            <!-- Special rows 4-5 -->
+            <div id="lbSpecial" style="display:none;"></div>
+
+            <!-- Regular rows 6-10 -->
+            <div id="lbRegular"></div>
+
+            <!-- Your rank -->
+            <div class="lb-your-rank" id="lbYourRank" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Prize Detail Modal -->
+    <div class="lb-prize-overlay" id="prizeOverlay" onclick="closePrizeModal(event)">
+        <div class="lb-confetti" id="prizeConfetti"></div>
+        <div class="lb-prize-popup">
+            <div class="lb-prize-title" id="prizeTitle"></div>
+            <div class="lb-prize-sub" id="prizeSub"></div>
+            <div class="lb-prize-card">
+                <button class="lb-prize-card-close" onclick="closePrizeModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <img id="prizeImg" src="" alt="">
+            </div>
+            <div style="text-align:left;padding:0 20px;">
+                <div class="lb-prize-name" id="prizeName"></div>
+                <div class="lb-prize-value" id="prizeValue"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results overlay -->
+    <div class="lb-results-overlay" id="resultsOverlay" onclick="if(event.target===this)closeResults()">
+        <div class="lb-results-sheet">
+            <div class="lb-results-header">
+                <div class="lb-results-title">Результаты прошлого сезона</div>
+                <button class="lb-results-close" onclick="closeResults()"><img src="/static/img/exit.png" alt="x" class="exit-btn-img"></button>
+            </div>
+            <div id="resultsContent">Загрузка...</div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
+        </div>
+    </nav>
+
+    <script src="/static/js/app.js?v=20260403n"></script>
+    <script>
+    let lbData = null;
+    let lbTimerInterval = null;
+
+    function avatarHtml(url, name, cls) {
+        if (url) return '<img src="'+url+'" alt="" onerror="this.style.display=\'none\'">';
+        const letter = (name || '?')[0];
+        return '<div style="width:100%;height:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:'+((cls==='big')?'24':'14')+'px;">'+letter+'</div>';
+    }
+
+    function getNftBgUrl(slug, count) {
+        if (!slug) return '';
+        const n = Math.floor(Math.random() * (count || 1000)) + 1;
+        return 'https://nft.fragment.com/gift/' + slug + '-' + n + '.medium.jpg';
+    }
+
+    function openPrizeModal(place, name, image, value) {
+        document.getElementById('prizeTitle').textContent = 'Приз за ' + place + '-е место';
+        document.getElementById('prizeSub').textContent = 'Займите ' + place + ' место чтобы получить этот предмет';
+        document.getElementById('prizeImg').src = image;
+        document.getElementById('prizeName').textContent = name;
+        document.getElementById('prizeValue').innerHTML = value + ' <img src="/static/img/star.svg" alt="">';
+        // Spawn confetti
+        const confetti = document.getElementById('prizeConfetti');
+        confetti.innerHTML = '';
+        const colors = ['#FF8C00','#FFD700','#FF4500','#34D87A','#00b4ff','#a050ff','#e040fb'];
+        for (let i = 0; i < 30; i++) {
+            const s = document.createElement('span');
+            s.style.cssText = 'left:'+Math.random()*100+'%;top:-10px;background:'+colors[Math.floor(Math.random()*colors.length)]+';animation-delay:'+Math.random()*2+'s;animation-duration:'+(2+Math.random()*2)+'s;width:'+(4+Math.random()*8)+'px;height:'+(4+Math.random()*8)+'px;';
+            confetti.appendChild(s);
+        }
+        document.getElementById('prizeOverlay').classList.add('show');
+    }
+
+    function closePrizeModal(e) {
+        if (e && e.target !== e.currentTarget && !e.target.closest('.lb-prize-card-close')) return;
+        document.getElementById('prizeOverlay').classList.remove('show');
+    }
+
+    function updateTimer() {
+        if (!lbData || !lbData.active) return;
+        const now = Date.now() / 1000;
+        const remaining = Math.max(0, lbData.end_time - now);
+        if (remaining <= 0) {
+            document.getElementById('lbTimerText').textContent = 'Завершён';
+            clearInterval(lbTimerInterval);
+            return;
+        }
+        const d = Math.floor(remaining / 86400);
+        const h = Math.floor((remaining % 86400) / 3600);
+        const m = Math.floor((remaining % 3600) / 60);
+        let text = '';
+        if (d > 0) text = d + 'д ' + h + 'ч ' + m + 'м';
+        else if (h > 0) text = h + 'ч ' + m + 'м';
+        else text = m + 'м';
+        document.getElementById('lbTimerText').textContent = text;
+    }
+
+    function renderLeaderboard(data) {
+        lbData = data;
+        const podium = document.getElementById('lbPodium');
+        const special = document.getElementById('lbSpecial');
+        const regular = document.getElementById('lbRegular');
+        const yourRank = document.getElementById('lbYourRank');
+        const empty = document.getElementById('lbEmpty');
+
+        if (!data.active || !data.rankings || !data.rankings.length) {
+            empty.style.display = 'block';
+            podium.style.display = 'none';
+            special.style.display = 'none';
+            regular.innerHTML = '';
+            yourRank.style.display = 'none';
+            if (!data.active) {
+                document.getElementById('lbTimerText').textContent = '--';
+            }
+            return;
+        }
+
+        empty.style.display = 'none';
+        const rankings = data.rankings;
+        const prizes = {};
+        (data.prizes || []).forEach(p => { prizes[p.place] = p; });
+
+        // --- Podium (top 3) ---
+        const top3 = rankings.slice(0, 3);
+        podium.innerHTML = '';
+        podium.style.display = 'flex';
+
+        [2, 1, 3].forEach(place => {
+            const idx = place - 1;
+            const r = top3[idx];
+            if (!r) return;
+            const prize = prizes[place];
+            const prizeImg = prize ? prize.gift_image : '';
+            const prizeOnClick = prize ? 'openPrizeModal('+place+',"'+esc(prize.gift_name)+'","'+esc(prize.gift_image)+'",'+prize.gift_value+')' : '';
+
+            const item = document.createElement('div');
+            item.className = 'lb-podium-item place-' + place;
+            item.innerHTML = `
+                <div class="lb-podium-avatar">
+                    ${avatarHtml(r.photo_url, r.first_name || r.username, place === 1 ? 'big' : '')}
+                    <div class="lb-podium-badge">${place}</div>
+                </div>
+                <div class="lb-podium-nick">${esc(r.first_name || r.username || 'User')}</div>
+                <div class="lb-podium-turnover"><img src="/static/img/star.png" alt="">${Math.floor(r.turnover).toLocaleString()}</div>
+                <div class="lb-podium-bar">
+                    ${prizeImg ? '<img class="lb-podium-prize" src="'+esc(prizeImg)+'" alt="" onclick="'+prizeOnClick+'">' : ''}
+                </div>
+            `;
+            podium.appendChild(item);
+        });
+
+        // --- Special rows (4-5) ---
+        const special45 = rankings.slice(3, 5);
+        if (special45.length) {
+            special.style.display = 'block';
+            special.innerHTML = special45.map((r, i) => {
+                const place = i + 4;
+                const prize = prizes[place];
+                const starSvg = '<svg viewBox="0 0 24 24" fill="#FF8C00"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>';
+                const prizeHtml = prize ? '<img class="lb-special-prize" src="'+esc(prize.gift_image)+'" alt="" onclick="openPrizeModal('+place+',\''+esc(prize.gift_name)+'\',\''+esc(prize.gift_image)+'\','+prize.gift_value+')">' : '';
+                return `<div class="lb-special-row">
+                    <div class="lb-special-rank">${starSvg}<span>${place}</span></div>
+                    <div class="lb-special-avatar">${avatarHtml(r.photo_url, r.first_name || r.username)}</div>
+                    <div class="lb-special-info">
+                        <div class="lb-special-name">${esc(r.first_name || r.username || 'User')}</div>
+                        <div class="lb-special-turnover"><img src="/static/img/star.png" alt="">${Math.floor(r.turnover).toLocaleString()}</div>
+                    </div>
+                    ${prizeHtml}
+                </div>`;
+            }).join('');
+        } else {
+            special.style.display = 'none';
+        }
+
+        // --- Regular rows (6-10) ---
+        const rest = rankings.slice(5, 10);
+        regular.innerHTML = rest.map((r, i) => {
+            const place = i + 6;
+            return `<div class="lb-row">
+                <div class="lb-row-rank">${place}</div>
+                <div class="lb-row-avatar">${avatarHtml(r.photo_url, r.first_name || r.username)}</div>
+                <div class="lb-row-info">
+                    <div class="lb-row-name">${esc(r.first_name || r.username || 'User')}</div>
+                    <div class="lb-row-turnover"><img src="/static/img/star.png" alt="">${Math.floor(r.turnover).toLocaleString()}</div>
+                </div>
+            </div>`;
+        }).join('');
+
+        // --- Your rank ---
+        if (typeof currentUser !== 'undefined' && currentUser) {
+            const myIdx = rankings.findIndex(r => String(r.user_id) === String(currentUser.telegram_id));
+            if (myIdx >= 0) {
+                const myRank = myIdx + 1;
+                const r = rankings[myIdx];
+                yourRank.style.display = 'flex';
+                yourRank.innerHTML = `
+                    <div class="lb-your-rank-num">${myRank}</div>
+                    <div class="lb-your-avatar">${avatarHtml(r.photo_url, r.first_name || r.username)}</div>
+                    <div class="lb-your-info">
+                        <div class="lb-your-name">${esc(r.first_name || r.username || 'You')}</div>
+                        <div class="lb-your-turnover"><img src="/static/img/star.png" alt="">${Math.floor(r.turnover).toLocaleString()}</div>
+                    </div>
+                `;
+            } else {
+                yourRank.style.display = 'flex';
+                yourRank.innerHTML = `
+                    <div class="lb-your-rank-num">--</div>
+                    <div class="lb-your-avatar">${avatarHtml(currentUser.photo_url, currentUser.first_name)}</div>
+                    <div class="lb-your-info">
+                        <div class="lb-your-name">${esc(currentUser.first_name || 'You')}</div>
+                        <div class="lb-your-turnover"><img src="/static/img/star.png" alt="">0</div>
+                    </div>
+                `;
+            }
+        }
+
+        // Timer
+        updateTimer();
+        clearInterval(lbTimerInterval);
+        lbTimerInterval = setInterval(updateTimer, 60000);
+    }
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+    async function loadLeaderboard() {
+        try {
+            const r = await fetch('/api/leaderboard');
+            const d = await r.json();
+            if (d.success) renderLeaderboard(d);
+        } catch(e) {}
+    }
+
+    async function showResults() {
+        document.getElementById('resultsOverlay').classList.add('show');
+        document.getElementById('resultsContent').innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.3);">Загрузка...</div>';
+        try {
+            const r = await fetch('/api/leaderboard/results');
+            const d = await r.json();
+            if (!d.success || !d.results || !d.results.length) {
+                document.getElementById('resultsContent').innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,.3);">Нет результатов</div>';
+                return;
+            }
+            document.getElementById('resultsContent').innerHTML = d.results.map(r => {
+                return `<div class="lb-row" style="margin-bottom:6px;">
+                    <div class="lb-row-rank" style="color:${r.place<=3?'#FFD700':'rgba(255,255,255,.4)'};font-weight:900;">${r.place}</div>
+                    <div class="lb-row-avatar">${avatarHtml(r.photo_url, r.first_name || r.username)}</div>
+                    <div class="lb-row-info">
+                        <div class="lb-row-name">${esc(r.first_name || r.username || 'User')}</div>
+                        <div class="lb-row-turnover"><img src="/static/img/star.png" alt="">${Math.floor(r.turnover).toLocaleString()}</div>
+                    </div>
+                    ${r.gift_image ? '<img src="'+esc(r.gift_image)+'" style="width:36px;height:36px;object-fit:contain;flex-shrink:0;" alt="">' : ''}
+                </div>`;
+            }).join('');
+        } catch(e) {
+            document.getElementById('resultsContent').innerHTML = '<div style="text-align:center;padding:30px;color:#FF4444;">Ошибка загрузки</div>';
+        }
+    }
+
+    function closeResults() {
+        document.getElementById('resultsOverlay').classList.remove('show');
+    }
+
+    document.addEventListener('DOMContentLoaded', async function() {
+        setLoadProgress(5, 'Init...');
+        await initApp();
+        setLoadProgress(50, 'Loading leaderboard...');
+        await loadLeaderboard();
+        setLoadProgress(100, 'Ready');
+        dismissLoading();
+        if (typeof applyLang === 'function') applyLang();
+    });
+    </script>
+</body>
+</html>

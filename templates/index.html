@@ -7,7 +7,7 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
@@ -37,9 +37,9 @@
                     <img src="/static/img/star.svg" alt="⭐">
                 </div>
             </div>
-            <button class="balance-plus-btn" onclick="window.location.href='/topup'">+</button>
+            <button class="balance-plus-btn" onclick="openDepositModal()"><svg width="12" height="12" viewBox="0 0 14 13" fill="none"><path d="M7 0.25C7.41421 0.25 7.75 0.585786 7.75 1V5.75H12.5C12.9142 5.75 13.25 6.08579 13.25 6.5C13.25 6.91421 12.9142 7.25 12.5 7.25H7.75V12C7.75 12.4142 7.41421 12.75 7 12.75C6.58579 12.75 6.25 12.4142 6.25 12V7.25H1.5C1.08579 7.25 0.75 6.91421 0.75 6.5C0.75 6.08579 1.08579 5.75 1.5 5.75H6.25V1C6.25 0.585786 6.58579 0.25 7 0.25Z" fill="white"/></svg></button>
             <div class="online-badge" id="onlineBadge">
-                <span class="online-dot"></span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 6.375C8.8875 6.375 11.25 7.875 11.25 9.375C11.25 10.4105 10.4105 11.25 9.375 11.25H2.625C1.58947 11.25 0.750001 10.4105 0.75 9.375C0.75 7.875 3.1125 6.375 6 6.375ZM6 0.75C7.44975 0.750001 8.625 1.92525 8.625 3.375C8.625 4.82475 7.44975 6 6 6C4.55025 6 3.375 4.82475 3.375 3.375C3.375 1.92525 4.55025 0.75 6 0.75Z" fill="currentColor"/></svg>
                 <span class="online-count" id="onlineCount">...</span>
             </div>
         </div>
@@ -134,15 +134,15 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item active"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item active"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
     <script>
     const TASK_ICONS={subscribe:'notification',chat:'message',story:'phone',bot:'bot',topup:'star',referral:'star',earn_stars:'reward'};
     let completedTasks=[];

@@ -816,6 +816,16 @@ select {
 .gift-visual{ width:100%; height:120px; display:flex;align-items:center;justify-content:center;border-radius:12px; overflow:hidden; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.02)); }
 .gift-backdrop{ width:100%; height:100%; object-fit:cover; }
 .gift-img{ width:78px; height:78px; object-fit:contain; filter:drop-shadow(0 10px 30px rgba(22,137,255,0.14)); }
+.gift-showcase{ position:relative; width:100%; height:100%; overflow:hidden; background:radial-gradient(circle at top, rgba(107,138,255,0.2), transparent 58%), linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); }
+.gift-showcase-slide{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transform:scale(.88) translateY(12px); transition:opacity .65s ease, transform .75s cubic-bezier(.22,1,.36,1); }
+.gift-showcase-slide.is-active{ opacity:1; transform:scale(1) translateY(0); }
+.gift-showcase-slide img{ width:72%; height:72%; object-fit:contain; filter:drop-shadow(0 16px 30px rgba(22,137,255,0.18)); }
+.gift-showcase-badge{ position:absolute; top:8px; left:8px; padding:4px 8px; border-radius:999px; background:rgba(8,12,24,.72); border:1px solid rgba(255,255,255,0.08); color:#dbe6ff; font-size:10px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+.gift-showcase-link{ position:absolute; bottom:10px; left:50%; transform:translateX(-50%); padding:8px 12px; border-radius:999px; background:rgba(8,12,24,.72); border:1px solid rgba(255,255,255,0.08); color:#fff; font-size:11px; font-weight:600; white-space:nowrap; }
+.gift-showcase.is-modal .gift-showcase-slide img{ width:78%; height:78%; }
+.showcase-pose-a img{ transform:rotate(-4deg) scale(.96); }
+.showcase-pose-b img{ transform:rotate(0deg) scale(1); }
+.showcase-pose-c img{ transform:rotate(5deg) scale(1.04); }
 .gift-name{ font-size:14px; font-weight:700; color:var(--text); }
 .gift-random-label{ font-size:11px; color:var(--text-secondary); font-weight:700; margin-top:4px }
 .gift-price-btn{ margin-top:8px; display:inline-flex; align-items:center; gap:8px; background:linear-gradient(90deg,var(--accent),#6b8aff); padding:8px 12px; border-radius:12px; color:#fff; font-weight:700; box-shadow:0 8px 30px rgba(22,137,255,0.12); }
@@ -1158,25 +1168,33 @@ select {
 }
 
 .case-card-v2 {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
+    background: linear-gradient(160deg, #1C2B3A 0%, #141E2B 100%);
+    border: 1px solid rgba(138,92,246,0.12);
+    border-radius: 20px;
     overflow: hidden;
     cursor: pointer;
-    transition: transform .15s, border-color .2s, box-shadow .2s;
-    padding: 14px 14px 12px;
+    transition: all .35s cubic-bezier(.175,.885,.32,1.275);
+    padding: 18px 12px 14px;
     position: relative;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+}
+
+.case-card-v2::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: radial-gradient(circle at 50% 0%, rgba(138,92,246,0.08) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .case-card-v2:active {
-    transform: scale(.96);
+    transform: translateY(-1px) scale(.97);
 }
 
 .case-card-v2:hover {
-    border-color: var(--border-light);
-    box-shadow: var(--glass-shadow);
+    transform: translateY(-5px) scale(1.02);
+    border-color: rgba(138,92,246,0.35);
+    box-shadow: 0 14px 35px rgba(138,92,246,0.12);
 }
 
 .case-card-v2-visual {
@@ -1191,11 +1209,15 @@ select {
 }
 
 .case-card-v2-visual img {
-    width: 85%;
-    height: 85%;
+    width: 80%;
+    height: 80%;
     object-fit: contain;
-    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, .4));
-    transition: transform .2s;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, .35));
+    transition: transform .35s;
+}
+
+.case-card-v2:hover .case-card-v2-visual img {
+    transform: scale(1.08) rotate(-2deg);
 }
 
 .case-card-v2:active .case-card-v2-visual img {
@@ -1203,26 +1225,27 @@ select {
 }
 
 .case-card-v2-name {
-    font-family: 'Onest', sans-serif;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     padding: 0 2px;
-    color: var(--text);
+    color: #fff;
+    letter-spacing: 0.3px;
 }
 
 .case-card-v2-price {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 4px;
-    font-family: 'Onest', sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-secondary);
-    padding: 0 2px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #F5A623;
+    background: rgba(245,166,35,0.08);
+    padding: 4px 12px;
+    border-radius: 20px;
 }
 
 .case-card-v2-price img {
@@ -1502,25 +1525,23 @@ select {
 
 .popular-case-card {
     position: relative;
-    border-radius: var(--radius-xl);
+    border-radius: 20px;
     overflow: hidden;
     margin-bottom: 18px;
     padding: 20px;
     display: flex;
     align-items: center;
     gap: 12px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
+    background: linear-gradient(160deg, #1C2B3A 0%, #141E2B 100%);
+    border: 1px solid rgba(138,92,246,0.15);
     cursor: pointer;
-    transition: transform .15s, border-color .2s, box-shadow .2s;
+    transition: all .35s cubic-bezier(.175,.885,.32,1.275);
     min-height: 140px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 }
 
 .popular-case-card:active {
     transform: scale(.98);
-    border-color: var(--accent);
+    border-color: rgba(138,92,246,0.5);
 }
 
 .popular-badge {
@@ -1554,6 +1575,9 @@ select {
     font-weight: 500;
     margin-bottom: 8px;
     color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .popular-case-drops {
@@ -1591,15 +1615,15 @@ select {
     align-items: center;
     gap: 5px;
     padding: 7px 16px;
-    border-radius: var(--radius);
+    border-radius: 14px;
     border: none;
-    background: var(--accent);
+    background: linear-gradient(135deg, #8A5CF6, #6D28D9);
     color: #fff;
-    font-family: 'Onest', sans-serif;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform .1s;
+    transition: all .2s;
+    box-shadow: 0 4px 18px rgba(138,92,246,0.3);
 }
 
 .popular-case-price-btn:active {
@@ -1646,19 +1670,16 @@ select {
     align-items: center;
     gap: 4px;
     padding: 7px 14px;
-    border-radius: var(--radius);
-    border: 1px solid var(--glass-border);
-    background: var(--glass-bg);
-    color: var(--text-secondary);
-    font-family: 'Onest', sans-serif;
+    border-radius: 12px;
+    border: 1px solid rgba(138,92,246,0.12);
+    background: linear-gradient(160deg, #1C2B3A, #141E2B);
+    color: #6B7B8D;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
     transition: all .2s;
     flex-shrink: 0;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
 }
 
 .case-filter-tab img {
@@ -1667,9 +1688,10 @@ select {
 }
 
 .case-filter-tab.active {
-    background: var(--accent);
+    background: linear-gradient(135deg, #8A5CF6, #6D28D9);
     color: #fff;
-    border-color: var(--accent);
+    border-color: rgba(138,92,246,0.5);
+    box-shadow: 0 4px 18px rgba(138,92,246,0.3);
 }
 
 .case-filter-tab:active {
@@ -1797,6 +1819,14 @@ select {
     margin: 8px auto 8px;
 }
 
+.case-sheet-topline {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
 /* Case Sheet Header */
 .case-sheet-header {
     display: flex;
@@ -1816,8 +1846,12 @@ select {
     font-size: 22px;
     font-weight: 400;
     letter-spacing: -.3px;
-    margin-bottom: 4px;
     color: var(--text);
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .case-sheet-price {
@@ -1828,6 +1862,7 @@ select {
     font-size: 16px;
     font-weight: 500;
     color: var(--text-secondary);
+    white-space: nowrap;
 }
 
 .case-sheet-price img {
@@ -1997,17 +2032,40 @@ select {
 .case-sheet-open-btn {
     width: 100%;
     height: 60px;
-    border-radius: 12px;
+    border-radius: 14px;
     border: none;
-    background: var(--accent);
+    background: linear-gradient(135deg, #8A5CF6 0%, #6D28D9 50%, #8A5CF6 100%);
+    background-size: 200% 100%;
     color: #fff;
-    font-family: 'Inter', sans-serif;
-    font-size: 20px;
-    font-weight: 500;
+    font-size: 18px;
+    font-weight: 700;
     cursor: pointer;
-    transition: transform .1s;
+    transition: all .2s;
     position: relative;
     overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 18px rgba(138,92,246,0.3);
+    letter-spacing: 0.5px;
+    animation: btnShimmer 3s ease-in-out infinite;
+}
+
+.case-open-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.case-open-price img {
+    width: 14px;
+    height: 14px;
 }
 
 .case-sheet-open-btn:before {
@@ -2055,6 +2113,14 @@ select {
     height: 12px;
 }
 
+.case-sheet-content-wrap {
+    padding: 18px 16px 12px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 10px;
+}
+
 
 /* ================================================================
    21. CASE HERO + HORIZONTAL ROULETTE (inside sheet)
@@ -2062,16 +2128,15 @@ select {
 
 .card-opening-area {
     display: block;
-    position: sticky;
-    top: 0;
-    z-index: 6;
+    position: relative;
+    z-index: 2;
     border-radius: 20px;
     overflow: hidden;
     margin-bottom: 14px;
-    background: radial-gradient(136.32% 93.18% at 70.03% 11.93%, #001aaf, #000548 45.34%, #000548);
-    box-shadow: 4px 4px 28.3px rgba(255, 255, 255, 0.15) inset;
-    height: 200px;
-    min-height: 200px;
+    background: radial-gradient(136.32% 93.18% at 70.03% 11.93%, #231A4E, #1B1340 45.34%, #0E1621);
+    box-shadow: 4px 4px 28.3px rgba(138, 92, 246, 0.06) inset;
+    height: min(60vh, 340px);
+    min-height: 240px;
 }
 
 /* Red overlay for lose state */
@@ -2083,8 +2148,7 @@ select {
     z-index: 10;
     width: 100%;
     height: 100%;
-    background: radial-gradient(133.32% 100% at 70.03% 0%, #af0000, #a7003f 14.7%, #000548),
-                radial-gradient(117.11% 100% at 70.03% 0%, #001aaf, #160048 55.77%, #000548);
+    background: radial-gradient(133.32% 100% at 70.03% 0%, #af0000, #a7003f 14.7%, #1a0a0a);
     opacity: 0;
     transition: opacity .3s ease-in-out;
     pointer-events: none;
@@ -2107,8 +2171,8 @@ select {
 }
 
 .case-hero-img {
-    width: 140px;
-    height: 140px;
+    width: 200px;
+    height: 200px;
     object-fit: contain;
     filter: drop-shadow(0 8px 32px rgba(22, 137, 255, 0.35));
     animation: caseHeroFloat 3s ease-in-out infinite;
@@ -2129,8 +2193,8 @@ select {
     justify-content: center;
     position: relative;
     z-index: 2;
-    gap: 6px;
-    padding: 12px 0;
+    gap: 10px;
+    padding: 18px 0;
     box-sizing: border-box;
 }
 
@@ -2139,8 +2203,8 @@ select {
 }
 
 .won-display-visual {
-    width: 110px;
-    height: 110px;
+    width: 200px;
+    height: 200px;
     border-radius: 16px;
     overflow: hidden;
     display: flex;
@@ -2154,8 +2218,8 @@ select {
 .won-display-visual::after {
     content: '';
     position: absolute;
-    width: 160px;
-    height: 160px;
+    width: 220px;
+    height: 220px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(22, 137, 255, 0.2) 0%, transparent 70%);
     animation: resultGlow 2s ease-in-out infinite alternate;
@@ -2181,11 +2245,25 @@ select {
 }
 
 .won-display-name {
-    font-size: 15px;
+    font-size: 19px;
     font-weight: 600;
     color: #fff;
     text-align: center;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    max-width: 80%;
+}
+
+.won-display-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 0 16px;
+}
+
+.won-display-actions .result-btn {
+    flex: 0 1 150px;
 }
 
 /* ---- Roulette Wrapper (overlays blue box during animation) ---- */
@@ -2243,7 +2321,7 @@ select {
 .roulette-track {
     display: flex;
     gap: 8px;
-    padding: 10px 0;
+    padding: 16px 0;
     height: 100%;
     align-items: center;
     box-sizing: border-box;
@@ -2252,8 +2330,8 @@ select {
 
 /* Individual roulette card */
 .roulette-card {
-    flex: 0 0 90px;
-    height: calc(100% - 20px);
+    flex: 0 0 104px;
+    height: calc(100% - 32px);
     border-radius: 12px;
     background: rgba(0, 0, 0, 0.35);
     display: flex;
@@ -2290,8 +2368,8 @@ select {
 }
 
 .roulette-card-visual .rc-img {
-    width: 55%;
-    height: 55%;
+    width: 64%;
+    height: 64%;
     object-fit: contain;
     position: relative;
     z-index: 1;
@@ -2319,7 +2397,7 @@ select {
 .case-result-area {
     display: none;
     text-align: center;
-    padding: 10px 0;
+    padding: 14px 0 4px;
 }
 
 
@@ -2578,6 +2656,8 @@ select {
 .result-buttons {
     display: flex;
     gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .result-btn {
@@ -2782,7 +2862,7 @@ select {
     border-radius: var(--radius);
     overflow: hidden;
     cursor: pointer;
-    transition: transform .15s, border-color .2s;
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
     position: relative;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -2793,7 +2873,9 @@ select {
 }
 
 .inventory-item:hover {
-    border-color: var(--border-light);
+    border-color: rgba(255, 180, 50, 0.35);
+    box-shadow: 0 0 14px rgba(255, 180, 50, 0.1);
+    transform: scale(1.04);
 }
 
 .inventory-item .gift-visual {
@@ -2855,6 +2937,7 @@ select {
     height: 100%;
     object-fit: cover;
     opacity: .85;
+    transition: opacity 0.3s ease;
 }
 
 .inv-item-img {
@@ -2864,6 +2947,15 @@ select {
     position: relative;
     z-index: 1;
     filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .5));
+    transition: transform 0.3s ease;
+}
+
+.inventory-item:hover .inv-item-img {
+    transform: scale(1.08);
+}
+
+.inventory-item:hover .gift-backdrop {
+    opacity: 1;
 }
 
 .inv-item-name {
@@ -3799,6 +3891,22 @@ select {
     background: var(--bg-secondary);
     padding: 3px 8px;
     border-radius: 8px;
+}
+
+.topup-row-arrow {
+    font-size: 20px;
+    font-weight: 300;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.topup-row-stars {
+    background: linear-gradient(135deg, rgba(255,215,74,0.08), rgba(255,184,0,0.04));
+    border-color: rgba(255,215,74,0.15);
+}
+.topup-row-stars:active {
+    background: linear-gradient(135deg, rgba(255,215,74,0.15), rgba(255,184,0,0.08));
 }
 
 
@@ -4819,32 +4927,153 @@ select {
 
 
 /* ================================================================
-   50. RESPONSIVE BREAKPOINTS
+   50. RESPONSIVE BREAKPOINTS — MOBILE-FIRST OPTIMIZATION
    ================================================================ */
 
-@media (max-width: 360px) {
-    .gifts-grid,
-    .inventory-grid {
-        grid-template-columns: repeat(2, 1fr);
+/* ── Global mobile overflow prevention ── */
+html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.container,
+.games-container,
+.topup-container,
+.crash-page,
+.ref-page,
+.pvp-container {
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* ── Ensure images/elements never overflow ── */
+img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ── Balance pill: prevent overflow on any screen ── */
+.balance-pill {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.balance-val {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70px;
+}
+
+.balance-section {
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* ── Header V2: prevent items from pushing out ── */
+.header-v2 {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.online-badge {
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+/* ── Task card: reward badge shouldn't push content ── */
+.task-card {
+    max-width: 100%;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.task-reward {
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.task-info {
+    max-width: calc(100% - 60px);
+}
+
+.task-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* ── Gift cards: constrain sizes on mobile ── */
+.gift-card {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.gift-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+/* ── Modal: ensure never wider than screen ── */
+.modal,
+.modal-content {
+    max-width: calc(100vw - 0px);
+    box-sizing: border-box;
+}
+
+/* ── Case sheet: constrain to screen ── */
+.case-sheet {
+    max-width: 100vw;
+    box-sizing: border-box;
+}
+
+.case-sheet-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ── Bottom nav: scale down icons/labels for readability ── */
+.nav-inner {
+    max-width: 100%;
+}
+
+/* ── Inventory grid: consistent sizing ── */
+.inventory-grid .gift-card {
+    min-width: 0;
+}
+
+/* ── Tutorial: prevent overflow ── */
+.tutorial-content {
+    max-width: calc(100vw - 40px);
+}
+
+.tutorial-buttons {
+    max-width: calc(100vw - 40px);
+}
+
+/* ─────────────────────────────────────────────────────
+   BREAKPOINT: 480px (Standard phones)
+   ───────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .container {
+        max-width: 100%;
+        padding: 0 var(--container-px);
     }
 
-    .topup-amounts {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .tg-catalog-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .case-sheet-items {
-        grid-template-columns: repeat(2, 1fr);
+    .section-header h2 {
+        font-size: 20px;
     }
 
     .popular-case-card {
-        flex-direction: column;
-        text-align: center;
         padding: 16px;
-        min-height: auto;
+        min-height: 120px;
     }
 
     .popular-case-img {
@@ -4852,14 +5081,47 @@ select {
         height: 100px;
     }
 
-    .popular-case-drops {
-        justify-content: center;
+    .popular-case-name {
+        font-size: 16px;
     }
 
-    .container {
-        padding: 0 14px;
+    .case-hero-img {
+        width: 160px;
+        height: 160px;
     }
 
+    .card-opening-area {
+        height: 180px;
+        min-height: 180px;
+    }
+
+    .roulette-card {
+        flex: 0 0 80px;
+    }
+
+    .modal-gift-visual {
+        height: 180px;
+    }
+
+    .modal-gift-image {
+        width: 110px;
+        height: 110px;
+    }
+
+    .result-title {
+        font-size: 26px;
+    }
+
+    .case-sheet-open-btn {
+        height: 54px;
+        font-size: 18px;
+    }
+}
+
+/* ─────────────────────────────────────────────────────
+   BREAKPOINT: 400px (Smaller phones)
+   ───────────────────────────────────────────────────── */
+@media (max-width: 400px) {
     .header-v2 {
         gap: 6px;
         padding: 10px 0;
@@ -4870,12 +5132,345 @@ select {
         height: 34px;
     }
 
-    .balance-pill {
-        padding: 5px 10px;
+    .balance-section {
+        padding: 4px 6px;
+    }
+
+    .balance-val {
         font-size: 12px;
+        max-width: 55px;
+    }
+
+    .balance-section img {
+        width: 12px;
+        height: 12px;
+    }
+
+    .balance-plus-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 16px;
+    }
+
+    .online-badge {
+        padding: 4px 8px;
+        border-radius: 8px;
+    }
+
+    .online-count {
+        font-size: 11px;
+    }
+
+    .online-dot {
+        width: 6px;
+        height: 6px;
+    }
+
+    .gifts-grid {
+        gap: 8px;
+    }
+
+    .gift-visual {
+        height: 100px;
+    }
+
+    .gift-img {
+        width: 65px;
+        height: 65px;
+    }
+
+    .gift-price-btn {
+        padding: 5px 12px;
+        font-size: 12px;
+    }
+
+    .cases-grid-v2 {
+        gap: 10px;
+    }
+
+    .case-card-v2 {
+        padding: 12px 12px 10px;
+    }
+
+    .case-card-v2-name {
+        font-size: 13px;
+    }
+
+    .task-icon {
+        width: 42px;
+        height: 42px;
+    }
+
+    .task-icon img {
+        width: 28px;
+        height: 28px;
+    }
+
+    .task-title {
+        font-size: 14px;
+    }
+
+    .task-desc {
+        font-size: 11px;
+    }
+
+    .task-reward {
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 8px;
+    }
+
+    .task-action-btn {
+        padding: 7px 16px;
+        font-size: 12px;
+    }
+
+    .popular-case-card {
+        padding: 14px;
+        min-height: auto;
+        gap: 10px;
+    }
+
+    .popular-case-img {
+        width: 90px;
+        height: 90px;
+    }
+
+    .popular-case-name {
+        font-size: 15px;
+    }
+
+    .case-filter-tab {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .nav-inner {
+        height: 60px;
+    }
+
+    .nav-label {
+        font-size: 9px;
+    }
+
+    .nav-icon img {
+        width: 19px;
+        height: 19px;
+    }
+}
+
+/* ─────────────────────────────────────────────────────
+   BREAKPOINT: 360px (Compact phones — iPhone SE, etc.)
+   ───────────────────────────────────────────────────── */
+@media (max-width: 360px) {
+    :root {
+        --container-px: 12px;
+        --nav-h: 58px;
+    }
+
+    .container {
+        padding: 0 12px;
+    }
+
+    /* Header */
+    .header-v2 {
+        gap: 5px;
+        padding: 8px 0;
+        margin: 0 -12px;
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .header-avatar-wrap {
+        width: 32px;
+        height: 32px;
+    }
+
+    .balance-pill {
+        padding: 2px 3px;
+        gap: 2px;
+    }
+
+    .balance-section {
+        padding: 4px 5px;
+    }
+
+    .balance-val {
+        font-size: 11px;
+        max-width: 48px;
+    }
+
+    .balance-section img {
+        width: 11px;
+        height: 11px;
+    }
+
+    .balance-divider {
+        height: 14px;
+    }
+
+    .balance-plus-btn {
+        width: 26px;
+        height: 26px;
+        font-size: 14px;
+    }
+
+    .online-badge {
+        padding: 3px 6px;
         gap: 4px;
     }
 
+    .online-count {
+        font-size: 10px;
+    }
+
+    /* Grids */
+    .gifts-grid,
+    .inventory-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .cases-grid-v2 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .case-card-v2 {
+        padding: 10px 10px 8px;
+        border-radius: 14px;
+    }
+
+    .case-card-v2-name {
+        font-size: 12px;
+    }
+
+    .case-card-v2-price {
+        font-size: 11px;
+    }
+
+    /* Gifts */
+    .gift-card {
+        border-radius: 12px;
+        padding: 10px;
+    }
+
+    .gift-visual {
+        height: 90px;
+    }
+
+    .gift-name {
+        font-size: 12px;
+    }
+
+    .gift-price-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        border-radius: 8px;
+    }
+
+    /* Tasks */
+    .task-card {
+        padding: 14px 12px;
+        gap: 8px;
+        border-radius: 14px;
+    }
+
+    .task-icon {
+        width: 38px;
+        height: 38px;
+    }
+
+    .task-icon img {
+        width: 24px;
+        height: 24px;
+    }
+
+    .task-title {
+        font-size: 13px;
+    }
+
+    .task-reward {
+        font-size: 10px;
+        padding: 3px 8px;
+        top: 10px;
+        right: 10px;
+    }
+
+    .task-action-btn {
+        padding: 6px 14px;
+        font-size: 11px;
+        border-radius: 8px;
+    }
+
+    /* Popular case */
+    .popular-case-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 14px;
+        min-height: auto;
+        border-radius: 16px;
+    }
+
+    .popular-case-img {
+        width: 80px;
+        height: 80px;
+    }
+
+    .popular-case-name {
+        font-size: 14px;
+    }
+
+    .popular-case-drops {
+        justify-content: center;
+    }
+
+    .popular-drop-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Case sheet items */
+    .case-sheet-items {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .case-sheet-name {
+        font-size: 18px;
+    }
+
+    .case-sheet-open-btn {
+        height: 50px;
+        font-size: 16px;
+        border-radius: 10px;
+    }
+
+    .card-opening-area {
+        height: 170px;
+        min-height: 170px;
+    }
+
+    .case-hero-img {
+        width: 120px;
+        height: 120px;
+    }
+
+    /* Topup */
+    .topup-amounts {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tg-catalog-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Sections */
+    .section-header h2 {
+        font-size: 18px;
+    }
+
+    /* Bottom nav */
     .nav-inner {
         height: 58px;
     }
@@ -4889,131 +5484,10 @@ select {
         height: 18px;
     }
 
-    .section-title {
-        font-size: 16px;
-    }
-
-    .gift-card {
-        border-radius: 12px;
-    }
-
+    /* Modals */
+    .modal,
     .modal-content {
-        padding: 18px 14px;
-        border-radius: 20px 20px 0 0;
-    }
-}
-
-@media (max-width: 320px) {
-    :root {
-        --container-px: 10px;
-    }
-
-    .cases-grid-v2 {
-        gap: 8px;
-    }
-
-    .case-card-v2 {
-        padding: 10px 10px 8px;
-    }
-
-    .preview-card.left,
-    .preview-card.right {
-        width: 70px;
-        height: 100px;
-    }
-
-    .preview-card.center {
-        width: 90px;
-        height: 130px;
-    }
-
-    .roulette-item {
-        width: 100px;
-    }
-
-    .gifts-grid,
-    .inventory-grid {
-        gap: 8px;
-    }
-
-    .popular-case-card {
-        padding: 12px;
-        border-radius: 16px;
-        gap: 10px;
-    }
-
-    .popular-case-img {
-        width: 80px;
-        height: 80px;
-    }
-
-    .task-card {
-        padding: 14px 12px;
-        gap: 8px;
-        border-radius: 14px;
-    }
-
-    .header-v2 {
-        gap: 5px;
-        padding: 8px 0;
-    }
-
-    .header-avatar-wrap {
-        width: 32px;
-        height: 32px;
-    }
-
-    .balance-pill {
-        padding: 4px 8px;
-        font-size: 11px;
-        border-radius: 8px;
-    }
-
-    .nav-inner {
-        height: 54px;
-    }
-
-    .nav-label {
-        font-size: 8px;
-    }
-
-    .nav-icon img {
-        width: 17px;
-        height: 17px;
-    }
-
-    .bottom-nav {
-        font-size: 12px;
-    }
-
-    .section-title {
-        font-size: 15px;
-    }
-
-    .case-sheet-items {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-    }
-
-    .topup-amounts {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-    }
-
-    .gift-card {
-        border-radius: 10px;
-    }
-
-    .gift-info {
-        padding: 6px 8px;
-    }
-
-    .gift-name {
-        font-size: 11px;
-    }
-
-    .modal-content {
-        padding: 16px 12px;
+        padding: 16px 14px calc(16px + var(--safe-bottom));
         border-radius: 18px 18px 0 0;
     }
 
@@ -5024,6 +5498,279 @@ select {
     .modal-gift-image {
         width: 100px;
         height: 100px;
+    }
+
+    /* Case filter */
+    .case-filter-tab {
+        padding: 5px 10px;
+        font-size: 11px;
+    }
+
+    /* Roulette */
+    .roulette-card {
+        flex: 0 0 75px;
+    }
+
+    .roulette-item {
+        min-width: 90px;
+    }
+}
+
+/* ─────────────────────────────────────────────────────
+   BREAKPOINT: 320px (Very small screens)
+   ───────────────────────────────────────────────────── */
+@media (max-width: 320px) {
+    :root {
+        --container-px: 8px;
+        --nav-h: 54px;
+    }
+
+    .container {
+        padding: 0 8px;
+    }
+
+    /* Header */
+    .header-v2 {
+        gap: 4px;
+        padding: 6px 0;
+        margin: 0 -8px;
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .header-avatar-wrap {
+        width: 28px;
+        height: 28px;
+    }
+
+    .balance-pill {
+        padding: 2px;
+        gap: 1px;
+    }
+
+    .balance-section {
+        padding: 3px 4px;
+    }
+
+    .balance-val {
+        font-size: 10px;
+        max-width: 42px;
+    }
+
+    .balance-section img {
+        width: 10px;
+        height: 10px;
+    }
+
+    .balance-plus-btn {
+        width: 24px;
+        height: 24px;
+        font-size: 13px;
+    }
+
+    .online-badge {
+        padding: 3px 5px;
+        gap: 3px;
+    }
+
+    .online-count {
+        font-size: 9px;
+    }
+
+    /* Grids */
+    .gifts-grid,
+    .inventory-grid {
+        gap: 6px;
+    }
+
+    .cases-grid-v2 {
+        gap: 6px;
+    }
+
+    .case-card-v2 {
+        padding: 8px 8px 6px;
+        border-radius: 12px;
+    }
+
+    .case-card-v2-name {
+        font-size: 11px;
+    }
+
+    /* Gifts */
+    .gift-card {
+        border-radius: 10px;
+        padding: 8px;
+    }
+
+    .gift-visual {
+        height: 80px;
+    }
+
+    .gift-name {
+        font-size: 11px;
+    }
+
+    .gift-price-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+        border-radius: 6px;
+    }
+
+    /* Tasks */
+    .task-card {
+        padding: 12px 10px;
+        gap: 6px;
+        border-radius: 12px;
+    }
+
+    .task-icon {
+        width: 34px;
+        height: 34px;
+    }
+
+    .task-icon img {
+        width: 22px;
+        height: 22px;
+    }
+
+    .task-title {
+        font-size: 12px;
+    }
+
+    .task-desc {
+        font-size: 10px;
+    }
+
+    .task-reward {
+        font-size: 9px;
+        padding: 3px 6px;
+        border-radius: 6px;
+    }
+
+    .task-action-btn {
+        padding: 5px 10px;
+        font-size: 10px;
+    }
+
+    /* Popular case */
+    .popular-case-card {
+        padding: 10px;
+        border-radius: 14px;
+        gap: 8px;
+    }
+
+    .popular-case-img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .popular-case-name {
+        font-size: 13px;
+    }
+
+    /* Case sheet */
+    .case-sheet-items {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 4px;
+    }
+
+    .case-sheet-name {
+        font-size: 16px;
+    }
+
+    .case-sheet-open-btn {
+        height: 46px;
+        font-size: 15px;
+    }
+
+    .card-opening-area {
+        height: 150px;
+        min-height: 150px;
+    }
+
+    .case-hero-img {
+        width: 100px;
+        height: 100px;
+    }
+
+    /* Topup */
+    .topup-amounts {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    /* Sections */
+    .section-header h2 {
+        font-size: 16px;
+    }
+
+    /* Bottom nav */
+    .nav-inner {
+        height: 54px;
+    }
+
+    .nav-label {
+        font-size: 8px;
+    }
+
+    .nav-icon img {
+        width: 16px;
+        height: 16px;
+    }
+
+    .bottom-nav {
+        font-size: 12px;
+    }
+
+    /* Modals */
+    .modal,
+    .modal-content {
+        padding: 14px 10px calc(14px + var(--safe-bottom));
+        border-radius: 16px 16px 0 0;
+    }
+
+    .modal-gift-visual {
+        height: 140px;
+    }
+
+    .modal-gift-image {
+        width: 90px;
+        height: 90px;
+    }
+
+    /* Roulette */
+    .roulette-card {
+        flex: 0 0 65px;
+    }
+
+    .roulette-item {
+        min-width: 80px;
+    }
+
+    /* Case filter */
+    .case-filter-tab {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    /* Recent wins */
+    .recent-win-card {
+        width: 60px;
+    }
+
+    .recent-win-avatar {
+        width: 44px;
+        height: 44px;
+    }
+
+    .recent-win-prize {
+        width: 22px;
+        height: 22px;
+    }
+
+    .recent-win-name {
+        font-size: 9px;
+        max-width: 56px;
     }
 }
 
@@ -5448,4 +6195,185 @@ body.is-tg-miniapp .desktop-nav {
 /* SVG icon sizing defaults */
 img[src$=".svg"] {
     image-rendering: auto;
+}
+
+/* ============ TUTORIAL / ONBOARDING ============ */
+.tut-overlay{
+    position:fixed;inset:0;z-index:10000;
+    background:rgba(0,0,0,0.88);
+    backdrop-filter:blur(16px);
+    display:flex;align-items:center;justify-content:center;
+    opacity:0;transition:opacity 0.4s ease;
+    pointer-events:none;
+}
+.tut-overlay.active{opacity:1;pointer-events:all;}
+.tut-card{
+    width:92%;max-width:360px;
+    background:linear-gradient(170deg,#161F2E 0%,#0D1320 100%);
+    border:1px solid rgba(138,92,246,0.15);
+    border-radius:28px;
+    padding:32px 24px 24px;
+    text-align:center;
+    position:relative;
+    box-shadow:0 32px 80px rgba(0,0,0,0.7),0 0 80px rgba(138,92,246,0.06);
+    overflow:hidden;
+}
+.tut-card::before{
+    content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+    width:80%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(138,92,246,0.4),transparent);
+}
+.tut-skip{
+    position:absolute;top:16px;right:18px;
+    background:rgba(255,255,255,0.05);border:none;color:#5A6677;
+    font-size:12px;font-weight:600;cursor:pointer;
+    padding:5px 12px;border-radius:10px;
+    transition:all 0.2s;letter-spacing:0.3px;
+}
+.tut-skip:hover{color:#9BA7B4;background:rgba(255,255,255,0.08);}
+.tut-visual{
+    min-height:130px;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:20px;position:relative;
+}
+.tut-visual.tut-glow::before{
+    content:'';position:absolute;
+    width:160px;height:160px;border-radius:50%;
+    background:radial-gradient(circle,rgba(138,92,246,0.25) 0%,rgba(138,92,246,0.04) 55%,transparent 75%);
+    animation:tutGlow 3s ease-in-out infinite;
+    pointer-events:none;z-index:0;
+}
+.tut-visual.tut-glow::after{
+    content:'';position:absolute;
+    width:100px;height:100px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,165,0,0.12) 0%,transparent 70%);
+    animation:tutGlow 3s ease-in-out infinite 1.5s;
+    pointer-events:none;z-index:0;
+}
+@keyframes tutGlow{
+    0%,100%{transform:scale(1);opacity:0.6;}
+    50%{transform:scale(1.2);opacity:1;}
+}
+.tut-img{
+    width:110px;height:110px;object-fit:contain;
+    border-radius:18px;position:relative;z-index:1;
+    filter:drop-shadow(0 8px 24px rgba(138,92,246,0.25));
+    animation:tutFloat 3.5s ease-in-out infinite;
+}
+@keyframes tutFloat{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-10px);}
+}
+.tut-title{
+    font-size:24px;font-weight:800;color:#fff;
+    margin-bottom:10px;letter-spacing:0.5px;
+}
+.tut-text{
+    font-size:14px;color:#8A95A5;line-height:1.7;
+    margin-bottom:20px;
+}
+.tut-text b{color:#E0E6ED;}
+.tut-hl{
+    font-weight:700;
+}
+.tut-hl.purple{color:#A78BFA;}
+.tut-hl.gold{color:#FFD74A;}
+.tut-hl.green{color:#34D87A;}
+.tut-dots{
+    display:flex;gap:6px;justify-content:center;
+    margin-bottom:18px;
+}
+.tut-dot{
+    width:8px;height:8px;border-radius:50%;
+    background:rgba(138,92,246,0.2);
+    transition:all 0.3s ease;
+}
+.tut-dot.active{
+    background:#8A5CF6;width:26px;border-radius:4px;
+    box-shadow:0 0 10px rgba(138,92,246,0.4);
+}
+.tut-btn{
+    width:100%;padding:15px;
+    border:none;border-radius:14px;
+    background:linear-gradient(135deg,#8A5CF6 0%,#6B3FA0 100%);
+    color:#fff;font-size:15px;font-weight:700;
+    cursor:pointer;transition:all 0.2s ease;
+    box-shadow:0 6px 20px rgba(138,92,246,0.25);
+    letter-spacing:0.3px;
+    position:relative;overflow:hidden;
+}
+.tut-btn::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent 30%,rgba(255,255,255,0.08) 50%,transparent 70%);
+    animation:tutBtnShine 3s ease-in-out infinite;
+}
+@keyframes tutBtnShine{
+    0%{transform:translateX(-100%);}
+    50%,100%{transform:translateX(100%);}
+}
+.tut-btn:active{transform:scale(0.97);}
+
+/* Tutorial slot machine animation */
+.tut-slot-machine{
+    display:flex;gap:4px;justify-content:center;
+    background:rgba(0,0,0,0.4);border-radius:14px;
+    padding:8px;position:relative;overflow:hidden;
+    height:210px;width:232px;
+}
+.tut-slot-reel{
+    width:70px;height:210px;overflow:hidden;
+    border-radius:10px;background:rgba(14,22,33,0.8);
+    border:1px solid rgba(138,92,246,0.15);
+}
+.tut-slot-strip{
+    display:flex;flex-direction:column;
+    will-change:transform;
+}
+.tut-slot-cell{
+    width:70px;height:70px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+}
+.tut-slot-cell img{
+    width:52px;height:52px;object-fit:contain;
+    border-radius:8px;
+    filter:drop-shadow(0 2px 6px rgba(0,0,0,0.3));
+}
+.tut-slot-winline{
+    position:absolute;
+    left:4px;right:4px;
+    top:50%;transform:translateY(-50%);
+    height:70px;
+    border:2px solid transparent;
+    border-radius:10px;
+    transition:all 0.4s ease;
+    pointer-events:none;
+}
+.tut-slot-winline.won{
+    border-color:#2EC76E;
+    box-shadow:0 0 20px rgba(46,199,110,0.4),inset 0 0 20px rgba(46,199,110,0.1);
+    background:rgba(46,199,110,0.08);
+}
+
+/* Tutorial anim container */
+.tut-visual.tut-anim{
+    display:flex;align-items:center;justify-content:center;
+    min-height:210px;
+}
+
+/* Pattern display grid for custom slot tutorial */
+.tut-pattern-grid{
+    display:inline-grid;
+    grid-template-columns:repeat(3,32px);
+    gap:3px;margin:8px auto;
+}
+.tut-pattern-cell{
+    width:32px;height:32px;border-radius:6px;
+    background:rgba(138,92,246,0.1);
+    border:1px solid rgba(138,92,246,0.15);
+}
+.tut-pattern-cell.active{
+    background:rgba(138,92,246,0.3);
+    border-color:#8A5CF6;
+    box-shadow:0 0 8px rgba(138,92,246,0.4);
 }

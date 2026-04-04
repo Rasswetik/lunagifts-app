@@ -7,7 +7,7 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
     <style>
         body {
             background: var(--bg);
@@ -454,16 +454,29 @@
             font-family: 'Onest', sans-serif;
         }
 
+        @media (max-width: 400px) {
+            .topup-container { padding: 0 12px 130px; }
+            .topup-page-title { font-size: 19px; }
+            .topup-sheet-amounts { grid-template-columns: repeat(3, 1fr); }
+            .topup-sheet-title { font-size: 16px; }
+            .topup-sheet-input { font-size: 16px; padding: 12px 14px; }
+            .topup-pay-btn { padding: 13px; font-size: 14px; }
+        }
         @media (max-width: 360px) {
             .topup-card { padding: 12px 10px; }
             .topup-card-icon img, .topup-card-icon svg { width: 30px; height: 30px; }
             .topup-card-name { font-size: 12px; }
+            .topup-container { padding: 0 10px 120px; }
+            .topup-grid { gap: 8px; }
+            .topup-amount-panel { padding: 14px 16px 28px; }
         }
         @media (max-width: 340px) {
             .topup-card-icon { width: 38px; height: 38px; }
             .topup-card-icon img, .topup-card-icon svg { width: 26px; height: 26px; }
             .topup-card { padding: 10px 8px; border-radius: 12px; }
             .topup-card-name { font-size: 11px; }
+            .topup-sheet-amounts { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+            .topup-preset-btn { padding: 8px 4px; font-size: 12px; border-radius: 10px; }
         }
     </style>
 </head>
@@ -527,8 +540,10 @@
             <!-- Crypto Bot -->
             <div class="topup-card" data-method="cryptobot" data-category="crypto" onclick="openTopupMethod('cryptobot')">
                 <div class="topup-card-icon">
-                    <svg width="36" height="36" viewBox="0 0 12 18" fill="none">
-                        <path d="M1.80259 5.9082H7.40306C7.8043 5.9082 8.17352 6.12728 8.36579 6.47945L10.0578 9.57852L7.10951 15.0427C6.97011 15.3011 6.74445 15.5023 6.47187 15.6113C6.21173 15.6113 5.97229 15.4695 5.84731 15.2413L1.24761 6.84505C1.01658 6.42334 1.32174 5.9082 1.80259 5.9082Z" fill="#0098EA"/>
+                    <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                        <rect width="36" height="36" rx="8" fill="#0098EA"/>
+                        <path d="M11 13h14l-2.5 4.5L18 22l-4.5-4.5L11 13z" fill="#fff"/>
+                        <path d="M18 22l4.5-4.5L25 13h-4l-3 4.5L15 13h-4l2.5 4.5L18 22z" fill="#fff" fill-opacity=".6"/>
                     </svg>
                 </div>
                 <div class="topup-card-name">Crypto Bot</div>
@@ -667,15 +682,15 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
     <script>
     // ── State ──
     let _selectedMethod = null;

@@ -2,7 +2,7 @@
   {
     "id": 1,
     "name": "Lunar Lite",
-    "image": "/static/gifs/moon7.gif",
+    "image": "/static/gifs/scratch/moon7.gif",
     "price": 20,
     "cells": 3,
     "drops": [
@@ -51,7 +51,7 @@
   {
     "id": 2,
     "name": "Moon Classic",
-    "image": "/static/gifs/moon8.gif",
+    "image": "/static/gifs/scratch/moon8.gif",
     "price": 50,
     "cells": 4,
     "drops": [
@@ -110,7 +110,7 @@
   {
     "id": 3,
     "name": "Eclipse",
-    "image": "/static/gifs/moon1.gif",
+    "image": "/static/gifs/scratch/moon1.gif",
     "price": 100,
     "cells": 4,
     "drops": [
@@ -179,7 +179,7 @@
   {
     "id": 4,
     "name": "Musulman",
-    "image": "/static/gifs/moon9.gif",
+    "image": "/static/gifs/scratch/moon9.gif",
     "price": 200,
     "cells": 5,
     "drops": [
@@ -338,7 +338,7 @@
   {
     "id": 5,
     "name": "Supernova",
-    "image": "/static/gifs/moon2.gif",
+    "image": "/static/gifs/scratch/moon2.gif",
     "price": 250,
     "cells": 5,
     "drops": [
@@ -412,7 +412,7 @@
   {
     "id": 6,
     "name": "Nebula",
-    "image": "/static/gifs/moon3.gif",
+    "image": "/static/gifs/scratch/moon3.gif",
     "price": 500,
     "cells": 5,
     "drops": [
@@ -496,7 +496,7 @@
   {
     "id": 7,
     "name": "Moonrise",
-    "image": "/static/gifs/moon10.gif",
+    "image": "/static/gifs/scratch/moon10.gif",
     "price": 750,
     "cells": 6,
     "drops": [
@@ -660,7 +660,7 @@
   {
     "id": 8,
     "name": "Galaxy",
-    "image": "/static/gifs/moon4.gif",
+    "image": "/static/gifs/scratch/moon4.gif",
     "price": 1000,
     "cells": 6,
     "drops": [
@@ -859,7 +859,7 @@
   {
     "id": 9,
     "name": "Cosmos",
-    "image": "/static/gifs/moon5.gif",
+    "image": "/static/gifs/scratch/moon5.gif",
     "price": 2000,
     "cells": 6,
     "drops": [
@@ -1043,7 +1043,7 @@
   {
     "id": 10,
     "name": "Universe",
-    "image": "/static/gifs/moon6.gif",
+    "image": "/static/gifs/scratch/moon6.gif",
     "price": 3000,
     "cells": 6,
     "drops": [
@@ -1247,6 +1247,101 @@
         "gift_id": 108,
         "chance": 0.05
       }
+    ]
+  },
+  {
+    "id": 11,
+    "name": "Nebula",
+    "image": "/static/gifs/scratch/moon10.gif",
+    "price": 5000,
+    "cells": 7,
+    "picks": 2,
+    "drops": [
+      {"type": "gift", "gift_id": 116, "chance": 18},
+      {"type": "gift", "gift_id": 117, "chance": 14},
+      {"type": "gift", "gift_id": 118, "chance": 10},
+      {"type": "gift", "gift_id": 68, "chance": 8},
+      {"type": "gift", "gift_id": 15, "chance": 7},
+      {"type": "gift", "gift_id": 4, "chance": 6},
+      {"type": "gift", "gift_id": 22, "chance": 5},
+      {"type": "gift", "gift_id": 5, "chance": 5},
+      {"type": "gift", "gift_id": 13, "chance": 4},
+      {"type": "gift", "gift_id": 6, "chance": 4},
+      {"type": "gift", "gift_id": 2, "chance": 3.5},
+      {"type": "gift", "gift_id": 23, "chance": 3},
+      {"type": "gift", "gift_id": 14, "chance": 3},
+      {"type": "gift", "gift_id": 30, "chance": 2.5},
+      {"type": "gift", "gift_id": 41, "chance": 2},
+      {"type": "gift", "gift_id": 17, "chance": 1.5},
+      {"type": "gift", "gift_id": 28, "chance": 1},
+      {"type": "gift", "gift_id": 1, "chance": 0.8},
+      {"type": "gift", "gift_id": 12, "chance": 0.5},
+      {"type": "gift", "gift_id": 40, "chance": 0.4},
+      {"type": "gift", "gift_id": 42, "chance": 0.2},
+      {"type": "gift", "gift_id": 70, "chance": 0.1}
+    ]
+  },
+  {
+    "id": 12,
+    "name": "Galaxy",
+    "image": "/static/gifs/scratch/moon11.gif",
+    "price": 7500,
+    "cells": 8,
+    "picks": 2,
+    "drops": [
+      {"type": "gift", "gift_id": 118, "chance": 14},
+      {"type": "gift", "gift_id": 68, "chance": 10},
+      {"type": "gift", "gift_id": 15, "chance": 8},
+      {"type": "gift", "gift_id": 4, "chance": 7},
+      {"type": "gift", "gift_id": 22, "chance": 6},
+      {"type": "gift", "gift_id": 5, "chance": 6},
+      {"type": "gift", "gift_id": 13, "chance": 5},
+      {"type": "gift", "gift_id": 6, "chance": 5},
+      {"type": "gift", "gift_id": 2, "chance": 5},
+      {"type": "gift", "gift_id": 23, "chance": 4},
+      {"type": "gift", "gift_id": 14, "chance": 4},
+      {"type": "gift", "gift_id": 30, "chance": 3.5},
+      {"type": "gift", "gift_id": 41, "chance": 3},
+      {"type": "gift", "gift_id": 17, "chance": 3},
+      {"type": "gift", "gift_id": 28, "chance": 2.5},
+      {"type": "gift", "gift_id": 1, "chance": 2.5},
+      {"type": "gift", "gift_id": 12, "chance": 2.5},
+      {"type": "gift", "gift_id": 40, "chance": 2},
+      {"type": "gift", "gift_id": 42, "chance": 2},
+      {"type": "gift", "gift_id": 52, "chance": 1.5},
+      {"type": "gift", "gift_id": 108, "chance": 1},
+      {"type": "gift", "gift_id": 70, "chance": 2}
+    ]
+  },
+  {
+    "id": 13,
+    "name": "Big Bang",
+    "image": "/static/gifs/scratch/moon12.gif",
+    "price": 10000,
+    "cells": 9,
+    "picks": 3,
+    "drops": [
+      {"type": "gift", "gift_id": 68, "chance": 10},
+      {"type": "gift", "gift_id": 15, "chance": 8},
+      {"type": "gift", "gift_id": 4, "chance": 7},
+      {"type": "gift", "gift_id": 22, "chance": 6},
+      {"type": "gift", "gift_id": 5, "chance": 6},
+      {"type": "gift", "gift_id": 13, "chance": 5},
+      {"type": "gift", "gift_id": 6, "chance": 5},
+      {"type": "gift", "gift_id": 2, "chance": 5},
+      {"type": "gift", "gift_id": 23, "chance": 5},
+      {"type": "gift", "gift_id": 14, "chance": 5},
+      {"type": "gift", "gift_id": 30, "chance": 4.5},
+      {"type": "gift", "gift_id": 41, "chance": 4},
+      {"type": "gift", "gift_id": 17, "chance": 3.5},
+      {"type": "gift", "gift_id": 28, "chance": 3.5},
+      {"type": "gift", "gift_id": 1, "chance": 3.5},
+      {"type": "gift", "gift_id": 12, "chance": 3.5},
+      {"type": "gift", "gift_id": 40, "chance": 3},
+      {"type": "gift", "gift_id": 42, "chance": 3},
+      {"type": "gift", "gift_id": 52, "chance": 2.5},
+      {"type": "gift", "gift_id": 108, "chance": 2},
+      {"type": "gift", "gift_id": 70, "chance": 4}
     ]
   }
 ]

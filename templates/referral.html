@@ -7,7 +7,7 @@
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
     <style>
         .ref-page { max-width:480px; margin:0 auto; padding:14px 16px 120px; }
         .ref-top-bar {
@@ -76,7 +76,7 @@
         .ref-op-left { display:flex; align-items:center; gap:10px; }
         .ref-op-icon { width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.06); }
         .ref-op-icon img { width:18px; height:18px; }
-        .ref-op-name { font-size:13px; font-weight:600; color:#fff; }
+        .ref-op-name { font-size:13px; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
         .ref-op-date { font-size:11px; color:rgba(255,255,255,0.3); }
         .ref-op-amount { font-size:14px; font-weight:700; color:var(--green); }
         .ref-link-section {
@@ -151,7 +151,7 @@
                 <img src="/static/img/ton.svg" alt="" onerror="this.src='/static/img/star.svg'">
                 <span id="walletLabel">Connect Wallet</span>
             </button>
-            <div class="online-pill"><div class="online-dot"></div><span id="onlineCount">0</span> онлайн</div>
+            <div class="online-pill"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 6.375C8.8875 6.375 11.25 7.875 11.25 9.375C11.25 10.4105 10.4105 11.25 9.375 11.25H2.625C1.58947 11.25 0.750001 10.4105 0.75 9.375C0.75 7.875 3.1125 6.375 6 6.375ZM6 0.75C7.44975 0.750001 8.625 1.92525 8.625 3.375C8.625 4.82475 7.44975 6 6 6C4.55025 6 3.375 4.82475 3.375 3.375C3.375 1.92525 4.55025 0.75 6 0.75Z" fill="#34D87A"/></svg><span id="onlineCount">0</span> онлайн</div>
         </div>
 
         <div class="ref-title-block">
@@ -222,15 +222,15 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item active"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item active"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
     <script>
     async function loadReferralStats() {
         if (!currentUser) return;

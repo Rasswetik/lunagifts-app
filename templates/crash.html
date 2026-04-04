@@ -3,535 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Luna Gifts — Краш</title>
+    <title>Luna Gifts &mdash; Crash</title>
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-        body{margin:0;padding:0;background:#0e0e1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#fff;overflow-x:hidden;}
-
-        /* ─── Top bar ─── */
-        .top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;position:sticky;top:0;z-index:50;background:rgba(14,14,26,0.92);backdrop-filter:blur(20px);}
-        .top-bar-left{display:flex;align-items:center;gap:8px;}
-        .top-bar-back{width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;}
-        .top-bar-back svg{width:18px;height:18px;stroke:#fff;}
-        .top-bar-bal{display:flex;align-items:center;gap:4px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);font-size:13px;font-weight:700;}
-        .top-bar-bal img{width:14px;height:14px;}
-        .top-bar-right{display:flex;align-items:center;gap:8px;}
-        .online-badge{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:10px;background:rgba(52,216,122,0.12);font-size:12px;font-weight:700;color:#34D87A;}
-        .online-dot{width:6px;height:6px;border-radius:50%;background:#34D87A;animation:pulse 1.5s infinite;}
-        @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
-
-        /* ─── Container ─── */
-        .crash-page{max-width:480px;margin:0 auto;padding:0 12px 200px;min-height:100vh;}
-
-        /* ─── Game field ─── */
-        .game-field{position:relative;width:100%;height:220px;border-radius:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);margin:12px 0;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
-        .game-field-status{font-size:13px;font-weight:600;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:1px;}
-        .game-field-mult{font-size:60px;font-weight:900;color:#34D87A;line-height:1;transition:color 0.25s;}
-        .game-field-mult.waiting{font-size:22px;color:rgba(255,255,255,0.3);}
-        .game-field-mult.counting{font-size:48px;color:#FFD74A;animation:countPulse 0.4s ease-in-out infinite alternate;}
-        .game-field-mult.crashed{color:#FF4B4B;animation:shake 0.5s;}
-        @keyframes countPulse{0%{transform:scale(1);}100%{transform:scale(1.08);}}
-        @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-4px);}80%{transform:translateX(4px);}}
-
-        /* Rocket */
-        .rocket-wrap{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;transition:opacity 0.3s ease;opacity:1;}
-        .rocket-wrap img{width:140px;height:140px;object-fit:contain;transition:transform 0.2s ease,filter 0.3s ease;}
-        .rocket-wrap.hide{opacity:0;pointer-events:none;}
-        .rocket-wrap.flying{animation:rocketGlow 1s ease-in-out infinite alternate;}
-        @keyframes rocketGlow{0%{filter:drop-shadow(0 0 8px rgba(255,100,50,.3));}100%{filter:drop-shadow(0 0 20px rgba(255,100,50,.6));}}
-        /* Boom explosion */
-        .boom-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);opacity:0;z-index:10;pointer-events:none;display:flex;align-items:center;justify-content:center;}
-        .boom-wrap img{width:160px;height:160px;object-fit:contain;}
-        .boom-wrap.show{opacity:1;animation:boomPop .4s ease-out forwards;}
-        @keyframes boomPop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0;}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1;}100%{transform:translate(-50%,-50%) scale(1);opacity:1;}}
-
-        /* ─── History bar ─── */
-        .history-bar{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none;-ms-overflow-style:none;}
-        .history-bar::-webkit-scrollbar{display:none;}
-        .hist-pill{padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0;}
-        .hist-pill.green{background:rgba(52,216,122,0.15);color:#34D87A;}
-        .hist-pill.red{background:rgba(255,75,75,0.15);color:#FF4B4B;}
-        .hist-pill.orange{background:rgba(255,165,0,0.15);color:#FFA500;}
-
-        /* ─── Mode tabs ─── */
-        .mode-row{display:flex;gap:8px;margin:10px 0;}
-        .mode-tab{flex:1;text-align:center;padding:10px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.5);transition:all 0.2s;}
-        .mode-tab.active{background:rgba(52,216,122,0.15);border-color:rgba(52,216,122,0.3);color:#34D87A;}
-
-        /* ─── Bets list ─── */
-        .bets-section{margin:10px 0 0;}
-        .bets-header{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:rgba(255,255,255,0.5);padding:0 4px 8px;}
-        .bet-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);margin-bottom:6px;transition:background 0.2s;}
-        .bet-row.won{background:rgba(52,216,122,0.08);border-color:rgba(52,216,122,0.15);}
-        .bet-row.lost{background:rgba(255,75,75,0.06);border-color:rgba(255,75,75,0.1);}
-        .bet-avatar{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.1);overflow:hidden;flex-shrink:0;}
-        .bet-avatar img{width:100%;height:100%;object-fit:cover;}
-        .bet-info{flex:1;min-width:0;}
-        .bet-name{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        .bet-amount{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;}
-        .bet-status{text-align:right;flex-shrink:0;}
-        .bet-status-text{font-size:13px;font-weight:800;}
-        .bet-status-text.playing{color:#FFD74A;}
-        .bet-status-text.won{color:#34D87A;}
-        .bet-status-text.lost{color:#FF4B4B;}
-        .bet-win-amount{font-size:11px;color:rgba(255,255,255,0.4);margin-top:1px;}
-
-        /* ─── Bottom bet panel ─── */
-        .bet-panel{position:fixed;bottom:0;left:0;right:0;z-index:90;background:rgba(14,14,26,0.95);backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,0.06);padding:12px 16px calc(12px + env(safe-area-inset-bottom));}
-        .bet-panel-inner{max-width:480px;margin:0 auto;}
-        .bet-input-row{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
-        .currency-toggle{display:flex;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);flex-shrink:0;}
-        .currency-btn{padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.4);border:none;display:flex;align-items:center;gap:4px;transition:all 0.2s;}
-        .currency-btn.active{background:rgba(52,216,122,0.15);color:#34D87A;}
-        .currency-btn img{width:14px;height:14px;}
-        .bet-input-wrap{flex:1;position:relative;}
-        .bet-input{width:100%;padding:10px 60px 10px 14px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#fff;font-size:15px;font-weight:700;outline:none;}
-        .bet-input:focus{border-color:rgba(52,216,122,0.4);}
-        .bet-max-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.1);border:none;color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;cursor:pointer;}
-        .bet-action-row{display:flex;gap:8px;}
-        .auto-cashout-wrap{flex:1;display:flex;align-items:center;gap:6px;padding:0 12px;border-radius:12px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);}
-        .auto-cashout-wrap label{font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;}
-        .auto-cashout-input{flex:1;background:none;border:none;color:#fff;font-size:14px;font-weight:700;outline:none;padding:10px 0;width:50px;}
-        .bet-btn{flex:1;padding:14px;border-radius:14px;border:none;font-size:15px;font-weight:800;cursor:pointer;transition:all 0.2s;text-align:center;}
-        .bet-btn:active{transform:scale(0.96);}
-        .bet-btn.play{background:linear-gradient(135deg,#34D87A,#2BA866);color:#fff;}
-        .bet-btn.cashout{background:linear-gradient(135deg,#FFCC00,#E5B800);color:#131313;}
-        .bet-btn.wait{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);pointer-events:none;}
-        .bet-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none!important;}
-
-        /* ── Mobile optimizations ── */
-        @media(max-width:380px){
-            .game-field{height:190px;margin:8px 0;border-radius:16px;}
-            .game-field-mult{font-size:48px;}
-            .game-field-mult.counting{font-size:40px;}
-            .rocket-wrap img{width:110px;height:110px;}
-            .boom-wrap img{width:130px;height:130px;}
-            .bet-panel{padding:10px 12px calc(10px + env(safe-area-inset-bottom));}
-            .bet-input{padding:9px 55px 9px 12px;font-size:14px;}
-            .currency-btn{padding:8px 10px;font-size:11px;}
-            .bet-btn{padding:12px;font-size:14px;border-radius:12px;}
-            .auto-cashout-wrap{padding:0 10px;}
-            .auto-cashout-input{font-size:13px;}
-            .crash-page{padding:0 10px 190px;}
-            .top-bar{padding:8px 12px;}
-        }
-        @media(max-width:340px){
-            .game-field{height:170px;border-radius:14px;}
-            .game-field-mult{font-size:42px;}
-            .rocket-wrap img{width:90px;height:90px;}
-            .boom-wrap img{width:110px;height:110px;}
-            .bet-input-row{gap:6px;}
-            .currency-btn{padding:7px 8px;font-size:10px;}
-            .currency-btn img{width:12px;height:12px;}
-            .bet-action-row{gap:6px;}
-            .bet-btn{padding:11px;font-size:13px;}
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403m">
+    <link rel="stylesheet" href="/static/css/crash.css?v=20260403m">
 </head>
 <body>
     <div class="loading-screen" id="loadingScreen">
         <img class="loading-screen-gif" src="/static/img/loading.gif" alt="">
         <div class="loading-text">Luna Gifts</div>
-        <div class="load-progress-wrap">
-            <div class="load-progress-bar" id="loadProgressBar"></div>
-        </div>
-        <div class="load-status" id="loadStatus">Загрузка...</div>
+        <div class="load-progress-wrap"><div class="load-progress-bar" id="loadProgressBar"></div></div>
+        <div class="load-status" id="loadStatus" data-i18n="loading">Loading...</div>
         <div class="load-percent" id="loadPercent">0%</div>
     </div>
 
-    <!-- Top bar -->
-    <div class="top-bar">
-        <div class="top-bar-left">
-            <div class="top-bar-back" onclick="window.location.href='/games'">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <!-- --- Top bar --- -->
+    <div class="crash-topbar">
+        <div class="crash-topbar-left">
+            <div class="crash-avatar-wrap" id="crashAvatar">
+                <img src="" alt="" id="crashAvatarImg">
             </div>
-            <div class="top-bar-bal" id="topBarTon">
-                <img src="/static/img/ton.svg" alt="TON"> <span id="tonBalTop">0.00</span>
-            </div>
-            <div class="top-bar-bal" id="topBarStars">
-                <img src="/static/img/star.svg" alt="Stars"> <span id="starsBalTop">0</span>
-            </div>
+            <div class="crash-nick" id="crashNick">Player</div>
         </div>
-        <div class="top-bar-right">
-            <div class="online-badge"><span class="online-dot"></span><span id="onlineCount">0</span></div>
+        <div class="crash-topbar-right">
+            <div class="crash-bal" onclick="openDepositModal()">
+                <span id="crashBalVal">0</span>
+                <img src="/static/img/star.png" alt="">
+            </div>
         </div>
     </div>
 
+    <!-- --- Game area --- -->
     <div class="crash-page">
-        <!-- Game field -->
-        <div class="game-field" id="gameField">
-            <div class="game-field-status" id="gameStatus">Ожидание...</div>
-            <div class="game-field-mult waiting" id="gameMult">Ожидание раунда</div>
-            <div class="rocket-wrap hide" id="rocketWrap">
-                <img src="/static/gifs/rocket1.gif" alt="Rocket">
-            </div>
-            <div class="boom-wrap" id="boomWrap">
-                <img src="/static/gifs/boom.gif" alt="Boom">
+
+        <!-- --- Game field with gift carousel --- -->
+        <div class="crash-field" id="crashField">
+            <div class="crash-gifts-carousel" id="giftsCarousel"></div>
+            <div class="crash-center-overlay" id="crashOverlay">
+                <div class="crash-mult" id="crashMult">&mdash;</div>
+                <div class="crash-status-text" id="crashStatusText" data-i18n="waiting">WAITING</div>
             </div>
         </div>
 
-        <!-- History -->
-        <div class="history-bar" id="historyBar"></div>
+        <!-- --- History bar --- -->
+        <div class="crash-history" id="crashHistory"></div>
 
-        <!-- Mode tabs -->
-        <div class="mode-row">
-            <div class="mode-tab active" data-mode="balance" onclick="switchMode(this)">Балансом</div>
-            <div class="mode-tab" data-mode="auto" onclick="switchMode(this)">Авто кешаут</div>
+        <!-- --- Bet panel --- -->
+        <div class="crash-bet-panel">
+            <div class="crash-bet-tabs">
+                <div class="crash-bet-tab active" data-tab="gift" onclick="setBetTab('gift')">Gift</div>
+                <div class="crash-bet-tab" data-tab="stars" onclick="setBetTab('stars')">Stars</div>
+            </div>
+
+            <!-- Gift tab -->
+            <div class="crash-bet-body" id="betBodyGift">
+                <div class="crash-bet-gift-row">
+                    <div class="crash-bet-gift-left">
+                        <div class="crash-bet-gift-title" data-i18n="join_game">Join the game</div>
+                        <div class="crash-bet-gift-sub" data-i18n="choose_gift">Choose a gift</div>
+                    </div>
+                    <button class="crash-select-gift-btn" id="selectGiftBtn" onclick="openGiftPicker()" data-i18n="select_plus">Select +</button>
+                </div>
+                <div class="crash-selected-gift" id="selectedGiftPreview" style="display:none;">
+                    <img src="" alt="" id="selectedGiftImg">
+                    <div class="crash-selected-gift-info">
+                        <div class="crash-selected-gift-name" id="selectedGiftName"></div>
+                        <div class="crash-selected-gift-val"><img src="/static/img/star.svg" alt=""> <span id="selectedGiftVal">0</span></div>
+                    </div>
+                    <button class="crash-remove-gift" onclick="removeSelectedGift()"><img src="/static/img/exit.png" alt="x" class="exit-btn-img"></button>
+                </div>
+            </div>
+
+            <!-- Stars tab -->
+            <div class="crash-bet-body" id="betBodyStars" style="display:none;">
+                <div class="crash-stars-input-row">
+                    <div class="crash-stars-input-wrap">
+                        <img src="/static/img/star.svg" alt="" class="crash-stars-icon">
+                        <input type="number" class="crash-stars-input" id="starsBetInput" data-i18n="bet_amount" placeholder="Bet amount" min="1" inputmode="numeric">
+                        <button class="crash-stars-max" onclick="setMaxStarsBet()">MAX</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Auto cashout -->
+            <div class="crash-auto-row">
+                <label class="crash-auto-label" data-i18n="auto_cashout">Auto cashout:</label>
+                <input type="number" class="crash-auto-input" id="autoCashoutInput" placeholder="2.00" min="1.01" step="0.01">
+            </div>
+
+            <!-- Bet / Cashout button -->
+            <button class="crash-action-btn" id="crashActionBtn" onclick="crashAction()">
+                <span id="crashActionText" data-i18n="bet">Bet</span>
+            </button>
         </div>
 
-        <!-- Bets list -->
-        <div class="bets-section">
-            <div class="bets-header">
-                <span>Игроки</span>
-                <span id="betsCount">0</span>
+        <!-- --- Players --- -->
+        <div class="crash-players-section">
+            <div class="crash-players-header">
+                <span data-i18n="players_in_round">Players in round</span> <span id="playersCount">0</span>
             </div>
-            <div id="betsList"></div>
+            <div class="crash-players-list" id="playersList"></div>
         </div>
     </div>
 
-    <!-- Fixed bottom bet panel -->
-    <div class="bet-panel">
-        <div class="bet-panel-inner">
-            <div class="bet-input-row">
-                <div class="currency-toggle">
-                    <button class="currency-btn" data-cur="ton" onclick="setCurrency('ton')"><img src="/static/img/ton.svg" alt="">TON</button>
-                    <button class="currency-btn active" data-cur="stars" onclick="setCurrency('stars')"><img src="/static/img/star.svg" alt="">Stars</button>
-                </div>
-                <div class="bet-input-wrap">
-                    <input type="number" class="bet-input" id="betInput" placeholder="Ставка" min="1" step="1" inputmode="numeric">
-                    <button class="bet-max-btn" onclick="setMaxBet()">MAX</button>
-                </div>
+    <!-- --- Gift Picker Modal --- -->
+    <div class="crash-modal-overlay" id="giftPickerModal">
+        <div class="crash-modal">
+            <div class="crash-modal-header">
+                <span data-i18n="choose_a_gift">Choose a gift</span>
+                <button class="crash-modal-close" onclick="closeGiftPicker()"><img src="/static/img/exit.png" alt="x" class="exit-btn-img"></button>
             </div>
-            <div class="bet-action-row">
-                <div class="auto-cashout-wrap" id="autoCashoutWrap">
-                    <label>Авто:</label>
-                    <input type="number" class="auto-cashout-input" id="autoCashoutInput" placeholder="2.00" min="1.01" step="0.01" value="">
-                </div>
-                <button class="bet-btn play" id="betBtn" onclick="doBet()">Ставка</button>
-            </div>
+            <div class="crash-modal-body" id="giftPickerGrid"></div>
         </div>
     </div>
 
-    <script src="/static/js/app.js"></script>
-    <script>
-    /* ─── State ─── */
-    const RATE = 100; // 1 TON = 100 Stars
-    let currency = 'stars';
-    let gameState = {status:'waiting', multiplier:1.00, game_id:0};
-    let prevState = null;
-    let myBet = null; // {game_id, amount, currency}
-    let smoothMult = 1.00;
-    let targetMult = 1.00;
-    let lastStatusTime = 0;
-    let statusPollTimer = null;
-    let betsPollTimer = null;
-    let rafId = null;
+    <!-- --- Win Popup --- -->
+    <div class="crash-win-overlay" id="winOverlay">
+        <div class="crash-win-popup" id="winPopup">
+            <img src="" alt="" class="crash-win-gift-img" id="winGiftImg" style="display:none;">
+            <div class="crash-win-mult" id="winMult" style="display:none;"></div>
+            <div class="crash-win-title" data-i18n="victory">Victory!</div>
+            <div class="crash-win-details" id="winDetails"></div>
+            <div class="crash-win-breakdown" id="winBreakdown" style="display:none;"></div>
+            <button class="crash-win-close" onclick="closeWinPopup()"><img src="/static/img/exit.png" alt="x" class="exit-btn-img"></button>
+            <button class="crash-win-btn" onclick="closeWinPopup()" data-i18n="collect">Collect</button>
+        </div>
+    </div>
 
-    /* ─── Currency toggle ─── */
-    function setCurrency(cur) {
-        currency = cur;
-        document.querySelectorAll('.currency-btn').forEach(b => b.classList.toggle('active', b.dataset.cur === cur));
-        document.getElementById('betInput').placeholder = cur === 'ton' ? 'Ставка TON' : 'Ставка Stars';
-    }
+    <nav class="bottom-nav">
+        <div class="nav-inner">
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item active"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
+        </div>
+    </nav>
 
-    function setMaxBet() {
-        if (!currentUser) return;
-        if (currency === 'ton') {
-            document.getElementById('betInput').value = (currentUser.balance / RATE).toFixed(2);
-        } else {
-            document.getElementById('betInput').value = Math.floor(currentUser.balance);
-        }
-    }
-
-    function switchMode(el) {
-        document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
-        el.classList.add('active');
-        const mode = el.dataset.mode;
-        document.getElementById('autoCashoutWrap').style.display = mode === 'auto' ? 'flex' : 'flex';
-    }
-
-    /* ─── Update top bar ─── */
-    function updateTopBar() {
-        if (!currentUser) return;
-        const bal = currentUser.balance || 0;
-        document.getElementById('starsBalTop').textContent = Math.floor(bal);
-        document.getElementById('tonBalTop').textContent = (bal / RATE).toFixed(2);
-    }
-
-    /* ─── Online count ─── */
-    async function loadOnline() {
-        try {
-            const r = await fetch('/api/online');
-            const d = await r.json();
-            document.getElementById('onlineCount').textContent = d.count || 0;
-        } catch(e) {}
-    }
-
-    /* ─── Status polling ─── */
-    async function pollStatus() {
-        try {
-            const r = await fetch('/api/crash/status');
-            const d = await r.json();
-            if (!d.success) return;
-            prevState = {...gameState};
-            gameState = d;
-            lastStatusTime = performance.now();
-            targetMult = d.multiplier || 1.00;
-            updateGameUI();
-        } catch(e) {}
-    }
-
-    let crashDone = false;
-    let boomUntil = 0;
-
-    function updateGameUI() {
-        const st = gameState.status;
-        const statusEl = document.getElementById('gameStatus');
-        const multEl = document.getElementById('gameMult');
-        const rocket = document.getElementById('rocketWrap');
-        const boom = document.getElementById('boomWrap');
-        const btn = document.getElementById('betBtn');
-
-        if (st === 'waiting' || st === 'counting') {
-            if (st === 'waiting') {
-                statusEl.textContent = 'Ожидание...';
-                multEl.className = 'game-field-mult waiting';
-                multEl.textContent = 'Новый раунд скоро';
-            } else {
-                const sec = gameState.countdown || 0;
-                statusEl.textContent = 'Раунд начинается';
-                multEl.className = 'game-field-mult counting';
-                multEl.textContent = sec > 0 ? sec.toFixed(1) + 's' : 'GO!';
-            }
-            rocket.classList.add('hide');
-            rocket.classList.remove('flying');
-            if (Date.now() >= boomUntil) boom.classList.remove('show');
-
-            // Reset on new round
-            if (prevState && prevState.game_id !== gameState.game_id) {
-                crashDone = false;
-                smoothMult = 1; targetMult = 1;
-                // Restart rocket GIF
-                const rImg = rocket.querySelector('img');
-                if (rImg) { rImg.src = ''; rImg.src = '/static/gifs/rocket1.gif'; }
-                if (!myBet) myBet = null;
-            }
-
-            if (!myBet) { btn.textContent = 'Ставка'; btn.className = 'bet-btn play'; btn.disabled = false; }
-            else { btn.textContent = 'Ожидание...'; btn.className = 'bet-btn wait'; btn.disabled = true; }
-
-        } else if (st === 'flying') {
-            statusEl.textContent = 'Летим!';
-            multEl.className = 'game-field-mult';
-            rocket.classList.remove('hide');
-            rocket.classList.add('flying');
-            boom.classList.remove('show');
-            crashDone = false;
-            if (myBet && myBet.game_id === gameState.game_id) {
-                btn.textContent = 'Забрать';
-                btn.className = 'bet-btn cashout';
-                btn.disabled = false;
-            } else if (!myBet) {
-                btn.textContent = 'Ожидание...';
-                btn.className = 'bet-btn wait';
-                btn.disabled = true;
-            }
-
-        } else if (st === 'crashed') {
-            statusEl.textContent = 'Краш!';
-            multEl.className = 'game-field-mult crashed';
-            multEl.textContent = (gameState.multiplier || 1).toFixed(2) + 'x';
-            rocket.classList.add('hide');
-            rocket.classList.remove('flying');
-            smoothMult = gameState.multiplier || 1;
-
-            if (!crashDone) {
-                // Show boom explosion — restart GIF
-                boom.classList.remove('show');
-                const boomImg = boom.querySelector('img');
-                if (boomImg) { boomImg.src = ''; boomImg.src = '/static/gifs/boom.gif'; }
-                void boom.offsetWidth;
-                boom.classList.add('show');
-                boomUntil = Date.now() + 2500;
-                crashDone = true;
-                try { tg.HapticFeedback.impactOccurred('heavy'); } catch(e){}
-            }
-
-            if (myBet && myBet.game_id === gameState.game_id) {
-                myBet = null;
-            }
-            btn.textContent = 'Ставка'; btn.className = 'bet-btn play'; btn.disabled = false;
-        }
-    }
-
-    /* ─── Smooth render loop ─── */
-    function renderLoop() {
-        if (gameState.status === 'flying') {
-            smoothMult += (targetMult - smoothMult) * 0.15;
-            if (smoothMult < 1) smoothMult = 1;
-            const multEl = document.getElementById('gameMult');
-            multEl.textContent = smoothMult.toFixed(2) + 'x';
-
-            // Color based on multiplier
-            if (smoothMult >= 10) multEl.style.color = '#FF6B6B';
-            else if (smoothMult >= 5) multEl.style.color = '#FFA500';
-            else if (smoothMult >= 2) multEl.style.color = '#FFD74A';
-            else { multEl.style.color = '#34D87A'; }
-
-            // Auto cashout
-            const autoVal = parseFloat(document.getElementById('autoCashoutInput').value);
-            if (autoVal && autoVal > 1 && smoothMult >= autoVal && myBet && myBet.game_id === gameState.game_id) {
-                doCashout();
-            }
-        } else {
-            document.getElementById('gameMult').style.color = '';
-        }
-        rafId = requestAnimationFrame(renderLoop);
-    }
-
-    /* ─── Place bet ─── */
-    async function doBet() {
-        const btn = document.getElementById('betBtn');
-        // If flying and we have a bet — cashout
-        if (gameState.status === 'flying' && myBet && myBet.game_id === gameState.game_id) {
-            doCashout();
-            return;
-        }
-        if (myBet) return;
-        if (!currentUser) { showNotification('Авторизуйтесь', 'error'); return; }
-
-        let amount = parseFloat(document.getElementById('betInput').value);
-        if (!amount || amount <= 0) { showNotification('Введите ставку', 'error'); return; }
-
-        // Convert to stars if TON
-        let starsAmount = amount;
-        if (currency === 'ton') starsAmount = Math.round(amount * RATE);
-        if (starsAmount < 1) { showNotification('Минимум 1 ⭐', 'error'); return; }
-        if (currentUser.balance < starsAmount) { showNotification('Недостаточно средств', 'error'); return; }
-
-        btn.disabled = true;
-        try {
-            const r = await fetch('/api/crash/bet', {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({telegram_id:currentUser.telegram_id, bet:starsAmount})
-            });
-            const d = await r.json();
-            if (!d.success) { showNotification(d.error||'Ошибка','error'); btn.disabled=false; return; }
-            currentUser.balance = d.new_balance;
-            updateTopBar();
-            updateUI();
-            myBet = {game_id:d.game_id, amount:starsAmount, currency:currency};
-            btn.textContent = 'Ожидание...';
-            btn.className = 'bet-btn wait';
-            try { tg.HapticFeedback.impactOccurred('medium'); } catch(e){}
-        } catch(e) {
-            showNotification('Ошибка соединения','error');
-            btn.disabled = false;
-        }
-    }
-
-    /* ─── Cashout ─── */
-    async function doCashout() {
-        if (!myBet) return;
-        const btn = document.getElementById('betBtn');
-        btn.disabled = true;
-        try {
-            const r = await fetch('/api/crash/cashout', {
-                method:'POST',
-                headers:{'Content-Type':'application/json'},
-                body:JSON.stringify({telegram_id:currentUser.telegram_id, game_id:myBet.game_id})
-            });
-            const d = await r.json();
-            if (d.success) {
-                currentUser.balance = d.new_balance;
-                updateTopBar();
-                updateUI();
-                const winTxt = currency === 'ton' ? (d.winnings/RATE).toFixed(2)+' TON' : d.winnings+' ⭐';
-                showNotification('+'+winTxt+' (x'+d.multiplier.toFixed(2)+')','success');
-                try { tg.HapticFeedback.impactOccurred('light'); } catch(e){}
-            } else {
-                showNotification(d.error||'Ошибка кешаута','error');
-            }
-        } catch(e) {
-            showNotification('Ошибка соединения','error');
-        }
-        myBet = null;
-        btn.disabled = false;
-        btn.textContent = 'Ставка';
-        btn.className = 'bet-btn play';
-    }
-
-    /* ─── Load history ─── */
-    async function loadHistory() {
-        try {
-            const r = await fetch('/api/crash/history');
-            const d = await r.json();
-            if (!d.success) return;
-            const bar = document.getElementById('historyBar');
-            bar.innerHTML = (d.history||[]).map(h => {
-                const m = h.multiplier;
-                let cls = 'red';
-                if (m >= 5) cls = 'orange';
-                else if (m >= 2) cls = 'green';
-                return '<div class="hist-pill '+cls+'">'+m.toFixed(2)+'x</div>';
-            }).join('');
-        } catch(e) {}
-    }
-
-    /* ─── Load bets ─── */
-    async function loadBets() {
-        try {
-            const r = await fetch('/api/crash/bets');
-            const d = await r.json();
-            if (!d.success) return;
-            const list = document.getElementById('betsList');
-            const bets = d.bets || [];
-            document.getElementById('betsCount').textContent = bets.length;
-            list.innerHTML = bets.map(b => {
-                let statusCls = 'playing';
-                let statusTxt = 'Играет';
-                let winText = '';
-                if (b.status === 'won') { statusCls='won'; statusTxt=b.cashout_mult.toFixed(2)+'x'; winText='+'+Math.floor(b.win_amount)+'⭐'; }
-                else if (b.status === 'lost') { statusCls='lost'; statusTxt='Краш'; }
-                const avatar = b.photo_url ? '<img src="'+b.photo_url+'" alt="">' : '<div style="width:100%;height:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;">'+((b.first_name||'?')[0])+'</div>';
-                return '<div class="bet-row '+(b.status==='won'?'won':b.status==='lost'?'lost':'')+'">'+
-                    '<div class="bet-avatar">'+avatar+'</div>'+
-                    '<div class="bet-info"><div class="bet-name">'+(b.first_name||'Игрок')+'</div><div class="bet-amount">'+Math.floor(b.bet_amount)+' ⭐</div></div>'+
-                    '<div class="bet-status"><div class="bet-status-text '+statusCls+'">'+statusTxt+'</div>'+(winText?'<div class="bet-win-amount">'+winText+'</div>':'')+'</div>'+
-                '</div>';
-            }).join('');
-        } catch(e) {}
-    }
-
-    /* ─── Init ─── */
-    document.addEventListener('DOMContentLoaded', async function() {
-        setLoadProgress(5, 'Инициализация...');
-        await initApp();
-        setLoadProgress(50, 'TON Connect...');
-        initTonConnect();
-        updateTopBar();
-        loadOnline();
-        loadHistory();
-        loadBets();
-
-        // Start polling
-        statusPollTimer = setInterval(pollStatus, 800);
-        betsPollTimer = setInterval(loadBets, 3000);
-        setInterval(loadOnline, 15000);
-        setInterval(loadHistory, 10000);
-        pollStatus();
-
-        // Start render loop
-        rafId = requestAnimationFrame(renderLoop);
-
-        setLoadProgress(100, 'Готово!');
-        dismissLoading();
-    });
-    </script>
+    <script src="/static/js/app.js?v=20260403m"></script>
+    <script src="/static/js/crash.js?v=20260403m"></script>
 </body>
 </html>

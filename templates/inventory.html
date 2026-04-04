@@ -3,77 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Luna Gifts — Инвентарь</title>
+    <title>Luna Gifts — Профиль</title>
     <link rel="icon" href="/static/img/logo.png" type="image/png">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.4.1/dist/tonconnect-ui.min.js" async></script>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=20260403h">
     <style>
-        .inv-action-row {
-            display: flex; gap: 10px; margin-bottom: 14px;
-        }
-        .inv-action-btn {
-            flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-            padding: 14px 16px; border-radius: 16px; border: none;
-            font-size: 14px; font-weight: 700; cursor: pointer;
-            transition: all 0.2s cubic-bezier(.175,.885,.32,1.275);
-            position: relative; overflow: hidden;
-        }
-        .inv-action-btn:active { transform: scale(0.96); }
-        .inv-action-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
-        .inv-action-btn img { width: 16px; height: 16px; }
-        .sell-all-btn {
-            background: #FFCC00;
-            color: #131313;
-        }
-        .sell-all-btn:hover { transform: translateY(-1px); }
-        .withdraw-all-btn {
-            background: #1689FF;
-            color: #fff;
-        }
-        .withdraw-all-btn:hover { transform: translateY(-1px); }
-        .withdraw-all-btn svg { flex-shrink: 0; }
-
-        /* Confirm modal */
-        .confirm-overlay {
-            position: fixed; inset: 0; z-index: 2000;
-            background: rgba(0,0,0,0.5); backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            display: none; align-items: center; justify-content: center;
-            padding: 24px;
-        }
-        .confirm-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
-        .confirm-box {
-            background: rgba(22, 22, 26, 0.88); border-radius: 24px; padding: 28px 24px;
-            max-width: 360px; width: 100%; text-align: center;
-            border: 1px solid rgba(255,255,255,0.08);
-            backdrop-filter: blur(40px) saturate(1.6);
-            -webkit-backdrop-filter: blur(40px) saturate(1.6);
-            animation: slideUp 0.3s cubic-bezier(.32,.72,0,1);
-        }
-        .confirm-box-title { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
-        .confirm-box-text { font-size: 14px; color: rgba(255,255,255,0.55); margin-bottom: 20px; line-height: 1.5; }
-        .confirm-box-btns { display: flex; gap: 10px; }
-        .confirm-box-btns button { flex: 1; padding: 13px; border-radius: 14px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; transition: transform 0.1s; }
-        .confirm-box-btns button:active { transform: scale(0.96); }
-        .confirm-cancel { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.55); }
-        .confirm-action { background: #FFCC00; color: #131313; }
-
-        /* ── Mobile optimizations ── */
-        @media (max-width: 380px) {
-            .inv-action-btn { padding: 12px 12px; font-size: 13px; gap: 6px; border-radius: 14px; }
-            .inv-action-btn img { width: 14px; height: 14px; }
-            .confirm-box { padding: 22px 18px; border-radius: 20px; }
-            .confirm-box-title { font-size: 18px; }
-            .confirm-box-text { font-size: 13px; }
-            .confirm-box-btns button { padding: 12px; font-size: 13px; border-radius: 12px; }
-        }
-        @media (max-width: 340px) {
-            .inv-action-row { gap: 8px; }
-            .inv-action-btn { padding: 10px 10px; font-size: 12px; border-radius: 12px; }
-            .confirm-box { padding: 18px 14px; border-radius: 18px; max-width: 300px; }
-            .confirm-box-btns { gap: 8px; }
-        }
+        .profile-bal-section{padding:0 4px;margin-bottom:16px;}
+        .profile-bal-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+        .profile-bal-row:last-child{border-bottom:none;}
+        .profile-bal-left{display:flex;align-items:center;gap:10px;}
+        .profile-bal-left img{width:20px;height:20px;}
+        .profile-bal-label{font-size:12px;color:rgba(255,255,255,0.45);}
+        .profile-bal-val{font-size:22px;font-weight:800;color:#fff;}
+        .profile-action-icons{display:flex;gap:8px;}
+        .profile-icon-btn{width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;}
+        .profile-icon-btn:active{transform:scale(0.92);background:rgba(255,255,255,0.12);}
+        .profile-icon-btn svg{width:18px;height:18px;color:rgba(255,255,255,0.6);}
+        .profile-deposit-btn{width:100%;padding:14px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;transition:transform 0.2s;}
+        .profile-deposit-btn:active{transform:scale(0.97);}
+        .profile-addgift-btn{width:100%;padding:14px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);color:#fff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;transition:transform 0.2s;}
+        .profile-addgift-btn:active{transform:scale(0.97);}
+        .profile-addgift-btn svg,.profile-deposit-btn svg{width:16px;height:16px;}
+        .inv-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:0 4px;}
+        .inv-title{font-size:18px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;}
+        .inv-title span{color:rgba(255,255,255,0.35);}
+        .inv-sort{font-size:12px;color:rgba(255,255,255,0.4);cursor:pointer;display:flex;align-items:center;gap:4px;}
+        .inv-sort:active{color:rgba(255,255,255,0.7);}
+        /* Settings Sheet */
+        .settings-overlay{position:fixed;inset:0;z-index:1100;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;}
+        .settings-overlay.active{display:flex;}
+        .settings-container{max-width:480px;margin:0 auto;padding:14px 16px 120px;width:100%;}
+        .settings-back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;padding:8px 0;margin-bottom:12px;}
+        .settings-title{font-size:28px;font-weight:900;color:#fff;margin-bottom:8px;}
+        .settings-section-label{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px;}
+        .settings-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden;margin-bottom:16px;}
+        .settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.06);}
+        .settings-item:last-child{border-bottom:none;}
+        .settings-item-label{font-size:14px;font-weight:600;color:#fff;}
+        .settings-toggle{position:relative;width:44px;height:24px;cursor:pointer;}
+        .settings-toggle input{display:none;}
+        .settings-toggle .track{position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,0.12);transition:background 0.2s;}
+        .settings-toggle input:checked+.track{background:var(--accent);}
+        .settings-toggle .thumb{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+        .settings-toggle input:checked~.thumb{transform:translateX(20px);}
+        .lang-toggle{display:flex;gap:0;border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);}
+        .lang-btn{padding:6px 14px;font-size:13px;font-weight:600;background:none;border:none;color:rgba(255,255,255,0.4);cursor:pointer;transition:all 0.2s;}
+        .lang-btn.active{background:rgba(255,255,255,0.12);color:#fff;}
+        /* History Sheet */
+        .history-overlay{position:fixed;inset:0;z-index:1100;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;}
+        .history-overlay.active{display:flex;}
+        .history-container{max-width:480px;margin:0 auto;padding:14px 16px 120px;width:100%;}
+        .history-title{font-size:28px;font-weight:900;color:#fff;margin-bottom:4px;text-align:center;}
+        .history-sort{font-size:13px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:16px;cursor:pointer;}
+        .history-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.06);}
+        .history-icon{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;color:rgba(255,255,255,0.4);}
+        .history-info{flex:1;}
+        .history-info-title{font-size:14px;font-weight:600;color:#fff;}
+        .history-info-date{font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;}
+        .history-amounts{text-align:right;}
+        .history-amount{font-size:14px;font-weight:700;color:#34D87A;}
+        .history-usd{font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;}
+        /* Sell/Withdraw confirms */
+        .confirm-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.5);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;padding:24px;}
+        .confirm-overlay.active{display:flex;animation:fadeIn 0.2s ease;}
+        .confirm-box{background:rgba(22,22,26,0.88);border-radius:24px;padding:28px 24px;max-width:360px;width:100%;text-align:center;border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(40px) saturate(1.6);-webkit-backdrop-filter:blur(40px) saturate(1.6);animation:slideUp 0.3s cubic-bezier(.32,.72,0,1);}
+        .confirm-box-title{font-size:20px;font-weight:800;margin-bottom:8px;}
+        .confirm-box-text{font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:20px;line-height:1.5;}
+        .confirm-box-btns{display:flex;gap:10px;}
+        .confirm-box-btns button{flex:1;padding:13px;border-radius:14px;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:transform 0.1s;}
+        .confirm-box-btns button:active{transform:scale(0.96);}
+        .confirm-cancel{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.55);}
+        .confirm-action{background:#FFCC00;color:#131313;}
+        .inv-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:240px;text-align:center;padding:20px;}
+        .inv-empty img{width:120px;height:120px;object-fit:contain;margin-bottom:16px;opacity:0.8;}
+        .inv-empty-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;}
+        .inv-empty-desc{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.5;}
     </style>
 </head>
 <body>
@@ -89,26 +94,53 @@
 
     <div class="container" style="padding-top:14px;">
 
-        <!-- Action Buttons -->
-        <div style="display:flex;gap:10px;margin-bottom:18px;">
-            <button style="flex:1;padding:13px;border-radius:14px;background:var(--accent);border:none;color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="window.location.href='/topup'">
-                <span style="font-size:18px;">+</span> Пополнить
-            </button>
-            <button style="flex:1;padding:13px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;" onclick="window.location.href='/market'">
-                <span style="font-size:18px;">+</span> Купить подарок
-            </button>
+        <!-- Balance Section -->
+        <div class="profile-bal-section">
+            <!-- TON row -->
+            <div class="profile-bal-row">
+                <div class="profile-bal-left">
+                    <img src="/static/img/ton.svg" alt="TON">
+                    <div>
+                        <div class="profile-bal-label">Баланс TON</div>
+                        <div class="profile-bal-val" id="tonBalanceVal">0.00</div>
+                    </div>
+                </div>
+                <div class="profile-action-icons">
+                    <div class="profile-icon-btn" onclick="openSettings()">
+                        <svg viewBox="0 0 18 18" fill="none"><path d="M7.90317 1.875H9.90631L10.2585 3.63191C10.5565 3.75082 10.8397 3.89856 11.1038 4.07202L12.8178 3.49277L13.8194 5.22723L12.4602 6.36293C12.4866 6.57312 12.5001 6.78618 12.5001 7C12.5001 7.21381 12.4866 7.42688 12.4602 7.63707L13.8194 8.77277L12.8178 10.5072L11.1038 9.92798C10.8397 10.1014 10.5565 10.2492 10.2585 10.3681L9.90631 12.125H7.90317L7.551 10.3681C7.253 10.2492 6.96977 10.1014 6.70567 9.92798L4.99168 10.5072L3.99011 8.77277L5.34928 7.63707C5.32292 7.42688 5.30942 7.21381 5.30942 7C5.30942 6.78618 5.32292 6.57312 5.34928 6.36293L3.99011 5.22723L4.99168 3.49277L6.70567 4.07202C6.96977 3.89856 7.253 3.75082 7.551 3.63191L7.90317 1.875ZM8.90474 5.25C7.93824 5.25 7.15474 6.0335 7.15474 7C7.15474 7.9665 7.93824 8.75 8.90474 8.75C9.87124 8.75 10.6547 7.9665 10.6547 7C10.6547 6.0335 9.87124 5.25 8.90474 5.25Z" fill="currentColor"/></svg>
+                    </div>
+                    <div class="profile-icon-btn" onclick="openHistory()">
+                        <svg viewBox="0 0 18 18" fill="none"><path d="M0.875 9C0.875 4.51269 4.51269 0.875 9 0.875C13.4873 0.875 17.125 4.51269 17.125 9C17.125 13.4873 13.4873 17.125 9 17.125C4.51269 17.125 0.875 13.4873 0.875 9ZM9.625 4.875C9.625 4.52982 9.34518 4.25 9 4.25C8.65482 4.25 8.375 4.52982 8.375 4.875V9C8.375 9.23885 8.50877 9.45818 8.71913 9.56699L11.8441 11.1795C12.1519 11.3385 12.5271 11.2148 12.6795 10.9041C12.8385 10.5963 12.7148 10.2211 12.4041 10.0687L9.625 8.63413V4.875Z" fill="currentColor"/></svg>
+                    </div>
+                </div>
+            </div>
+            <!-- Stars row -->
+            <div class="profile-bal-row">
+                <div class="profile-bal-left">
+                    <img src="/static/img/star.svg" alt="Stars">
+                    <div>
+                        <div class="profile-bal-label">Баланс Stars</div>
+                        <div class="profile-bal-val" id="starsBalanceVal">0</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Deposit & Add Gift buttons -->
+        <button class="profile-deposit-btn" onclick="openDepositModal()">
+            <svg viewBox="0 0 14 14" fill="none"><path d="M7 0.25C7.41421 0.25 7.75 0.585786 7.75 1V6.25H13C13.4142 6.25 13.75 6.58579 13.75 7C13.75 7.41421 13.4142 7.75 13 7.75H7.75V13C7.75 13.4142 7.41421 13.75 7 13.75C6.58579 13.75 6.25 13.4142 6.25 13V7.75H1C0.585786 7.75 0.25 7.41421 0.25 7C0.25 6.58579 0.585786 6.25 1 6.25H6.25V1C6.25 0.585786 6.58579 0.25 7 0.25Z" fill="currentColor"/></svg>
+            Пополнить
+        </button>
+        <button class="profile-addgift-btn" onclick="openGiftDeposit()">
+            <svg viewBox="0 0 18 18" fill="none"><path d="M8.53475 4.36305C8.22875 3.54605 7.33175 2.25005 5.72075 2.25005C4.39475 2.25005 3.28175 3.33905 3.28175 4.68905C3.28175 6.27005 4.54175 7.27505 5.94375 8.03805L1.87475 8.03805C1.56375 8.03805 1.31275 8.28905 1.31275 8.60005L1.31275 11.1C1.31275 11.305 1.43009 11.4893 1.61175 11.5815L1.87475 11.7131L1.87475 16.3131C1.87475 16.624 2.12575 16.875 2.43675 16.875L8.43675 16.875L8.43675 8.23605C8.38575 8.20605 8.33475 8.17705 8.28375 8.14705C7.42475 7.64605 6.10375 6.86205 5.35075 6.04405C4.88275 5.53005 4.72675 4.97505 4.91175 4.41805C5.07275 3.93305 5.57575 3.37505 6.28175 3.37505C7.25775 3.37505 7.89475 4.51205 8.10375 5.11705L8.53475 4.36305ZM9.56275 16.875L15.5627 16.875C15.8737 16.875 16.1247 16.6241 16.1247 16.3131L16.1248 11.7131L16.3878 11.582C16.5694 11.489 16.6868 11.305 16.6868 11.1L16.6868 8.60005C16.6868 8.28905 16.4358 8.03805 16.1247 8.03805L12.0558 8.03805C13.4578 7.27505 14.7178 6.27005 14.7178 4.68905C14.7178 3.33905 13.6048 2.25005 12.2788 2.25005C10.6678 2.25005 9.77075 3.54605 9.46475 4.36305L9.89575 5.11705C10.1048 4.51205 10.7418 3.37505 11.7178 3.37505C12.4238 3.37505 12.9268 3.93305 13.0878 4.41805C13.2728 4.97505 13.1168 5.53005 12.6488 6.04405C11.8958 6.86205 10.5747 7.64605 9.71575 8.14705C9.66475 8.17705 9.61375 8.20605 9.56275 8.23605L9.56275 16.875Z" fill="currentColor"/></svg>
+            Добавить подарок
+        </button>
+
         <!-- Inventory Header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-            <h2 style="font-size:18px;font-weight:800;color:#fff;margin:0;">Инвентарь <span id="inventoryCount" style="color:rgba(255,255,255,0.4);">0</span></h2>
-            <div style="display:flex;gap:8px;">
-                <button class="inv-action-btn sell-all-btn" id="sellAllBtn" style="display:none;flex:initial;padding:8px 14px;font-size:12px;border-radius:10px;" onclick="sellAllItems()">
-                    <img src="/static/img/star.svg" alt="" style="width:12px;height:12px;"> Продать всё
-                </button>
-                <button class="inv-action-btn withdraw-all-btn" id="withdrawAllBtn" style="display:none;flex:initial;padding:8px 14px;font-size:12px;border-radius:10px;" onclick="withdrawAllItems()">
-                    Вывести NFT
-                </button>
+        <div class="inv-header">
+            <div class="inv-title">Инвентарь <span id="inventoryCount">0</span></div>
+            <div class="inv-sort" id="invSortBtn" onclick="toggleInvSort()">
+                ↕ Цена: по возрастанию
             </div>
         </div>
 
@@ -116,11 +148,61 @@
             <div class="loading"><img src="/static/img/loading.gif" alt="" style="width:28px;height:28px;"></div>
         </div>
 
-        <!-- (Referral and promo sections removed to simplify profile UI) -->
-
         <!-- Admin link for admins -->
         <div id="adminLink" style="display:none;text-align:center;margin:20px 0;">
             <a href="/admin" class="admin-panel-link" style="font-size:14px;">&#9881; Админ-панель</a>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-container">
+            <button class="settings-back" onclick="closeSettings()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Назад</button>
+            <div class="settings-title">Настройки</div>
+            <div class="settings-section-label">ПАРАМЕТРЫ</div>
+            <div class="settings-card">
+                <div class="settings-item">
+                    <div class="settings-item-label">Язык</div>
+                    <div class="lang-toggle">
+                        <button class="lang-btn active" onclick="setLang('ru',this)">RU</button>
+                        <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+                    </div>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-label">Звуки</div>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="soundToggle" onchange="LunaSound.set(this.checked)">
+                        <div class="track"></div>
+                        <div class="thumb"></div>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-label">Вибрация</div>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="hapticToggle" checked onchange="localStorage.setItem('luna_haptic',this.checked)">
+                        <div class="track"></div>
+                        <div class="thumb"></div>
+                    </label>
+                </div>
+                <div class="settings-item">
+                    <div class="settings-item-label">Показать в рейтинге</div>
+                    <label class="settings-toggle">
+                        <input type="checkbox" id="leaderboardToggle" checked onchange="localStorage.setItem('luna_leaderboard',this.checked)">
+                        <div class="track"></div>
+                        <div class="thumb"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Overlay -->
+    <div class="history-overlay" id="historyOverlay">
+        <div class="history-container">
+            <button class="settings-back" onclick="closeHistory()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg> Назад</button>
+            <div class="history-title">История</div>
+            <div class="history-sort" onclick="toggleHistorySort()">↕ Сначала новые</div>
+            <div id="historyList"></div>
         </div>
     </div>
 
@@ -135,7 +217,7 @@
         </div>
     </div>
 
-    <!-- Inventory Roulette Overlay (for opening cases from inventory) -->
+    <!-- Inventory Roulette Overlay -->
     <div class="modal-overlay" id="invRouletteOverlay" style="z-index:1100;">
         <div class="modal-content" style="max-width:400px;padding:16px;">
             <div class="roulette-container" id="invRouletteContainer" style="height:110px;margin-bottom:16px;">
@@ -148,11 +230,11 @@
 
     <nav class="bottom-nav">
         <div class="nav-inner">
-            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label">Маркет</span></a>
-            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label">Задания</span></a>
-            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label">Игры</span></a>
-            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label">Рефералы</span></a>
-            <a href="/inventory" class="nav-item active"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label">Профиль</span></a>
+            <a href="/market" class="nav-item"><span class="nav-icon"><img src="/static/img/gift.png" alt=""></span><span class="nav-label" data-i18n="nav_market">Market</span></a>
+            <a href="/" class="nav-item"><span class="nav-icon"><img src="/static/img/quest.png" alt=""></span><span class="nav-label" data-i18n="nav_quests">Quests</span></a>
+            <a href="/games" class="nav-item"><span class="nav-icon"><img src="/static/img/games.png" alt=""></span><span class="nav-label" data-i18n="nav_games">Games</span></a>
+            <a href="/referral" class="nav-item"><span class="nav-icon"><img src="/static/img/ref.png" alt=""></span><span class="nav-label" data-i18n="nav_referrals">Referrals</span></a>
+            <a href="/inventory" class="nav-item active"><span class="nav-icon"><img src="/static/img/profil.png" alt=""></span><span class="nav-label" data-i18n="nav_profile">Profile</span></a>
         </div>
     </nav>
 
@@ -181,9 +263,75 @@
         </div>
     </div>
 
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/app.js?v=20260403h"></script>
+    <script>
+    // Init sound toggle
+    (function(){
+        const cb=document.getElementById('soundToggle');
+        if(cb && typeof LunaSound!=='undefined'){
+            cb.checked=LunaSound.enabled;
+        }
+        // Restore haptic
+        const hap=document.getElementById('hapticToggle');
+        if(hap) hap.checked=localStorage.getItem('luna_haptic')!=='false';
+        const lb=document.getElementById('leaderboardToggle');
+        if(lb) lb.checked=localStorage.getItem('luna_leaderboard')!=='false';
+    })();
+    </script>
     <script>
     let inventoryData=[];
+    let invSortAsc=true;
+    let historySortNewest=true;
+
+    function openSettings(){document.getElementById('settingsOverlay').classList.add('active');}
+    function closeSettings(){document.getElementById('settingsOverlay').classList.remove('active');}
+    function openHistory(){document.getElementById('historyOverlay').classList.add('active');loadHistory();}
+    function closeHistory(){document.getElementById('historyOverlay').classList.remove('active');}
+
+    function setLang(lang,btn){
+        document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        localStorage.setItem('luna_lang',lang);
+        if(typeof applyLang==='function') applyLang();
+    }
+
+    function toggleInvSort(){
+        invSortAsc=!invSortAsc;
+        document.getElementById('invSortBtn').textContent=invSortAsc?'↕ Цена: по возрастанию':'↕ Цена: по убыванию';
+        renderInventory();
+    }
+
+    function toggleHistorySort(){
+        historySortNewest=!historySortNewest;
+        document.querySelector('.history-sort').textContent=historySortNewest?'↕ Сначала новые':'↕ Сначала старые';
+        loadHistory();
+    }
+
+    async function loadHistory(){
+        if(!currentUser)return;
+        const list=document.getElementById('historyList');
+        list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3);">Загрузка...</div>';
+        try{
+            const res=await fetch('/api/deposits/history/'+currentUser.telegram_id);
+            let data=await res.json();
+            if(!historySortNewest) data.reverse();
+            if(!data.length){list.innerHTML='<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.3);font-size:14px;">Нет депозитов</div>';return;}
+            list.innerHTML=data.map(d=>{
+                const icons={'crypto_bot':'🤖','usdt':'💵','ton':'💎','stars':'⭐','gift':'🎁'};
+                const icon=icons[d.method]||'💰';
+                const date=new Date(d.created_at);
+                const dateStr=date.toLocaleDateString('ru-RU',{day:'numeric',month:'short'})+' '+date.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+                const methodNames={'crypto_bot':'Crypto Bot','usdt':'USDT','ton':'TON','stars':'Stars','gift':'Gift'};
+                return '<div class="history-item"><div class="history-icon">'+icon+'</div><div class="history-info"><div class="history-info-title">'+(methodNames[d.method]||d.method)+'</div><div class="history-info-date">'+dateStr+'</div></div><div class="history-amounts"><div class="history-amount">+'+d.amount+' ⭐</div>'+(d.usd_amount?'<div class="history-usd">~$'+parseFloat(d.usd_amount).toFixed(2)+'</div>':'')+'</div></div>';
+            }).join('');
+        }catch(e){list.innerHTML='<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3);">Ошибка загрузки</div>';}
+    }
+
+    function updateProfileBalances(){
+        if(!currentUser)return;
+        document.getElementById('starsBalanceVal').textContent=formatBalance(currentUser.balance||0);
+        document.getElementById('tonBalanceVal').textContent=(currentUser.ton_balance||0).toFixed(2);
+    }
 
     async function loadInventory(){
         if(!currentUser)return;
@@ -191,25 +339,25 @@
             const res=await fetch('/api/inventory/'+currentUser.telegram_id);
             inventoryData=await res.json();
             renderInventory();
-        }catch(e){document.getElementById('inventoryGrid').innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Ошибка загрузки</p></div>';}
+        }catch(e){document.getElementById('inventoryGrid').innerHTML='<div class="inv-empty"><img src="/static/img/gift.png" alt=""><div class="inv-empty-title">Ошибка загрузки</div></div>';}
     }
 
     function renderInventory(){
         const g=document.getElementById('inventoryGrid');
         const cnt=document.getElementById('inventoryCount');
         cnt.textContent=inventoryData.length;
-        // Show/hide action buttons based on non-case items
-        const nonCaseItems=inventoryData.filter(i=>i.type!=='case');
-        const sellBtn=document.getElementById('sellAllBtn');
-        const withdrawBtn=document.getElementById('withdrawAllBtn');
-        if(nonCaseItems.length>0){sellBtn.style.display='flex';withdrawBtn.style.display='flex';}else{sellBtn.style.display='none';withdrawBtn.style.display='none';}
-        // Hide settings button for non-admins
-        try{if(!currentUser||!currentUser.is_admin)document.getElementById('settingsBtn').style.display='none';}catch(e){}
-        if(!inventoryData.length){g.innerHTML='<div class="empty-state"><div class="empty-icon"><img src="/static/img/gift.png" alt=""></div><p>Инвентарь пуст.<br>Откройте кейсы или купите подарки!</p></div>';return;}
-        g.innerHTML=inventoryData.map(item=>{
+        updateProfileBalances();
+        if(!inventoryData.length){
+            g.innerHTML='<div class="inv-empty"><img src="/static/img/gift.png" alt=""><div class="inv-empty-title">Инвентарь пуст</div><div class="inv-empty-desc">Откройте кейсы или купите подарки на маркете!</div></div>';
+            return;
+        }
+        let sorted=[...inventoryData];
+        sorted.sort((a,b)=>invSortAsc?(a.price||0)-(b.price||0):(b.price||0)-(a.price||0));
+        g.innerHTML=sorted.map(item=>{
             const isCase=item.type==='case';
             const bg=!isCase?getNftBg(item.slug,item.item_count):'';
-            return '<div class="inventory-item" onclick="'+(isCase?'openCaseItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+item.case_id+')':'openItemModal('+item.id+',\''+esc(item.name)+'\',\''+imgSrc(item.image)+'\','+(item.price||0)+',\''+esc(item.slug||'')+'\','+(item.item_count||1000)+','+(item.gift_id||0)+')')+'"><div class="inv-item-visual">'+(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+(item.slug||'')+'" data-count="'+(item.item_count||1000)+'" alt="">':'<img class="inv-item-img" src="'+imgSrc(item.image)+'" alt="'+esc(item.name)+'" onerror="this.src=\'/static/img/star.svg\'">')+'</div><div class="inv-item-name">'+esc(item.name)+'</div>'+(isCase?'<div class="inv-item-tag">Кейс</div>':'<div class="inv-item-price">'+Math.floor(item.price||0)+' <img src="/static/img/star.svg" alt=""></div>')+'</div>';
+            const localImg=imgSrc(item.image);
+            return '<div class="inventory-item" onclick="'+(isCase?'openCaseItemModal('+item.id+',\''+esc(item.name)+'\',\''+localImg+'\','+item.case_id+')':'openItemModal('+item.id+',\''+esc(item.name)+'\',\''+localImg+'\','+(item.price||0)+',\''+esc(item.slug||'')+'\','+(item.item_count||1000)+','+(item.gift_id||0)+')')+'"><div class="inv-item-visual">'+(bg?'<img class="gift-backdrop" src="'+bg+'" data-slug="'+(item.slug||'')+'" data-count="'+(item.item_count||1000)+'" alt="" onerror="this.className=\'inv-item-img\';this.src=\''+localImg+'\'">':(localImg?'<img class="inv-item-img" src="'+localImg+'" alt="'+esc(item.name)+'" onerror="this.src=\'/static/img/star.svg\'">':'<img class="inv-item-img" src="/static/img/star.svg" alt="">'))+'</div><div class="inv-item-name">'+esc(item.name)+'</div>'+(isCase?'<div class="inv-item-tag">Кейс</div>':'<div class="inv-item-price">'+Math.floor(item.price||0)+' <img src="/static/img/star.svg" alt=""></div>')+'</div>';
         }).join('');
     }
 
@@ -300,9 +448,7 @@
             const res=await fetch('/api/inventory/withdraw',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,inventory_id:invId})});
             const d=await res.json();
             if(d.success){
-                if(d.is_first_withdrawal){
-                    showFirstWithdrawModal();
-                }
+                if(d.is_first_withdrawal) showFirstWithdrawModal();
                 showNotification(d.message||name+' выведен! Проверьте Telegram','success');
                 closeModal('itemModal');
                 if(d.new_balance!==undefined){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();}
@@ -314,9 +460,7 @@
 
     function showFirstWithdrawModal(){
         const ov=document.createElement('div');
-        ov.className='modal-overlay active';
-        ov.id='firstWithdrawModal';
-        ov.style.alignItems='center';
+        ov.className='modal-overlay active';ov.id='firstWithdrawModal';ov.style.alignItems='center';
         ov.innerHTML='<div class="modal" style="border-radius:24px;max-width:380px;text-align:center;padding:30px 24px;">'
             +'<img src="/static/img/gift.png" style="width:64px;height:64px;margin:0 auto 16px;" alt="">'
             +'<div style="font-size:20px;font-weight:800;margin-bottom:10px;">Первый вывод!</div>'
@@ -327,40 +471,6 @@
             +'<button onclick="document.getElementById(\'firstWithdrawModal\').remove()" style="width:100%;padding:12px;border:none;border-radius:12px;background:#1689FF;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">Понятно</button>'
             +'</div>';
         document.body.appendChild(ov);
-    }
-
-    async function loadReferralStats(){
-        if(!currentUser)return;
-        try{
-            const res=await fetch('/api/referral/stats/'+currentUser.telegram_id);const d=await res.json();
-            document.getElementById('refCount').textContent=d.count||0;
-            document.getElementById('refEarnings').innerHTML=(d.earnings||0)+' <img src="/static/img/star.svg" alt="" style="width:14px;height:14px;vertical-align:middle;">';
-            document.getElementById('refLinkInput').value='https://t.me/lunagifts_robot?start=ref_'+currentUser.telegram_id;
-        }catch(e){}
-    }
-
-    function copyRefLink(){
-        const inp=document.getElementById('refLinkInput');
-        if(navigator.clipboard){navigator.clipboard.writeText(inp.value).then(()=>showNotification('Ссылка скопирована!','success'));}
-        else{inp.select();document.execCommand('copy');showNotification('Ссылка скопирована!','success');}
-    }
-
-    async function redeemPromo(){
-        if(!currentUser)return;
-        const code=document.getElementById('promoInput').value.trim();
-        if(!code){showNotification('Введите промокод','error');return;}
-        try{
-            const res=await fetch('/api/promo/redeem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id,code:code})});
-            const d=await res.json();
-            if(d.error){showNotification(d.error,'error');return;}
-            // Handle different promo types
-            if(d.new_balance!==undefined){currentUser.balance=d.new_balance;localStorage.setItem('luna_user',JSON.stringify(currentUser));updateUI();}
-            if(d.case_discount_percent){localStorage.setItem('luna_case_discount',JSON.stringify({case_id:d.case_id||0,percent:d.case_discount_percent}));}
-            if(d.scratch_discount_percent){localStorage.setItem('luna_scratch_discount',JSON.stringify({scratch_id:d.scratch_id||0,percent:d.scratch_discount_percent}));}
-            showNotification(d.message||'Промокод активирован!','success');
-            document.getElementById('promoInput').value='';
-            if(d.type==='gift_to_inventory'||d.type==='case_to_inventory')loadInventory();
-        }catch(e){showNotification('Ошибка соединения','error');}
     }
 
     function sellAllItems(){
@@ -374,8 +484,6 @@
     async function doSellAll(){
         document.getElementById('confirmSellAll').classList.remove('active');
         if(!currentUser)return;
-        const btn=document.getElementById('sellAllBtn');
-        btn.disabled=true;
         try{
             const res=await fetch('/api/inventory/sell-all',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:currentUser.telegram_id})});
             const d=await res.json();
@@ -385,121 +493,29 @@
                 loadInventory();
             }else{showNotification(d.error||'Ошибка','error');}
         }catch(e){showNotification('Ошибка соединения','error');}
-        btn.disabled=false;
     }
 
     function withdrawAllItems(){
-        // Count withdrawable items
         const withdrawable = inventoryData.filter(i => i.type !== 'case' && i.withdrawable && i.telegram_gift_id);
-        if(!withdrawable.length){
-            showNotification('Нет подарков для вывода в Telegram','error');
-            return;
-        }
-        document.getElementById('confirmWithdrawText').innerHTML =
-            'Будет выведено <b>' + withdrawable.length + '</b> подарок(ов) в Telegram';
+        if(!withdrawable.length){showNotification('Нет подарков для вывода в Telegram','error');return;}
+        document.getElementById('confirmWithdrawText').innerHTML='Будет выведено <b>' + withdrawable.length + '</b> подарок(ов) в Telegram';
         document.getElementById('confirmWithdrawAll').classList.add('active');
     }
 
     async function doWithdrawAll(){
         document.getElementById('confirmWithdrawAll').classList.remove('active');
         if(!currentUser) return;
-        const btn = document.getElementById('withdrawAllBtn');
-        btn.disabled = true;
         showNotification('Вывод подарков...','info');
         try{
-            const res = await fetch('/api/inventory/withdraw-all', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({telegram_id: currentUser.telegram_id})
-            });
+            const res = await fetch('/api/inventory/withdraw-all', {method: 'POST',headers: {'Content-Type': 'application/json'},body: JSON.stringify({telegram_id: currentUser.telegram_id})});
             const d = await res.json();
             if(d.success){
                 if(d.is_first_withdrawal) showFirstWithdrawModal();
                 showNotification(d.message, 'success');
-                if(d.new_balance !== undefined){
-                    currentUser.balance = d.new_balance;
-                    localStorage.setItem('luna_user', JSON.stringify(currentUser));
-                    updateUI();
-                }
+                if(d.new_balance !== undefined){currentUser.balance = d.new_balance;localStorage.setItem('luna_user', JSON.stringify(currentUser));updateUI();}
                 loadInventory();
-            } else {
-                showNotification(d.error || 'Ошибка вывода', 'error');
-            }
-        } catch(e){
-            showNotification('Ошибка соединения', 'error');
-        }
-        btn.disabled = false;
-    }
-
-    // ============ TON ↔ Stars Exchange ============
-    let exchangeDir = 'ton_to_stars'; // or 'stars_to_ton'
-    const EXCHANGE_RATE = 100;
-
-    function setExchangeDir(dir) {
-        exchangeDir = dir;
-        const tonBtn = document.getElementById('exDirTonToStars');
-        const starsBtn = document.getElementById('exDirStarsToTon');
-        const inputIcon = document.getElementById('exchangeInputIcon');
-        const outputIcon = document.getElementById('exchangeOutputIcon');
-        if (dir === 'ton_to_stars') {
-            tonBtn.style.background = 'var(--accent)'; tonBtn.style.borderColor = 'var(--accent)'; tonBtn.style.color = '#fff';
-            starsBtn.style.background = 'rgba(255,255,255,0.06)'; starsBtn.style.borderColor = 'rgba(255,255,255,0.10)'; starsBtn.style.color = 'rgba(255,255,255,0.5)';
-            inputIcon.src = '/static/img/ton.svg';
-            outputIcon.src = '/static/img/star.svg';
-        } else {
-            starsBtn.style.background = 'var(--accent)'; starsBtn.style.borderColor = 'var(--accent)'; starsBtn.style.color = '#fff';
-            tonBtn.style.background = 'rgba(255,255,255,0.06)'; tonBtn.style.borderColor = 'rgba(255,255,255,0.10)'; tonBtn.style.color = 'rgba(255,255,255,0.5)';
-            inputIcon.src = '/static/img/star.svg';
-            outputIcon.src = '/static/img/ton.svg';
-        }
-        document.getElementById('exchangeInput').value = '';
-        document.getElementById('exchangeOutput').textContent = '0';
-        document.getElementById('exchangeBtn').disabled = true;
-        document.getElementById('exchangeBtn').style.opacity = '0.5';
-    }
-
-    function updateExchangePreview() {
-        const val = parseFloat(document.getElementById('exchangeInput').value) || 0;
-        let output = 0;
-        if (exchangeDir === 'ton_to_stars') {
-            output = Math.floor(val * EXCHANGE_RATE);
-        } else {
-            output = (val / EXCHANGE_RATE).toFixed(2);
-        }
-        document.getElementById('exchangeOutput').textContent = output;
-        const valid = val > 0;
-        document.getElementById('exchangeBtn').disabled = !valid;
-        document.getElementById('exchangeBtn').style.opacity = valid ? '1' : '0.5';
-    }
-
-    async function doExchange() {
-        if (!currentUser) return;
-        const val = parseFloat(document.getElementById('exchangeInput').value) || 0;
-        if (val <= 0) return;
-        const btn = document.getElementById('exchangeBtn');
-        btn.disabled = true; btn.textContent = 'Обмен...';
-        try {
-            const res = await fetch('/api/exchange', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ telegram_id: currentUser.telegram_id, direction: exchangeDir, amount: val })
-            });
-            const data = await res.json();
-            if (data.success) {
-                currentUser.balance = data.new_balance;
-                localStorage.setItem('luna_user', JSON.stringify(currentUser));
-                updateUI();
-                showNotification(data.message || 'Обмен выполнен!', 'success');
-                document.getElementById('exchangeInput').value = '';
-                document.getElementById('exchangeOutput').textContent = '0';
-            } else {
-                showNotification(data.error || 'Ошибка обмена', 'error');
-            }
-        } catch (e) {
-            showNotification('Ошибка соединения', 'error');
-        }
-        btn.disabled = false; btn.textContent = 'Обменять';
-        btn.style.opacity = '0.5';
+            } else {showNotification(d.error || 'Ошибка вывода', 'error');}
+        } catch(e){showNotification('Ошибка соединения', 'error');}
     }
 
     document.addEventListener('DOMContentLoaded',async function(){
@@ -508,7 +524,7 @@
         setLoadProgress(65, 'TON Connect...');
         initTonConnect();
         setLoadProgress(75, 'Загрузка инвентаря...');
-        try{await Promise.all([loadInventory(),loadReferralStats()]);}catch(e){console.error(e);}
+        try{await loadInventory();}catch(e){console.error(e);}
         try{if(currentUser&&currentUser.is_admin)document.getElementById('adminLink').style.display='block';}catch(e){console.error(e);}
         dismissLoading();
     });

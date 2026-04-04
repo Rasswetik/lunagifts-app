@@ -41,7 +41,8 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000  # 1 year cache for static fi
 
 ADMIN_IDS = [5257227756, 7589153715]
 BOT_TOKEN = os.environ.get('BOT_TOKEN', '8338591585:AAH8ezZ8xO7Y9KlU9GQe4Sj5nhdCIyOaXnE')
-WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://lunagifts.onrender.com')
+WEBAPP_URL = os.environ.get('WEBAPP_URL', 'https://lunagifts.fun')
+DEALER_ACCOUNT = '@LunaDealer'  # Telegram account used for gift withdrawals
 MIN_WITHDRAW = 15
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
@@ -71,7 +72,8 @@ _settings_path_maint = None  # will use load_settings
 @app.before_request
 def ensure_background_threads():
     """Ensure background threads are running (called once)."""
-    start_background_threads()
+    if 'start_background_threads' in globals():
+        start_background_threads()
 
 
 @app.before_request
@@ -142,6 +144,9 @@ p{{margin:0;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.5;}}
 
 # ============ CRASH GAME ENGINE (server-side multiplayer) ============
 
+import hashlib as _hashlib
+import hmac as _hmac
+
 _crash_cache = {
     'game_id': 0,
     'status': 'waiting',       # waiting | counting | flying | crashed
@@ -150,6 +155,8 @@ _crash_cache = {
     'countdown': 0,
     'start_time': 0,
     'crash_profit_balance': 0,  # running site profit for multiplier generation
+    'hash': '',                 # provably fair game hash
+    'server_seed': '',          # hidden until crash
 }
 _crash_lock = threading.Lock()
 
@@ -164,47 +171,125 @@ def update_crash_cache(**kwargs):
         _crash_cache.update(kwargs)
 
 
+def _crash_generate_hash(seed):
+    """Generate provably fair SHA-256 hash from server seed."""
+    return _hashlib.sha256(seed.encode()).hexdigest().upper()
+
+
 def generate_crash_multiplier():
-    """Generate a crash multiplier with ~5% house edge, considering profit balance."""
+    """Generate a crash multiplier with RTP ~85% (15% house edge),
+    considering global profit balance AND per-user loss tracking.
+    If a big loser is playing, allow higher multiplier — but only if
+    other players aren't also expecting huge cashout."""
     profit = _crash_cache.get('crash_profit_balance', 0)
+
+    # Generate provably fair seed + hash
+    server_seed = f"{_time.time()}-{random.random()}-{random.randint(0, 999999)}"
+    game_hash = _crash_generate_hash(server_seed)
+
+    # --- Per-user adaptive analysis ---
+    # Check bets placed for current game to see if a big loser is playing
+    max_user_loss = 0      # most negative crash_net_profit among current bettors (positive = user lost that much)
+    max_loser_bet = 0      # that user's bet amount
+    total_bets_amount = 0  # sum of all bets this round
+    other_bets_amount = 0  # bets from non-losers
+    try:
+        game_id = _crash_cache.get('game_id', 0)
+        if game_id:
+            db = connect_db()
+            bets = db.execute(
+                "SELECT cb.user_id, cb.bet_amount, u.crash_net_profit "
+                "FROM crash_bets cb JOIN users u ON cb.user_id = u.telegram_id "
+                "WHERE cb.game_id = ? AND cb.status = 'playing'",
+                (game_id,)
+            ).fetchall()
+            for b in bets:
+                ba = b['bet_amount']
+                cnp = b['crash_net_profit'] or 0  # positive = user lost money to site
+                total_bets_amount += ba
+                if cnp > max_user_loss:
+                    max_user_loss = cnp
+                    max_loser_bet = ba
+                if cnp <= 0:
+                    other_bets_amount += ba
+            db.close()
+    except Exception:
+        pass
 
     r = random.random()
 
-    # Adjust probabilities based on site profit
+    # RTP 85%: house edge = 15%
+    # P(instant crash) adjusts based on profit, base ~8%
     if profit < -500:
         # Site is losing — more low crashes
-        if r < 0.15:
-            return 1.00
-        if r < 0.40:
-            return round(random.uniform(1.01, 1.5), 2)
-        return round(max(1.01, 0.99 / r), 2)
+        if r < 0.18:
+            mult = 1.00
+        elif r < 0.45:
+            mult = round(random.uniform(1.01, 1.4), 2)
+        else:
+            mult = round(max(1.01, 0.85 / r), 2)
     elif profit > 500:
         # Site is profiting — allow bigger multipliers
-        if r < 0.03:
-            return 1.00
-        return round(max(1.01, 0.97 / r), 2)
+        if r < 0.04:
+            mult = 1.00
+        else:
+            mult = round(max(1.01, 0.85 / r), 2)
     else:
-        # Normal
-        if r < 0.05:
-            return 1.00
-        return round(max(1.01, 0.95 / r), 2)
+        # Normal — RTP 85%
+        if r < 0.08:
+            mult = 1.00
+        else:
+            mult = round(max(1.01, 0.85 / r), 2)
+
+    # --- Per-user adaptive boost ---
+    # If a big loser is playing, allow them to win bigger (boost upper bound).
+    # max_user_loss > 0 means the user has lost that much to the site.
+    # We allow up to 20% of their total loss / their current bet as max multiplier.
+    # But cap at 50x and only if other non-loser bets are small enough
+    # (we don't want to also pay out big to profitable users).
+    if max_user_loss > 0 and max_loser_bet > 0:
+        # How much can we "give back" safely? Up to 20% of their loss this round
+        max_giveback_mult = min(max_user_loss * 0.2 / max_loser_bet, 50.0)
+        # If other (non-loser) players have large bets, reduce the boost
+        # to avoid site overpaying everyone
+        if other_bets_amount > 0 and total_bets_amount > 0:
+            loser_share = max_loser_bet / total_bets_amount
+            # Scale boost by how much of total pot is the loser's bet
+            max_giveback_mult *= loser_share
+        if max_giveback_mult > mult and max_giveback_mult >= 2.0:
+            # Randomly decide whether to apply the boost (60% chance when eligible)
+            if random.random() < 0.6:
+                # Generate a boosted multiplier between current mult and max_giveback
+                boost = round(random.uniform(mult, min(max_giveback_mult, 50.0)), 2)
+                mult = max(mult, boost)
+
+    update_crash_cache(hash=game_hash, server_seed=server_seed)
+    return mult, game_hash, server_seed
 
 
 def start_crash_loop():
     """Background thread running the crash game loop."""
+    # File-based lock so only one gunicorn worker runs the loop
+    import fcntl as _fcntl
+    lockfile = open('/tmp/lunagifts_crash.lock', 'w')
+    try:
+        _fcntl.flock(lockfile, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+    except (IOError, OSError):
+        logging.info("Crash loop: another worker holds the lock, skipping")
+        return
     logging.info("Crash game loop started")
 
     while True:
         try:
             db = connect_db()
 
-            # --- Create new game ---
-            target = generate_crash_multiplier()
+            # --- Create new game (placeholder target, real target set after bets) ---
+            placeholder_target = 2.00
             now = _time.time()
             db.execute(
                 "INSERT INTO crash_games (status, target_multiplier, current_multiplier, start_time) "
                 "VALUES (?, ?, ?, ?)",
-                ('waiting', target, 1.00, now)
+                ('waiting', placeholder_target, 1.00, now)
             )
             db.commit()
             game = db.execute("SELECT * FROM crash_games ORDER BY id DESC LIMIT 1").fetchone()
@@ -212,22 +297,29 @@ def start_crash_loop():
 
             update_crash_cache(
                 game_id=game_id, status='waiting', multiplier=1.00,
-                target_multiplier=target, countdown=0, start_time=now
+                target_multiplier=placeholder_target, countdown=0, start_time=now
             )
-            logging.info(f"Crash game #{game_id} created, target={target}")
+            logging.info(f"Crash game #{game_id} created (awaiting bets)")
 
             # --- Waiting phase (3s) ---
             _time.sleep(3.0)
 
-            # --- Counting phase (3s countdown) ---
+            # --- Counting phase (10s countdown) ---
             db.execute("UPDATE crash_games SET status='counting' WHERE id=?", (game_id,))
             db.commit()
-            update_crash_cache(status='counting', countdown=3.0)
+            update_crash_cache(status='counting', countdown=10.0)
 
-            for i in range(6):
-                remaining = 3.0 - i * 0.5
+            for i in range(20):
+                remaining = 10.0 - i * 0.5
                 update_crash_cache(countdown=max(0, remaining))
                 _time.sleep(0.5)
+
+            # --- Generate real target AFTER all bets are in ---
+            target, game_hash, server_seed = generate_crash_multiplier()
+            db.execute("UPDATE crash_games SET target_multiplier=?, game_hash=? WHERE id=?", (target, game_hash, game_id))
+            db.commit()
+            update_crash_cache(target_multiplier=target)
+            logging.info(f"Crash game #{game_id} target set to {target}x")
 
             # --- Flying phase ---
             db.execute("UPDATE crash_games SET status='flying', start_time=? WHERE id=?", (_time.time(), game_id))
@@ -235,32 +327,86 @@ def start_crash_loop():
             update_crash_cache(status='flying', multiplier=1.00, start_time=_time.time())
 
             current = 1.00
+            db_write_counter = 0
             while current < target:
-                _time.sleep(0.08)
-
-                # Increment speed depends on current multiplier
-                if current < 1.5:
-                    inc = random.uniform(0.01, 0.03)
-                elif current < 3.0:
-                    inc = random.uniform(0.02, 0.06)
+                # Speed increases as multiplier grows
+                if current < 2.0:
+                    _time.sleep(0.06)
+                elif current < 5.0:
+                    _time.sleep(0.04)
                 elif current < 10.0:
-                    inc = random.uniform(0.04, 0.15)
+                    _time.sleep(0.025)
                 else:
-                    inc = random.uniform(0.10, 0.40)
+                    _time.sleep(0.008)
 
-                current = round(current + inc, 2)
+                current = round(current + 0.01, 2)
                 if current >= target:
                     current = target
                     break
 
-                db.execute("UPDATE crash_games SET current_multiplier=? WHERE id=?", (current, game_id))
-                db.commit()
+                # Update cache every tick for live display
                 update_crash_cache(multiplier=current)
+
+                # Server-side auto-cashout: process bets with auto_cashout_at <= current
+                try:
+                    auto_bets = db.execute(
+                        "SELECT * FROM crash_bets WHERE game_id=? AND status='playing' AND auto_cashout_at > 0 AND auto_cashout_at <= ?",
+                        (game_id, current)
+                    ).fetchall()
+                    for ab in auto_bets:
+                        ac_mult = ab['auto_cashout_at']
+                        ac_winnings = round(ab['bet_amount'] * ac_mult)
+                        ac_profit = ab['bet_amount'] - ac_winnings
+                        with _crash_lock:
+                            _crash_cache['crash_profit_balance'] = _crash_cache.get('crash_profit_balance', 0) + ac_profit
+                        try:
+                            db.execute('UPDATE users SET crash_net_profit = crash_net_profit - ? WHERE telegram_id = ?', (ac_winnings, ab['user_id']))
+                        except Exception:
+                            pass
+                        CRASH_GIFT_MIN_AC = 50
+                        ac_won_gift = None
+                        if ac_winnings >= CRASH_GIFT_MIN_AC:
+                            gifts = load_gifts()
+                            eligible = [g for g in gifts
+                                        if (g.get('crash_eligible') or (g.get('slug') and not g.get('telegram_gift_id')))
+                                        and g.get('price', 0) >= CRASH_GIFT_MIN_AC
+                                        and g.get('price', 0) <= ac_winnings
+                                        and g.get('image')]
+                            if eligible:
+                                eligible.sort(key=lambda g: g['price'], reverse=True)
+                                ac_won_gift = eligible[0]
+                        if ac_won_gift:
+                            ac_gift_price = ac_won_gift['price']
+                            ac_remaining = ac_winnings - ac_gift_price
+                            db.execute(
+                                'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, ?)',
+                                (ab['user_id'], ac_won_gift.get('id', 0), ac_won_gift['name'], ac_won_gift['image'], ac_gift_price, 'gift')
+                            )
+                            if ac_remaining > 0:
+                                db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (ac_remaining, ab['user_id']))
+                        else:
+                            db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (ac_winnings, ab['user_id']))
+                        ac_won_img = ac_won_gift['image'] if ac_won_gift else ''
+                        db.execute(
+                            "UPDATE crash_bets SET status='won', cashout_multiplier=?, win_amount=?, won_gift_image=? WHERE id=?",
+                            (ac_mult, ac_winnings, ac_won_img, ab['id'])
+                        )
+                    if auto_bets:
+                        db.commit()
+                except Exception as e:
+                    logging.error(f"Auto-cashout error: {e}")
+
+                # Write DB less frequently (every 10 ticks) to reduce IO
+                db_write_counter += 1
+                if db_write_counter >= 10:
+                    db.execute("UPDATE crash_games SET current_multiplier=? WHERE id=?", (current, game_id))
+                    db.commit()
+                    db_write_counter = 0
 
             # --- Crashed ---
             db.execute(
-                "UPDATE crash_games SET status='crashed', current_multiplier=? WHERE id=?",
-                (target, game_id)
+                "UPDATE crash_games SET status='crashed', current_multiplier=?, server_seed=? WHERE id=?",
+                (target, server_seed, game_id)
             )
 
             # Mark all playing bets as lost
@@ -291,6 +437,10 @@ def start_crash_loop():
 
         except Exception as e:
             logging.error(f"Crash loop error: {e}")
+            try:
+                db.close()
+            except Exception:
+                pass
             _time.sleep(2)
 
 
@@ -612,6 +762,13 @@ def _pvp_finalize_game(db, game_id):
 
 def start_pvp_loop():
     """Background thread for PVP finalization only."""
+    import fcntl as _fcntl
+    lockfile = open('/tmp/lunagifts_pvp.lock', 'w')
+    try:
+        _fcntl.flock(lockfile, _fcntl.LOCK_EX | _fcntl.LOCK_NB)
+    except (IOError, OSError):
+        logging.info("PVP loop: another worker holds the lock, skipping")
+        return
     logging.info("PVP finalization loop started")
     
     # Clean up stuck games
@@ -940,6 +1097,13 @@ async def successful_payment_handler(message: types.Message):
     if charge_id:
         db.execute('INSERT OR IGNORE INTO star_transactions (telegram_id, charge_id, amount) VALUES (?, ?, ?)',
                    (telegram_id, charge_id, amount))
+
+    # Record in deposit history
+    try:
+        db.execute('INSERT INTO deposit_history (telegram_id, method, amount, stars_amount, usd_amount) VALUES (?, ?, ?, ?, ?)',
+                   (telegram_id, 'stars', amount, amount, round(amount * 0.02, 4)))
+    except Exception:
+        pass
 
     # 5% referral commission
     user = db.execute('SELECT referred_by FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
@@ -1480,6 +1644,16 @@ def api_topup_confirm():
     # Credit balance + deposited_balance + total_topup
     db.execute('UPDATE users SET balance = balance + ?, deposited_balance = deposited_balance + ?, total_topup = total_topup + ? WHERE telegram_id = ?', (amount, amount, amount, telegram_id))
 
+    # Record deposit in history
+    method = data.get('method', 'ton')
+    ton_amount = amount / 100.0 if method == 'ton' else 0
+    usd_est = ton_amount * 2.74 if method == 'ton' else amount * 0.02
+    try:
+        db.execute('INSERT INTO deposit_history (telegram_id, method, amount, stars_amount, usd_amount) VALUES (?, ?, ?, ?, ?)',
+                   (telegram_id, method, ton_amount if method == 'ton' else amount, amount, round(usd_est, 4)))
+    except Exception:
+        pass
+
     # 5% referral commission (goes to earned balance only, NOT deposited)
     if user['referred_by'] and user['referred_by'] > 0:
         commission = amount * 0.05
@@ -1535,6 +1709,50 @@ def api_exchange():
         return jsonify({'success': True, 'new_balance': updated['balance'], 'message': f'Обменяно на {ton_amount:.2f} TON'})
 
     return jsonify({'error': 'Unknown direction'}), 400
+
+
+# ============ DEPOSIT HISTORY API ============
+
+@app.route('/api/deposits/history/<int:telegram_id>')
+def api_deposit_history(telegram_id):
+    db = get_db()
+    try:
+        rows = db.execute(
+            'SELECT * FROM deposit_history WHERE telegram_id = ? ORDER BY created_at DESC LIMIT 50',
+            (telegram_id,)
+        ).fetchall()
+        return jsonify([{
+            'id': r['id'],
+            'method': r['method'],
+            'amount': r['amount'],
+            'stars_amount': r['stars_amount'],
+            'usd_amount': r['usd_amount'],
+            'created_at': str(r['created_at'])
+        } for r in rows])
+    except Exception:
+        return jsonify([])
+
+
+# ============ MARKET COLLECTIONS API ============
+
+@app.route('/api/market/collections')
+def api_market_collections():
+    """Return unique collections (by slug) with highest price for market filters."""
+    gifts = load_gifts()
+    collections = {}
+    for g in gifts:
+        slug = g.get('slug', '')
+        if slug and not g.get('telegram_gift_id'):
+            if slug not in collections or g.get('price', 0) > collections[slug]['price']:
+                collections[slug] = {
+                    'slug': slug,
+                    'name': g['name'],
+                    'image': g.get('image', ''),
+                    'thumb_url': f'https://fragment.com/file/gifts/{slug}/thumb.webp',
+                    'price': g.get('price', 0)
+                }
+    sorted_cols = sorted(collections.values(), key=lambda c: c['price'], reverse=True)
+    return jsonify(sorted_cols)
 
 
 # ============ WITHDRAWAL API (Telethon — отправка подарков с аккаунта) ============
@@ -2438,7 +2656,214 @@ def api_admin_maintenance():
     })
 
 
-# ---------- Telegram catalog cache ----------
+# ============ LEADERBOARD ============
+
+@app.route('/leaderboard')
+def leaderboard_page():
+    return render_template('leaderboard.html')
+
+
+@app.route('/api/leaderboard')
+def api_leaderboard():
+    """Get current active leaderboard with rankings."""
+    import time as _time
+    db = get_db()
+    now = _time.time()
+
+    # Find active season
+    season = db.execute(
+        "SELECT * FROM leaderboard_seasons WHERE status = 'active' AND end_time > ? ORDER BY id DESC LIMIT 1",
+        (now,)
+    ).fetchone()
+
+    if not season:
+        # Check last finished season for results
+        last = db.execute(
+            "SELECT * FROM leaderboard_seasons WHERE status = 'finished' ORDER BY id DESC LIMIT 1"
+        ).fetchone()
+        return jsonify({'success': True, 'active': False, 'last_season_id': last['id'] if last else 0})
+
+    season_id = season['id']
+    start_time = season['start_time']
+    end_time = season['end_time']
+
+    # Get turnover rankings: SUM of all crash bets placed during this season
+    rankings = db.execute('''
+        SELECT cb.user_id, u.first_name, u.username, u.photo_url,
+               SUM(cb.bet_amount) as turnover
+        FROM crash_bets cb
+        JOIN users u ON u.telegram_id = cb.user_id
+        WHERE cb.created_at >= datetime(?, 'unixepoch')
+          AND cb.created_at <= datetime(?, 'unixepoch')
+        GROUP BY cb.user_id
+        ORDER BY turnover DESC
+        LIMIT 50
+    ''', (start_time, end_time)).fetchall()
+
+    # Get prizes for this season
+    prizes = db.execute(
+        'SELECT place, gift_id, gift_name, gift_image, gift_value FROM leaderboard_prizes WHERE season_id = ? ORDER BY place',
+        (season_id,)
+    ).fetchall()
+
+    return jsonify({
+        'success': True,
+        'active': True,
+        'season_id': season_id,
+        'start_time': start_time,
+        'end_time': end_time,
+        'rankings': [dict(r) for r in rankings],
+        'prizes': [dict(p) for p in prizes],
+    })
+
+
+@app.route('/api/leaderboard/results')
+def api_leaderboard_results():
+    """Get results of last finished season."""
+    db = get_db()
+    last = db.execute(
+        "SELECT * FROM leaderboard_seasons WHERE status = 'finished' ORDER BY id DESC LIMIT 1"
+    ).fetchone()
+    if not last:
+        return jsonify({'success': True, 'results': []})
+
+    results = db.execute('''
+        SELECT lr.place, lr.turnover, lr.user_id,
+               u.first_name, u.username, u.photo_url,
+               lr.prize_gift_id, lp.gift_name, lp.gift_image, lp.gift_value
+        FROM leaderboard_results lr
+        JOIN users u ON u.telegram_id = lr.user_id
+        LEFT JOIN leaderboard_prizes lp ON lp.season_id = lr.season_id AND lp.place = lr.place
+        WHERE lr.season_id = ?
+        ORDER BY lr.place
+    ''', (last['id'],)).fetchall()
+
+    return jsonify({
+        'success': True,
+        'season_id': last['id'],
+        'start_time': last['start_time'],
+        'end_time': last['end_time'],
+        'results': [dict(r) for r in results],
+    })
+
+
+@app.route('/api/admin/leaderboard', methods=['GET'])
+def api_admin_leaderboard_get():
+    """Get current leaderboard config for admin."""
+    db = get_db()
+    seasons = db.execute(
+        'SELECT * FROM leaderboard_seasons ORDER BY id DESC LIMIT 10'
+    ).fetchall()
+    result = []
+    for s in seasons:
+        prizes = db.execute(
+            'SELECT place, gift_id, gift_name, gift_image, gift_value FROM leaderboard_prizes WHERE season_id = ? ORDER BY place',
+            (s['id'],)
+        ).fetchall()
+        result.append({**dict(s), 'prizes': [dict(p) for p in prizes]})
+    return jsonify({'success': True, 'seasons': result})
+
+
+@app.route('/api/admin/leaderboard/create', methods=['POST'])
+def api_admin_leaderboard_create():
+    """Create a new leaderboard season."""
+    import time as _time
+    data = request.json or {}
+    admin_id = data.get('admin_id')
+    if not admin_id or not is_admin(admin_id):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    duration_hours = data.get('duration_hours', 168)  # default 1 week
+    prizes = data.get('prizes', [])  # [{place, gift_id, gift_name, gift_image, gift_value}]
+
+    now = _time.time()
+    end_time = now + float(duration_hours) * 3600
+
+    db = get_db()
+
+    # Deactivate any currently active season
+    db.execute("UPDATE leaderboard_seasons SET status = 'cancelled' WHERE status = 'active'")
+
+    season_id = db.insert_returning_id(
+        'leaderboard_seasons',
+        ['start_time', 'end_time', 'status'],
+        [now, end_time, 'active']
+    )
+
+    for p in prizes:
+        place = int(p.get('place', 0))
+        if place < 1 or place > 10:
+            continue
+        db.execute(
+            'INSERT INTO leaderboard_prizes (season_id, place, gift_id, gift_name, gift_image, gift_value) VALUES (?, ?, ?, ?, ?, ?)',
+            (season_id, place, int(p.get('gift_id', 0)), p.get('gift_name', ''), p.get('gift_image', ''), float(p.get('gift_value', 0)))
+        )
+
+    db.commit()
+    logging.info(f"Leaderboard season #{season_id} created by admin {admin_id}, duration={duration_hours}h, prizes={len(prizes)}")
+    return jsonify({'success': True, 'season_id': season_id})
+
+
+@app.route('/api/admin/leaderboard/end', methods=['POST'])
+def api_admin_leaderboard_end():
+    """End current season early and distribute prizes."""
+    import time as _time
+    data = request.json or {}
+    admin_id = data.get('admin_id')
+    if not admin_id or not is_admin(admin_id):
+        return jsonify({'error': 'Unauthorized'}), 403
+
+    db = get_db()
+    season = db.execute("SELECT * FROM leaderboard_seasons WHERE status = 'active' ORDER BY id DESC LIMIT 1").fetchone()
+    if not season:
+        return jsonify({'error': 'No active season'}), 400
+
+    season_id = season['id']
+    start_time = season['start_time']
+    now = _time.time()
+
+    # Get final rankings
+    rankings = db.execute('''
+        SELECT cb.user_id, SUM(cb.bet_amount) as turnover
+        FROM crash_bets cb
+        WHERE cb.created_at >= datetime(?, 'unixepoch')
+          AND cb.created_at <= datetime(?, 'unixepoch')
+        GROUP BY cb.user_id
+        ORDER BY turnover DESC
+        LIMIT 10
+    ''', (start_time, now)).fetchall()
+
+    # Get prizes
+    prizes = db.execute(
+        'SELECT place, gift_id, gift_name, gift_image, gift_value FROM leaderboard_prizes WHERE season_id = ? ORDER BY place',
+        (season_id,)
+    ).fetchall()
+    prize_map = {p['place']: dict(p) for p in prizes}
+
+    # Save results and award prizes
+    for i, r in enumerate(rankings):
+        place = i + 1
+        prize = prize_map.get(place)
+        prize_gift_id = prize['gift_id'] if prize else 0
+
+        db.execute(
+            'INSERT INTO leaderboard_results (season_id, place, user_id, turnover, prize_gift_id, prize_given) VALUES (?, ?, ?, ?, ?, ?)',
+            (season_id, place, r['user_id'], r['turnover'], prize_gift_id, 1 if prize else 0)
+        )
+
+        # Award prize: add gift to user inventory
+        if prize and prize['gift_id']:
+            db.execute(
+                "INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, 'gift')",
+                (r['user_id'], prize['gift_id'], prize['gift_name'], prize['gift_image'], prize['gift_value'])
+            )
+
+    # Mark season finished
+    db.execute("UPDATE leaderboard_seasons SET status = 'finished', end_time = ? WHERE id = ?", (now, season_id))
+    db.commit()
+
+    logging.info(f"Leaderboard season #{season_id} ended by admin {admin_id}, {len(rankings)} ranked, prizes distributed")
+    return jsonify({'success': True, 'ranked': len(rankings)})
 _tg_catalog_cache = {'gifts': [], 'balance': None, 'ts': 0}
 _TG_CATALOG_TTL = 300  # 5 min cache
 
@@ -2788,6 +3213,13 @@ def api_complete_task():
 def api_gifts():
     gifts = load_gifts()
     gifts.sort(key=lambda x: x.get('price', 0))
+    # Add Fragment CDN thumb URLs
+    for g in gifts:
+        slug = g.get('slug', '')
+        if slug and not g.get('telegram_gift_id'):
+            g['thumb_url'] = f'https://fragment.com/file/gifts/{slug}/thumb.webp'
+        else:
+            g['thumb_url'] = ''
     return jsonify(gifts)
 
 
@@ -2795,7 +3227,7 @@ def api_gifts():
 
 @app.route('/api/crash/status')
 def api_crash_status():
-    """Polled every 800ms by clients to get current game state."""
+    """Polled by clients to get current game state."""
     c = get_crash_cache()
     return jsonify({
         'success': True,
@@ -2803,6 +3235,9 @@ def api_crash_status():
         'status': c['status'],
         'multiplier': c['multiplier'],
         'countdown': c.get('countdown', 0),
+        'hash': c.get('hash', ''),
+        'start_time': c.get('start_time', 0),
+        'server_time': _time.time(),
     })
 
 
@@ -2811,6 +3246,14 @@ def api_crash_bet():
     data = request.json
     telegram_id = data.get('telegram_id')
     bet = data.get('bet', 0)
+    bet_type = data.get('bet_type', 'stars')  # 'stars' | 'gift'
+    gift_inventory_id = data.get('gift_inventory_id')  # inventory item id for gift bets
+    auto_cashout_at = data.get('auto_cashout_at', 0)
+    try:
+        auto_cashout_at = float(auto_cashout_at) if auto_cashout_at else 0
+    except (ValueError, TypeError):
+        auto_cashout_at = 0
+
     if not telegram_id or not bet or bet < 1:
         return jsonify({'error': 'Invalid bet'}), 400
 
@@ -2826,8 +3269,6 @@ def api_crash_bet():
     user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     if not user:
         return jsonify({'error': 'User not found'}), 404
-    if user['balance'] < bet:
-        return jsonify({'error': 'Недостаточно средств'}), 400
 
     # Check if already bet this game
     existing = db.execute(
@@ -2837,14 +3278,39 @@ def api_crash_bet():
     if existing:
         return jsonify({'error': 'Вы уже сделали ставку'}), 400
 
-    db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (bet, telegram_id))
+    if bet_type == 'gift' and gift_inventory_id:
+        # Gift bet: remove item from inventory, use its value as bet
+        inv_item = db.execute(
+            'SELECT * FROM inventory WHERE id = ? AND user_id = ?',
+            (gift_inventory_id, telegram_id)
+        ).fetchone()
+        if not inv_item:
+            return jsonify({'error': 'Подарок не найден'}), 404
+        bet = inv_item['gift_price']
+        gift_image = inv_item['gift_image'] or ''
+        db.execute('DELETE FROM inventory WHERE id = ?', (gift_inventory_id,))
+    else:
+        # Stars bet: deduct from balance
+        gift_image = ''
+        if user['balance'] < bet:
+            return jsonify({'error': 'Недостаточно средств'}), 400
+        db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (bet, telegram_id))
+
     db.execute(
-        'INSERT INTO crash_bets (game_id, user_id, bet_amount, status, first_name, photo_url) '
-        'VALUES (?, ?, ?, ?, ?, ?)',
+        'INSERT INTO crash_bets (game_id, user_id, bet_amount, status, first_name, photo_url, bet_type, gift_image, auto_cashout_at) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         (game_id, telegram_id, bet, 'playing',
          user['first_name'] or user['username'] or '',
-         user['photo_url'] or '')
+         user['photo_url'] or '',
+         bet_type or 'stars',
+         gift_image,
+         auto_cashout_at)
     )
+    # Track per-user loss: bet amount is money site gained from this user
+    try:
+        db.execute('UPDATE users SET crash_net_profit = crash_net_profit + ? WHERE telegram_id = ?', (bet, telegram_id))
+    except Exception:
+        pass
     db.commit()
 
     user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
@@ -2878,35 +3344,111 @@ def api_crash_cashout():
 
     winnings = round(bet['bet_amount'] * mult)
     profit = bet['bet_amount'] - winnings
-    update_crash_cache(
-        crash_profit_balance=_crash_cache.get('crash_profit_balance', 0) + profit
-    )
+    with _crash_lock:
+        _crash_cache['crash_profit_balance'] = _crash_cache.get('crash_profit_balance', 0) + profit
 
+    # Track per-user: subtract winnings from their net loss
+    try:
+        db.execute('UPDATE users SET crash_net_profit = crash_net_profit - ? WHERE telegram_id = ?', (winnings, telegram_id))
+    except Exception:
+        pass
+
+    CRASH_GIFT_MIN = 50
+    won_gift = None
+
+    if winnings >= CRASH_GIFT_MIN:
+        # Find the most expensive NFT gift the player can afford (has slug, no telegram_gift_id)
+        gifts = load_gifts()
+        eligible = [g for g in gifts
+                    if (g.get('crash_eligible') or (g.get('slug') and not g.get('telegram_gift_id')))
+                    and g.get('price', 0) >= CRASH_GIFT_MIN
+                    and g.get('price', 0) <= winnings
+                    and g.get('image')]
+        if eligible:
+            eligible.sort(key=lambda g: g['price'], reverse=True)
+            won_gift = eligible[0]
+
+    if won_gift:
+        # Give gift to inventory, remaining value as stars
+        gift_price = won_gift['price']
+        remaining_stars = winnings - gift_price
+        db.execute(
+            'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, ?)',
+            (telegram_id, won_gift.get('id', 0), won_gift['name'], won_gift['image'], gift_price, 'gift')
+        )
+        if remaining_stars > 0:
+            db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (remaining_stars, telegram_id))
+    else:
+        # Below threshold — give all as stars
+        db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (winnings, telegram_id))
+
+    won_gift_image = won_gift['image'] if won_gift else ''
     db.execute(
-        "UPDATE crash_bets SET status='won', cashout_multiplier=?, win_amount=? WHERE id=?",
-        (mult, winnings, bet['id'])
+        "UPDATE crash_bets SET status='won', cashout_multiplier=?, win_amount=?, won_gift_image=? WHERE id=?",
+        (mult, winnings, won_gift_image, bet['id'])
     )
-    db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (winnings, telegram_id))
     db.commit()
 
     user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
-    return jsonify({
+    result = {
         'success': True,
         'new_balance': user['balance'],
         'winnings': winnings,
         'multiplier': mult
-    })
+    }
+    if won_gift:
+        result['gift'] = {
+            'name': won_gift['name'],
+            'image': won_gift['image'],
+            'price': won_gift['price']
+        }
+        result['remaining_stars'] = winnings - won_gift['price']
+    return jsonify(result)
 
 
 @app.route('/api/crash/history')
 def api_crash_history():
     db = get_db()
     rows = db.execute(
-        "SELECT final_multiplier FROM crash_history ORDER BY id DESC LIMIT 20"
+        "SELECT game_id, final_multiplier FROM crash_history ORDER BY id DESC LIMIT 20"
     ).fetchall()
+    history = []
+    for r in rows:
+        h = {'multiplier': r['final_multiplier']}
+        # Get real provably fair hash from crash_games
+        game = db.execute('SELECT game_hash FROM crash_games WHERE id = ?', (r['game_id'],)).fetchone()
+        if game and game['game_hash']:
+            h['hash'] = game['game_hash'][:12].upper()
+        else:
+            h['hash'] = _hashlib.sha256(str(r['game_id']).encode()).hexdigest()[:12].upper()
+        history.append(h)
     return jsonify({
         'success': True,
-        'history': [{'multiplier': r['final_multiplier']} for r in rows]
+        'history': history
+    })
+
+
+@app.route('/api/crash/verify/<int:game_id>')
+def api_crash_verify(game_id):
+    """Reveal server seed + hash for a finished game so users can verify."""
+    db = get_db()
+    game = db.execute(
+        "SELECT id, status, target_multiplier, game_hash, server_seed FROM crash_games WHERE id = ?",
+        (game_id,)
+    ).fetchone()
+    if not game:
+        return jsonify({'error': 'Game not found'}), 404
+    if game['status'] != 'crashed':
+        return jsonify({'error': 'Game not yet finished — seed hidden'}), 400
+    # Verify: sha256(server_seed) should equal game_hash
+    computed = _hashlib.sha256(game['server_seed'].encode()).hexdigest().upper() if game['server_seed'] else ''
+    return jsonify({
+        'success': True,
+        'game_id': game['id'],
+        'final_multiplier': game['target_multiplier'],
+        'game_hash': game['game_hash'],
+        'server_seed': game['server_seed'],
+        'hash_matches': computed == game['game_hash'],
     })
 
 
@@ -2931,8 +3473,343 @@ def api_crash_bets():
             'status': r['status'],
             'cashout_mult': r['cashout_multiplier'] or 0,
             'win_amount': r['win_amount'] or 0,
+            'bet_type': r['bet_type'] if 'bet_type' in r.keys() else 'stars',
+            'gift_image': r['gift_image'] if 'gift_image' in r.keys() else '',
+            'won_gift_image': r['won_gift_image'] if 'won_gift_image' in r.keys() else '',
+            'auto_cashout_at': r['auto_cashout_at'] if 'auto_cashout_at' in r.keys() else 0,
         })
     return jsonify({'success': True, 'bets': bets})
+
+
+# ============ SLOTS API ============
+
+SLOTS_TIERS = {
+    50:   {'name': 'Lucky Cake',  'gif': '/static/gifs/slots/cake.gif',  'nothing_chance': 35, 'star_pools': [20, 40, 60, 90],      'gift_min': 0,    'gift_max': 350},
+    150:  {'name': 'Fast Car',    'gif': '/static/gifs/slots/car.gif',   'nothing_chance': 28, 'star_pools': [60, 120, 180, 250],   'gift_min': 250,  'gift_max': 600},
+    200:  {'name': 'Cigar Club',  'gif': '/static/gifs/slots/cigar.gif', 'nothing_chance': 22, 'star_pools': [100, 170, 260, 380],  'gift_min': 300,  'gift_max': 800},
+    500:  {'name': 'Clown Fest',  'gif': '/static/gifs/slots/clown.gif', 'nothing_chance': 16, 'star_pools': [250, 400, 600, 900],  'gift_min': 400,  'gift_max': 2000},
+    1500: {'name': 'Royal Spin',  'gif': '/static/gifs/mods/slots.gif',  'nothing_chance': 10, 'star_pools': [600, 1200, 1800, 2800], 'gift_min': 800,  'gift_max': 10000},
+}
+
+# Custom slot: user picks bet, combos determine multiplier
+CUSTOM_SLOT_COMBOS = [
+    {'symbol': 'bear',     'image': '/static/img/slots/bear.png',     'name': 'Мишка',      'multi': 1.5, 'chance': 13},
+    {'symbol': 'clown',    'image': '/static/img/slots/clown.png',    'name': 'Клоун',      'multi': 1.8, 'chance': 8},
+    {'symbol': 'rocket',   'image': '/static/img/slots/rocket.png',   'name': 'Ракета',     'multi': 2.0, 'chance': 5},
+    {'symbol': 'diamond',  'image': '/static/img/slots/diamond.png',  'name': 'Алмаз',      'multi': 2.5, 'chance': 3},
+    {'symbol': 'calendar', 'image': '/static/img/slots/calendar.png', 'name': 'Календарь',  'multi': 4.0, 'chance': 1.8},
+    {'symbol': 'book',     'image': '/static/img/slots/book.png',     'name': 'Книга',      'multi': 7.0, 'chance': 1.0},
+    {'symbol': 'candle',   'image': '/static/img/slots/candle.png',   'name': 'Свеча',      'multi': 10.0,'chance': 0.5},
+]
+
+# Special layout patterns for custom slot (checked after combo roll)
+CUSTOM_SLOT_PATTERNS = [
+    {'id': 'diagonal_down', 'name': 'Диагональ ↘',  'multi_bonus': 1.5, 'chance': 4.0,
+     'cells': [[0,0],[1,1],[2,2]], 'desc': '3 одинаковых по диагонали ↘'},
+    {'id': 'diagonal_up',   'name': 'Диагональ ↗',  'multi_bonus': 1.5, 'chance': 4.0,
+     'cells': [[0,2],[1,1],[2,0]], 'desc': '3 одинаковых по диагонали ↗'},
+    {'id': 'top_row',       'name': 'Верхний ряд',   'multi_bonus': 1.3, 'chance': 5.0,
+     'cells': [[0,0],[1,0],[2,0]], 'desc': '3 одинаковых в верхнем ряду'},
+    {'id': 'bottom_row',    'name': 'Нижний ряд',    'multi_bonus': 1.3, 'chance': 5.0,
+     'cells': [[0,2],[1,2],[2,2]], 'desc': '3 одинаковых в нижнем ряду'},
+    {'id': 'full_grid',     'name': 'Фулл 🔥',       'multi_bonus': 3.0, 'chance': 0.3,
+     'cells': 'all', 'desc': 'Все 9 клеток одинаковые'},
+]
+# Remaining chance (~72%) = no combo → 30% of bet returned
+
+
+@app.route('/api/slots/gifts')
+def api_slots_gifts():
+    """Return all gifts available for slots, organized by tier, plus slot definitions."""
+    gifts = load_gifts()
+    nft_gifts = [g for g in gifts if g.get('slug') and not g.get('telegram_gift_id')]
+    tiers = {}
+    slots_list = []
+    for bet_amount, cfg in sorted(SLOTS_TIERS.items()):
+        eligible = [g for g in nft_gifts if cfg['gift_min'] <= g.get('price', 0) <= cfg['gift_max']]
+        # Sort by price descending (highest first)
+        eligible.sort(key=lambda g: g.get('price', 0), reverse=True)
+        tier_items = []
+        for g in eligible:
+            slug = g.get('slug', '')
+            tier_items.append({
+                'id': g['id'], 'name': g['name'], 'image': g.get('image', ''),
+                'thumb_url': f'https://fragment.com/file/gifts/{slug}/thumb.webp' if slug else '',
+                'price': g.get('price', 0), 'slug': slug
+            })
+        tiers[str(bet_amount)] = tier_items
+        slots_list.append({
+            'bet': bet_amount, 'name': cfg['name'], 'gif': cfg['gif'],
+            'gift_count': len(tier_items)
+        })
+    # Add custom slot entry
+    custom_combos = [{'symbol': c['symbol'], 'image': c['image'], 'name': c['name'], 'multi': c['multi']}
+                     for c in CUSTOM_SLOT_COMBOS]
+    slots_list.append({
+        'bet': 0, 'name': 'Custom', 'gif': '/static/img/slots/diamond.png',
+        'gift_count': len(CUSTOM_SLOT_COMBOS), 'custom': True, 'combos': custom_combos,
+        'patterns': [{'id': p['id'], 'name': p['name'], 'multi_bonus': p['multi_bonus'], 'desc': p['desc'],
+                      'cells': p['cells']} for p in CUSTOM_SLOT_PATTERNS]
+    })
+    return jsonify({'success': True, 'tiers': tiers, 'slots': slots_list})
+
+
+@app.route('/api/slots/spin', methods=['POST'])
+def api_slots_spin():
+    """Spin the slot machine. Returns 3×3 grid + result."""
+    data = request.json
+    telegram_id = data.get('telegram_id')
+    bet_amount = data.get('bet_amount')
+
+    if not telegram_id or not bet_amount:
+        return jsonify({'error': 'Missing parameters'}), 400
+    bet_amount = int(bet_amount)
+    if bet_amount not in SLOTS_TIERS:
+        return jsonify({'error': 'Invalid bet amount'}), 400
+
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user['balance'] < bet_amount:
+        return jsonify({'error': 'Недостаточно звёзд'}), 400
+
+    # Deduct balance
+    db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (bet_amount, telegram_id))
+
+    cfg = SLOTS_TIERS[bet_amount]
+    gifts = load_gifts()
+    nft_gifts = [g for g in gifts if g.get('slug') and not g.get('telegram_gift_id')
+                 and cfg['gift_min'] <= g.get('price', 0) <= cfg['gift_max']]
+
+    # Build symbol pool for reels (only gift images shown on reels)
+    reel_symbols = []
+    for g in nft_gifts:
+        reel_symbols.append({'type': 'gift', 'id': g['id'], 'name': g['name'],
+                        'image': g.get('image', ''), 'price': g.get('price', 0),
+                        'slug': g.get('slug', '')})
+    if not reel_symbols:
+        reel_symbols = [{'type': 'nothing', 'name': 'Nothing', 'image': '/static/img/star.svg', 'price': 0}]
+
+    # Determine win (house edge ~75-85% depending on tier)
+    win_roll = random.random() * 100
+    won = False
+    won_symbol = None
+
+    # Win chance: ~15-25% depending on tier
+    win_chance = 100 - cfg['nothing_chance'] * 2
+    if win_chance < 12:
+        win_chance = 12
+
+    if win_roll < win_chance:
+        # Player wins — pick what they win
+        prize_roll = random.random() * 100
+        if prize_roll < 50 and cfg['star_pools']:
+            # Stars win
+            star_amt = random.choice(cfg['star_pools'])
+            won_symbol = {'type': 'stars', 'name': f'+{star_amt}', 'image': '/static/img/star.png', 'price': star_amt}
+        elif nft_gifts:
+            # Gift win
+            won_gift = random.choice(nft_gifts)
+            won_symbol = {'type': 'gift', 'id': won_gift['id'], 'name': won_gift['name'],
+                          'image': won_gift.get('image', ''), 'price': won_gift.get('price', 0),
+                          'slug': won_gift.get('slug', '')}
+        elif cfg['star_pools']:
+            star_amt = random.choice(cfg['star_pools'])
+            won_symbol = {'type': 'stars', 'name': f'+{star_amt}', 'image': '/static/img/star.png', 'price': star_amt}
+        won = won_symbol is not None
+
+    # Build 3×3 grid (3 reels, each with 3 visible symbols)
+    grid = []
+    if won and won_symbol:
+        # Winning row = middle row (index 1)
+        win_row = 1
+        for col in range(3):
+            reel = []
+            for row in range(3):
+                if row == win_row:
+                    reel.append(won_symbol)
+                else:
+                    s = random.choice(reel_symbols)
+                    reel.append(s)
+            grid.append(reel)
+    else:
+        # No win — random grid, ensure no 3 matches in any row
+        for col in range(3):
+            reel = []
+            for row in range(3):
+                reel.append(random.choice(reel_symbols))
+            grid.append(reel)
+        # Ensure no accidental win on any row
+        for row in range(3):
+            names = [grid[col][row]['name'] for col in range(3)]
+            if names[0] == names[1] == names[2] and names[0] != 'Nothing':
+                alt = random.choice([s for s in reel_symbols if s['name'] != names[0]] or reel_symbols)
+                grid[2][row] = alt
+
+    # Process win
+    result = {'won': False, 'grid': grid, 'prize': None}
+    if won and won_symbol:
+        result['won'] = True
+        result['prize'] = won_symbol
+        if won_symbol['type'] == 'stars':
+            db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?',
+                       (won_symbol['price'], telegram_id))
+        elif won_symbol['type'] == 'gift':
+            gift_data = next((g for g in gifts if g['id'] == won_symbol.get('id')), None)
+            if gift_data:
+                db.execute(
+                    'INSERT INTO inventory (user_id, gift_id, gift_name, gift_image, gift_price, item_type) VALUES (?, ?, ?, ?, ?, ?)',
+                    (telegram_id, gift_data['id'], gift_data['name'], gift_data.get('image', ''),
+                     gift_data.get('price', 0), 'gift')
+                )
+
+    db.commit()
+    user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    result['new_balance'] = user['balance']
+    result['success'] = True
+    return jsonify(result)
+
+
+@app.route('/api/slots/custom-info')
+def api_slots_custom_info():
+    """Return custom slot combos and patterns info."""
+    combos = [{'symbol': c['symbol'], 'image': c['image'], 'name': c['name'], 'multi': c['multi']}
+              for c in CUSTOM_SLOT_COMBOS]
+    patterns = [{'id': p['id'], 'name': p['name'], 'multi_bonus': p['multi_bonus'], 'desc': p['desc'],
+                 'cells': p['cells']} for p in CUSTOM_SLOT_PATTERNS]
+    return jsonify({'success': True, 'combos': combos, 'patterns': patterns})
+
+
+@app.route('/api/slots/custom-spin', methods=['POST'])
+def api_slots_custom_spin():
+    """Custom slot: user-defined bet amount, combo-based multipliers."""
+    data = request.json
+    telegram_id = data.get('telegram_id')
+    bet_amount = data.get('bet_amount')
+
+    if not telegram_id or not bet_amount:
+        return jsonify({'error': 'Missing parameters'}), 400
+    bet_amount = int(bet_amount)
+    if bet_amount < 10 or bet_amount > 50000:
+        return jsonify({'error': 'Ставка от 10 до 50 000'}), 400
+
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    if user['balance'] < bet_amount:
+        return jsonify({'error': 'Недостаточно звёзд'}), 400
+
+    db.execute('UPDATE users SET balance = balance - ? WHERE telegram_id = ?', (bet_amount, telegram_id))
+
+    # Determine result
+    roll = random.random() * 100
+    cumulative = 0
+    won_combo = None
+    for combo in CUSTOM_SLOT_COMBOS:
+        cumulative += combo['chance']
+        if roll < cumulative:
+            won_combo = combo
+            break
+
+    # Check for special pattern win (independent roll)
+    pattern_roll = random.random() * 100
+    won_pattern = None
+    pat_cumul = 0
+    for pat in CUSTOM_SLOT_PATTERNS:
+        pat_cumul += pat['chance']
+        if pattern_roll < pat_cumul:
+            won_pattern = pat
+            break
+
+    # Build 3×3 grid with combo symbols
+    all_symbols = [c['image'] for c in CUSTOM_SLOT_COMBOS]
+
+    if won_combo:
+        # Determine which line pattern to use
+        use_pattern = won_pattern if won_pattern else None
+        multi = won_combo['multi']
+        pattern_info = None
+
+        if use_pattern and use_pattern['cells'] == 'all':
+            # Full grid — all 9 cells same symbol
+            multi = won_combo['multi'] * use_pattern['multi_bonus']
+            payout = int(bet_amount * multi)
+            grid = [[{'image': won_combo['image'], 'name': won_combo['name']} for _ in range(3)] for _ in range(3)]
+            pattern_info = {'id': use_pattern['id'], 'name': use_pattern['name'], 'bonus': use_pattern['multi_bonus']}
+        elif use_pattern and use_pattern['cells'] != 'all':
+            # Pattern win — place combo on pattern cells
+            multi = won_combo['multi'] * use_pattern['multi_bonus']
+            payout = int(bet_amount * multi)
+            grid = []
+            for col in range(3):
+                reel = []
+                for row in range(3):
+                    other = random.choice([s for s in all_symbols if s != won_combo['image']] or all_symbols)
+                    reel.append({'image': other, 'name': ''})
+                grid.append(reel)
+            # Place combo symbol on pattern cells
+            for cell in use_pattern['cells']:
+                col, row = cell
+                grid[col][row] = {'image': won_combo['image'], 'name': won_combo['name']}
+            pattern_info = {'id': use_pattern['id'], 'name': use_pattern['name'], 'bonus': use_pattern['multi_bonus']}
+        else:
+            # Standard middle row win
+            payout = int(bet_amount * multi)
+            grid = []
+            for col in range(3):
+                reel = []
+                for row in range(3):
+                    if row == 1:
+                        reel.append({'image': won_combo['image'], 'name': won_combo['name']})
+                    else:
+                        other = random.choice([s for s in all_symbols if s != won_combo['image']] or all_symbols)
+                        reel.append({'image': other, 'name': ''})
+                grid.append(reel)
+
+        db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (payout, telegram_id))
+        db.commit()
+        user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        resp = {
+            'success': True, 'won': True, 'grid': grid,
+            'combo': {'name': won_combo['name'], 'image': won_combo['image'], 'multi': multi},
+            'payout': payout, 'new_balance': user['balance']
+        }
+        if pattern_info:
+            resp['pattern'] = pattern_info
+        return jsonify(resp)
+    else:
+        # No combo: 30% return
+        refund = int(bet_amount * 0.3)
+        grid = []
+        for col in range(3):
+            reel = []
+            for row in range(3):
+                reel.append({'image': random.choice(all_symbols), 'name': ''})
+            grid.append(reel)
+        # Ensure no accidental 3-match on any row/diagonal
+        for row_check in range(3):
+            imgs = [grid[c][row_check]['image'] for c in range(3)]
+            if imgs[0] == imgs[1] == imgs[2]:
+                alt = random.choice([s for s in all_symbols if s != imgs[0]] or all_symbols)
+                grid[2][row_check] = {'image': alt, 'name': ''}
+        # Check diagonals
+        diag1 = [grid[0][0]['image'], grid[1][1]['image'], grid[2][2]['image']]
+        if diag1[0] == diag1[1] == diag1[2]:
+            grid[2][2] = {'image': random.choice([s for s in all_symbols if s != diag1[0]] or all_symbols), 'name': ''}
+        diag2 = [grid[0][2]['image'], grid[1][1]['image'], grid[2][0]['image']]
+        if diag2[0] == diag2[1] == diag2[2]:
+            grid[2][0] = {'image': random.choice([s for s in all_symbols if s != diag2[0]] or all_symbols), 'name': ''}
+
+        if refund > 0:
+            db.execute('UPDATE users SET balance = balance + ? WHERE telegram_id = ?', (refund, telegram_id))
+        db.commit()
+        user = db.execute('SELECT balance FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        return jsonify({
+            'success': True, 'won': False, 'grid': grid,
+            'refund': refund, 'new_balance': user['balance']
+        })
 
 
 # ============ PVP WHEEL API ============
@@ -3098,6 +3975,38 @@ def api_pvp_history():
             'winner_photo': r['winner_photo'] or '',
         })
     return jsonify({'success': True, 'history': history})
+
+
+# ─── PVP Chat (in-memory, last 50 messages) ───
+_pvp_chat = []  # [{telegram_id, first_name, photo_url, text, ts}]
+_pvp_chat_lock = threading.Lock()
+
+@app.route('/api/pvp/chat', methods=['GET', 'POST'])
+def api_pvp_chat():
+    if request.method == 'POST':
+        data = request.json or {}
+        telegram_id = data.get('telegram_id')
+        text = str(data.get('text', '')).strip()[:200]
+        if not telegram_id or not text:
+            return jsonify({'error': 'Invalid data'}), 400
+        db = get_db()
+        user = db.execute('SELECT first_name, photo_url FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
+        msg = {
+            'telegram_id': telegram_id,
+            'first_name': (user['first_name'] if user else 'Игрок') or 'Игрок',
+            'photo_url': (user['photo_url'] if user else '') or '',
+            'text': text,
+            'ts': _time.time(),
+        }
+        with _pvp_chat_lock:
+            _pvp_chat.append(msg)
+            if len(_pvp_chat) > 50:
+                _pvp_chat.pop(0)
+        return jsonify({'success': True})
+    else:
+        with _pvp_chat_lock:
+            msgs = list(_pvp_chat)
+        return jsonify({'success': True, 'messages': msgs})
 
 
 @app.route('/api/buy', methods=['POST'])
@@ -3310,12 +4219,15 @@ def api_scratch():
 
 @app.route('/api/scratch/free-check/<int:telegram_id>')
 def api_scratch_free_check(telegram_id):
-    """Check if user has free first scratch available"""
+    """Check if user has free daily scratch available"""
+    from datetime import date
     db = get_db()
     user = db.execute('SELECT free_scratch_used FROM users WHERE telegram_id = ?', (telegram_id,)).fetchone()
     if not user:
         return jsonify({'has_free': False})
-    return jsonify({'has_free': not user['free_scratch_used']})
+    last_used = str(user['free_scratch_used'] or '')
+    today = date.today().isoformat()
+    return jsonify({'has_free': last_used != today})
 
 
 @app.route('/api/scratch/discount-check/<int:telegram_id>')
@@ -3357,10 +4269,14 @@ def api_scratch_play():
     is_free = False
     discount_promo_id = None
 
-    # Free first scratch for new users
-    if data.get('use_free') and not user['free_scratch_used']:
-        is_free = True
-        db.execute('UPDATE users SET free_scratch_used = 1 WHERE telegram_id = ?', (telegram_id,))
+    # Free daily scratch
+    if data.get('use_free'):
+        from datetime import date
+        last_used = str(user['free_scratch_used'] or '')
+        today = date.today().isoformat()
+        if last_used != today:
+            is_free = True
+            db.execute('UPDATE users SET free_scratch_used = ? WHERE telegram_id = ?', (today, telegram_id,))
     else:
         # Check for scratch discount promo (one-time use)
         if data.get('use_scratch_discount'):
@@ -4776,7 +5692,7 @@ def games():
 
 @app.route('/crash')
 def crash():
-    return redirect('/games')
+    return render_template('crash.html')
 
 
 @app.route('/pvp')
@@ -4787,6 +5703,11 @@ def pvp():
 @app.route('/scratch')
 def scratch():
     return render_template('scratch.html')
+
+
+@app.route('/slots')
+def slots():
+    return render_template('slots.html')
 
 
 @app.route('/topup')
